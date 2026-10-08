@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>S-12 행사 · S-13 섭외 게시판</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d4ed8}a:hover{color:#1e3a8a}
+.ph{background:#dcdcd7;display:flex;align-items:center;justify-content:center;color:#5f5f5a;font:500 11px 'IBM Plex Mono',monospace}
+.mk{position:absolute;top:-9px;left:-9px;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;z-index:3}
+.rel{position:relative}
+.chip{border:1px solid #b9b9b3;border-radius:999px;padding:5px 11px;font-size:12px;white-space:nowrap;background:#fff}
+.on{background:#1c1c1a;color:#fff;border-color:#1c1c1a}
+.phone{width:390px;height:844px;flex:none;border:2px solid #1c1c1a;border-radius:32px;background:#fff;overflow:hidden;display:flex;flex-direction:column;box-sizing:border-box;position:relative}
+.cap{font:600 12px 'IBM Plex Mono',monospace;color:#5f5f5a;margin-bottom:8px}
+.av{width:24px;height:24px;border-radius:12px;background:#cfcfca;flex:none}
+.post{border:1px solid #d6d6d0;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:7px;font-size:12.5px}
+.tg{font:600 10.5px 'IBM Plex Mono',monospace;border:1px solid #b9b9b3;border-radius:4px;padding:1px 6px;color:#3f3f3b}
+.tab{display:flex;justify-content:space-around;border-top:1px solid #e2e2dd;padding:8px 0 22px;font-size:10px;color:#5f5f5a;background:#fff;margin-top:auto}
+.tab span{display:flex;flex-direction:column;align-items:center;gap:3px}
+.tab i{width:22px;height:22px;border:1.5px solid currentColor;border-radius:6px;display:block;box-sizing:border-box}
+.cur{color:#1c1c1a;font-weight:700}
+.spec{display:flex;flex-direction:column;gap:12px;font-size:13px;line-height:1.55}
+.si{display:flex;gap:10px}
+.sn{flex:none;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;margin-top:1px}
+.st{font-weight:700}
+.lbl{font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:#5f5f5a;text-transform:uppercase}
+.box{border:1px solid #d6d6d0;border-radius:10px;padding:12px 14px;background:#fff;font-size:12.5px;line-height:1.6}
+</style>
+</helmet>
+<div style="width: 1400px; height: 1060px; box-sizing: border-box; padding: 32px 40px; background: #f5f5f3; color: #1c1c1a; font-family: 'IBM Plex Sans KR', sans-serif; display: flex; flex-direction: column; gap: 24px">
+  <div style="display: flex; align-items: baseline; gap: 14px; border-bottom: 2px solid #1c1c1a; padding-bottom: 12px">
+    <span style="font: 600 14px 'IBM Plex Mono', monospace; color: #1d4ed8">S-12 · S-13</span>
+    <h1 style="margin: 0; font-size: 24px">행사 페이지 · 구인·섭외 게시판</h1>
+    <span style="font: 500 13px 'IBM Plex Mono', monospace; color: #5f5f5a">/events/[id] (v1) · /board/casting (v2)</span>
+  </div>
+  <div style="display: flex; gap: 32px; align-items: flex-start">
+    <div>
+      <div class="cap">S-12 행사 페이지</div>
+      <div class="phone">
+        <div class="ph" style="height: 160px; flex: none; align-items: flex-start; justify-content: space-between; padding: 16px; box-sizing: border-box"><span style="background: #fff; border-radius: 999px; padding: 4px 10px; color: #1c1c1a; font: 500 12px 'IBM Plex Sans KR', sans-serif">뒤로</span><span>행사 커버</span><span style="background: #fff; border-radius: 999px; padding: 4px 10px; color: #1c1c1a; font: 500 12px 'IBM Plex Sans KR', sans-serif">공유</span></div>
+        <div style="padding: 14px 16px 10px; display: flex; flex-direction: column; gap: 8px">
+          <div class="rel"><span class="mk">1</span><b style="font-size: 20px">[행사명]</b><div style="font-size: 12.5px; color: #5f5f5a; margin-top: 4px">[YYYY.MM.DD – DD] · [장소] · <a href="#">공식 사이트</a></div></div>
+          <div class="rel" style="display: flex; gap: 8px"><span class="mk">2</span><button style="flex: 1; background: #1c1c1a; color: #fff; border: 0; border-radius: 8px; padding: 10px 0; font: 600 13px 'IBM Plex Sans KR', sans-serif">참가 예정</button><button style="flex: 1; background: #fff; border: 1px solid #1c1c1a; border-radius: 8px; padding: 9px 0; font: 600 13px 'IBM Plex Sans KR', sans-serif">캘린더에 추가</button></div>
+          <div style="font-size: 12px; color: #5f5f5a">참가 예정 [N]명 · 사진 [N]장</div>
+        </div>
+        <div class="rel" style="display: flex; gap: 20px; padding: 0 16px; border-bottom: 1px solid #e2e2dd; font-size: 13px"><span class="mk" style="left: 4px">3</span><span style="padding: 10px 0; border-bottom: 2px solid #1c1c1a; font-weight: 700">사진</span><span style="padding: 10px 0; color: #5f5f5a">참가자</span><span style="padding: 10px 0; color: #5f5f5a">코스 목록</span><span style="padding: 10px 0; color: #5f5f5a">정보</span></div>
+        <div class="rel" style="margin: 12px 16px 6px; border: 1px dashed #1c1c1a; border-radius: 10px; padding: 12px; display: flex; align-items: center; gap: 10px; font-size: 12.5px"><span class="mk">4</span><div style="flex: 1"><b>이 행사에서 찍은 사진 올리기</b><div style="color: #5f5f5a; font-size: 11.5px">행사 · 날짜 · 장소가 자동으로 입력됩니다</div></div><span style="font-weight: 700">+</span></div>
+        <div style="flex: 1; overflow: hidden; padding: 6px 12px 0">
+          <div style="column-count: 2; column-gap: 6px">
+            <div class="ph" style="height: 200px; border-radius: 8px; margin-bottom: 6px; break-inside: avoid">사진</div>
+            <div class="ph" style="height: 150px; border-radius: 8px; margin-bottom: 6px; break-inside: avoid">사진</div>
+            <div class="ph" style="height: 170px; border-radius: 8px; margin-bottom: 6px; break-inside: avoid">사진</div>
+            <div class="ph" style="height: 210px; border-radius: 8px; margin-bottom: 6px; break-inside: avoid">사진</div>
+          </div>
+        </div>
+        <nav class="tab" aria-label="하단 탭"><span><i></i>홈</span><span><i></i>탐색</span><span><i style="background: #1c1c1a; border-radius: 11px"></i>업로드</span><span class="cur"><i></i>커뮤니티</span><span><i></i>마이</span></nav>
+      </div>
+    </div>
+    <div>
+      <div class="cap">S-13 구인·섭외 게시판</div>
+      <div class="phone">
+        <div style="display: flex; align-items: center; padding: 18px 16px 10px"><b style="font-size: 16px">구인 · 섭외</b><span class="rel" style="margin-left: auto"><span class="mk">8</span><button style="background: #1c1c1a; color: #fff; border: 0; border-radius: 999px; padding: 7px 14px; font: 600 12.5px 'IBM Plex Sans KR', sans-serif">글쓰기</button></span></div>
+        <div class="rel" style="display: flex; gap: 18px; padding: 0 16px; border-bottom: 1px solid #e2e2dd; font-size: 13px"><span class="mk" style="left: 4px">5</span><span style="padding: 10px 0; border-bottom: 2px solid #1c1c1a; font-weight: 700">모델 구함</span><span style="padding: 10px 0; color: #5f5f5a">촬영 구함</span><span style="padding: 10px 0; color: #5f5f5a">동행 · 합동</span></div>
+        <div class="rel" style="display: flex; gap: 6px; padding: 10px 16px; overflow: hidden"><span class="mk" style="left: 6px">6</span><span class="chip">지역: 서울 ▾</span><span class="chip">날짜 ▾</span><span class="chip">조건 ▾</span><span class="chip">인증만</span></div>
+        <div class="rel" style="margin: 0 16px 8px; background: #f0f0ec; border-radius: 10px; padding: 10px 12px; font-size: 12px; line-height: 1.5"><span class="mk">9</span><b>첫 촬영 전 안전 가이드</b> — 공개 장소에서 만나기, 촬영 범위·결과물 사용 범위를 미리 메시지로 합의하기 <a href="#">자세히</a></div>
+        <div style="flex: 1; overflow: hidden; padding: 4px 16px; display: flex; flex-direction: column; gap: 10px">
+          <div class="post rel"><span class="mk">7</span>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap"><span class="tg">서울 · 야외</span><span class="tg">[MM.DD]</span><span class="tg">TFP(결과물 제공)</span></div>
+            <b style="font-size: 14px">벚꽃 콘셉트 인물 촬영 모델 구합니다</b>
+            <div style="color: #5f5f5a; line-height: 1.5">[콘셉트 · 의상 · 소요 시간 · 결과물 제공 방식 요약 2줄]</div>
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #5f5f5a"><span class="av"></span><b style="color: #1c1c1a">@photo_b</b><span class="tg">인증</span><span style="margin-left: auto">지원 [N] · 1일 전</span></div>
+          </div>
+          <div class="post">
+            <div style="display: flex; gap: 6px; flex-wrap: wrap"><span class="tg">부산 · 스튜디오</span><span class="tg">[MM.DD]</span><span class="tg">유급 · 금액 협의</span></div>
+            <b style="font-size: 14px">[게시글 제목]</b>
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #5f5f5a"><span class="av"></span><b style="color: #1c1c1a">@studio_k</b><span style="margin-left: auto">지원 [N] · 2일 전</span></div>
+          </div>
+          <div class="post" style="opacity: .55">
+            <div style="display: flex; gap: 6px"><span class="tg">마감</span></div>
+            <b style="font-size: 14px">[마감된 게시글]</b>
+          </div>
+        </div>
+        <nav class="tab" aria-label="하단 탭"><span><i></i>홈</span><span><i></i>탐색</span><span><i style="background: #1c1c1a; border-radius: 11px"></i>업로드</span><span class="cur"><i></i>커뮤니티</span><span><i></i>마이</span></nav>
+      </div>
+    </div>
+    <div class="spec" style="width: 440px; margin-top: 20px">
+      <span class="lbl">화면 설명</span>
+      <div class="si"><span class="sn">1</span><div><span class="st">행사 기본 정보</span><br>행사는 운영자가 등록하고, 회원은 등록을 제안할 수 있습니다. 같은 행사의 회차(날짜)는 하나의 페이지로 묶습니다.</div></div>
+      <div class="si"><span class="sn">2</span><div><span class="st">참가 예정 · 캘린더</span><br>참가 예정을 누르면 행사 전날 알림. 캘린더 추가는 .ics 파일 다운로드.</div></div>
+      <div class="si"><span class="sn">3</span><div><span class="st">행사 탭</span><br>사진(이 행사가 태그된 게시물) · 참가자(공개 동의한 회원) · 코스 목록(참가자가 미리 밝힌 캐릭터, 현장에서 찾기용) · 정보.</div></div>
+      <div class="si"><span class="sn">4</span><div><span class="st">사진 올리기 바로가기</span><br>S-08을 행사 · 날짜 · 장소가 미리 채워진 상태로 엽니다. 행사 종료 후 2주간 상단에 강조.</div></div>
+      <div class="si"><span class="sn">5</span><div><span class="st">게시판 분류</span><br>모델 구함 · 촬영 구함 · 동행·합동(같은 작품 합동 코스 등).</div></div>
+      <div class="si"><span class="sn">6</span><div><span class="st">필터</span><br>지역(시/도) · 날짜 · 조건(유급 · TFP · 무관) · 인증 크리에이터만.</div></div>
+      <div class="si"><span class="sn">7</span><div><span class="st">게시글 카드</span><br>조건 태그를 맨 위에 둬서 훑어보기 쉽게 합니다. 지원하면 작성자와의 메시지 스레드가 열리고, 섭외 양식(날짜 · 장소 · 범위)이 첫 메시지로 붙습니다. 마감되면 흐리게.</div></div>
+      <div class="si"><span class="sn">8</span><div><span class="st">글쓰기 권한</span><br>가입 7일 이상 · 게시물 1개 이상. 만 19세 미만은 글쓰기 · 지원 모두 불가.</div></div>
+      <div class="si"><span class="sn">9</span><div><span class="st">안전 가이드</span><br>처음 지원하거나 글을 쓸 때 한 번 확인하도록 합니다. 금전 선입금 요구 등은 신고 사유로 안내.</div></div>
+      <div class="box"><b>범위 밖</b><br>플랫폼 내 결제 · 정산 · 수수료는 두지 않습니다. 조건 협의는 당사자 간 메시지로만 합니다.</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":1060}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

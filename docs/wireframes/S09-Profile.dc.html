@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>S-09 프로필</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d4ed8}a:hover{color:#1e3a8a}
+.ph{background:#dcdcd7;display:flex;align-items:center;justify-content:center;color:#5f5f5a;font:500 11px 'IBM Plex Mono',monospace}
+.mk{position:absolute;top:-9px;left:-9px;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;z-index:3}
+.rel{position:relative}
+.chip{border:1px solid #b9b9b3;border-radius:999px;padding:4px 10px;font-size:11.5px;white-space:nowrap;background:#fff}
+.phone{width:390px;height:844px;flex:none;border:2px solid #1c1c1a;border-radius:32px;background:#fff;overflow:hidden;display:flex;flex-direction:column;box-sizing:border-box;position:relative}
+.tab{display:flex;justify-content:space-around;border-top:1px solid #e2e2dd;padding:8px 0 22px;font-size:10px;color:#5f5f5a;background:#fff;margin-top:auto}
+.tab span{display:flex;flex-direction:column;align-items:center;gap:3px}
+.tab i{width:22px;height:22px;border:1.5px solid currentColor;border-radius:6px;display:block;box-sizing:border-box}
+.cur{color:#1c1c1a;font-weight:700}
+.alb{position:relative}
+.alb span{position:absolute;right:5px;top:5px;font:600 9.5px 'IBM Plex Mono',monospace;background:#1c1c1a;color:#fff;border-radius:3px;padding:1px 4px}
+.spec{display:flex;flex-direction:column;gap:12px;font-size:13px;line-height:1.55}
+.si{display:flex;gap:10px}
+.sn{flex:none;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;margin-top:1px}
+.st{font-weight:700}
+.lbl{font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:#5f5f5a;text-transform:uppercase}
+.box{border:1px solid #d6d6d0;border-radius:10px;padding:12px 14px;background:#fff;font-size:12.5px;line-height:1.6}
+</style>
+</helmet>
+<div style="width: 1000px; height: 1100px; box-sizing: border-box; padding: 32px 40px; background: #f5f5f3; color: #1c1c1a; font-family: 'IBM Plex Sans KR', sans-serif; display: flex; flex-direction: column; gap: 24px">
+  <div style="display: flex; align-items: baseline; gap: 14px; border-bottom: 2px solid #1c1c1a; padding-bottom: 12px">
+    <span style="font: 600 14px 'IBM Plex Mono', monospace; color: #1d4ed8">S-09</span>
+    <h1 style="margin: 0; font-size: 24px">프로필 · 포트폴리오</h1>
+    <span style="font: 500 13px 'IBM Plex Mono', monospace; color: #5f5f5a">/@[handle] · MVP</span>
+  </div>
+  <div style="display: flex; gap: 40px; align-items: flex-start">
+    <div class="phone">
+      <div class="ph" style="height: 130px; flex: none; align-items: flex-start; justify-content: space-between; padding: 16px; box-sizing: border-box"><span style="background: #fff; border-radius: 999px; padding: 4px 10px; color: #1c1c1a; font: 500 12px 'IBM Plex Sans KR', sans-serif">뒤로</span><span>커버 이미지</span><span style="background: #fff; border-radius: 999px; padding: 4px 10px; color: #1c1c1a; font: 500 12px 'IBM Plex Sans KR', sans-serif">더보기</span></div>
+      <div style="padding: 0 16px; display: flex; flex-direction: column; gap: 10px">
+        <div class="rel" style="width: 80px; height: 80px; border-radius: 40px; background: #cfcfca; border: 4px solid #fff; margin-top: -40px"><span class="mk" style="left: 70px; top: 40px">1</span></div>
+        <div><div style="display: flex; align-items: center; gap: 8px"><b style="font-size: 19px">달빛 코스</b><span style="font: 600 10px 'IBM Plex Mono', monospace; border: 1px solid #1c1c1a; border-radius: 4px; padding: 1px 5px">인증</span></div><div style="font-size: 12.5px; color: #5f5f5a">@moonlight_cos</div></div>
+        <div class="rel" style="display: flex; gap: 6px; flex-wrap: wrap"><span class="mk">2</span><span class="chip">코스어</span><span class="chip">포토그래퍼</span><span class="chip">서울</span></div>
+        <div class="rel" style="font-size: 12.5px; line-height: 1.55"><span class="mk">3</span>[자기소개 2~3줄 — 주로 하는 작품, 의상 제작 여부 등]<br><a href="#">instagram.com/[핸들]</a> · <a href="#">x.com/[핸들]</a></div>
+        <div style="display: flex; gap: 18px; font-size: 12.5px"><span><b>[N]</b> 게시물</span><span><b>[N]</b> 팔로워</span><span><b>[N]</b> 팔로잉</span></div>
+        <div class="rel" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px"><span class="mk">4</span>
+          <button style="background: #1c1c1a; color: #fff; border: 0; border-radius: 8px; padding: 9px 0; font: 600 12.5px 'IBM Plex Sans KR', sans-serif">팔로우</button>
+          <button style="background: #fff; border: 1px solid #1c1c1a; border-radius: 8px; padding: 8px 0; font: 600 12.5px 'IBM Plex Sans KR', sans-serif">메시지</button>
+          <button style="background: #fff; border: 1px solid #1c1c1a; border-radius: 8px; padding: 8px 0; font: 600 12.5px 'IBM Plex Sans KR', sans-serif">섭외 문의</button>
+        </div>
+      </div>
+      <div class="rel" style="display: flex; justify-content: space-around; margin-top: 14px; border-bottom: 1px solid #e2e2dd; font-size: 13px"><span class="mk" style="left: 4px">5</span><span style="padding: 10px 0; border-bottom: 2px solid #1c1c1a; font-weight: 700">작업물</span><span style="padding: 10px 0; color: #5f5f5a">크레딧된 작업</span><span style="padding: 10px 0; color: #5f5f5a">컬렉션</span><span style="padding: 10px 0; color: #5f5f5a">소개</span></div>
+      <div class="rel" style="flex: 1; overflow: hidden; padding: 10px 12px 0"><span class="mk" style="left: 4px; top: 4px">6</span>
+        <div style="display: flex; gap: 6px; margin-bottom: 8px"><span class="chip" style="background: #1c1c1a; color: #fff; border-color: #1c1c1a">앨범</span><span class="chip">전체 사진</span><span class="chip">영상</span><span style="margin-left: auto; font-size: 11.5px; color: #5f5f5a; align-self: center">고정 2</span></div>
+        <div style="display: flex; gap: 6px; margin-bottom: 8px"><span class="chip" style="background: #1c1c1a; color: #fff; border-color: #1c1c1a">전체</span><span class="chip">2026</span><span class="chip">2025</span><span class="chip">2024</span></div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+          <div><div class="ph alb" style="height: 150px; border-radius: 8px"><span>8장</span>고정</div><div style="font-size: 12px; margin-top: 4px"><b>야간 신사 촬영</b><div style="color: #5f5f5a; font-size: 11px">원신 · 라이덴 쇼군</div></div></div>
+          <div><div class="ph alb" style="height: 150px; border-radius: 8px"><span>12장</span></div><div style="font-size: 12px; margin-top: 4px"><b>[앨범명]</b><div style="color: #5f5f5a; font-size: 11px">[작품 · 캐릭터]</div></div></div>
+          <div><div class="ph alb" style="height: 150px; border-radius: 8px"><span>0:58</span></div></div>
+          <div><div class="ph alb" style="height: 150px; border-radius: 8px"><span>5장</span></div></div>
+        </div>
+      </div>
+      <nav class="tab" aria-label="하단 탭"><span><i></i>홈</span><span><i></i>탐색</span><span><i style="background: #1c1c1a; border-radius: 11px"></i>업로드</span><span><i></i>커뮤니티</span><span class="cur"><i></i>마이</span></nav>
+    </div>
+    <div class="spec" style="width: 490px">
+      <span class="lbl">화면 설명</span>
+      <div class="si"><span class="sn">1</span><div><span class="st">커버 · 아바타 · 이름</span><br>커버는 자기 게시물 중에서 고르거나 따로 업로드합니다. 인증 크리에이터만 '인증' 배지.</div></div>
+      <div class="si"><span class="sn">2</span><div><span class="st">역할 배지 · 지역</span><br>온보딩에서 고른 역할. 지역은 시/도 단위, 비공개 가능. 크리에이터 디렉토리 필터에 사용됩니다.</div></div>
+      <div class="si"><span class="sn">3</span><div><span class="st">소개 · 외부 링크</span><br>최대 3개 링크. 외부 SNS 핸들은 미가입자 크레딧을 이 계정과 연결할 때도 씁니다.</div></div>
+      <div class="si"><span class="sn">4</span><div><span class="st">행동 버튼</span><br>팔로우 · 메시지 · 섭외 문의. '섭외 문의'는 인증 크리에이터가 켜 둔 경우에만 보이며, 날짜 · 장소 · 촬영 콘셉트 양식이 붙은 메시지로 보냅니다. 본인 프로필에서는 '프로필 편집' · '공유'로 바뀝니다.</div></div>
+      <div class="si"><span class="sn">5</span><div><span class="st">탭</span><br>작업물 = 직접 올린 게시물 · 크레딧된 작업 = 다른 사람이 올렸고 내가 승인한 게시물 · 컬렉션 = 공개로 설정한 저장 모음 · 소개 = 장비, 활동 이력, 섭외 조건.</div></div>
+      <div class="si"><span class="sn">6</span><div><span class="st">앨범 그리드</span><br>세트 단위로 보여주고 최대 3개를 맨 위에 고정할 수 있습니다. '전체 사진'은 낱장 3열 그리드. 연도 칩(촬영 연도)은 이 회원이 사진을 올린 연도만 자동으로 표시합니다.</div></div>
+      <div class="box"><b>권한 · 안전</b><br>· 더보기: 링크 복사 · 차단 · 신고<br>· 차단하면 서로의 게시물 · 크레딧 · 메시지가 모두 숨겨짐<br>· 비공개 계정 옵션: 팔로워 승인제(작업물만 잠김, 크레딧된 작업은 원 게시물 공개 범위를 따름)</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1000,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

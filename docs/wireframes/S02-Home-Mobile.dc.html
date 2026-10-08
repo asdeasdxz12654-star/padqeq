@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>S-02 홈 피드 모바일</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d4ed8}a:hover{color:#1e3a8a}
+.ph{background:#dcdcd7;display:flex;align-items:center;justify-content:center;color:#5f5f5a;font:500 11px 'IBM Plex Mono',monospace}
+.mk{position:absolute;top:-9px;left:-9px;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;z-index:3}
+.rel{position:relative}
+.chip{border:1px solid #b9b9b3;border-radius:999px;padding:6px 12px;font-size:12px;white-space:nowrap;background:#fff}
+.on{background:#1c1c1a;color:#fff;border-color:#1c1c1a}
+.phone{width:390px;height:844px;flex:none;border:2px solid #1c1c1a;border-radius:32px;background:#fff;overflow:hidden;display:flex;flex-direction:column;box-sizing:border-box;position:relative}
+.ic{display:inline-block;width:20px;height:20px;border:1.5px solid currentColor;border-radius:6px;box-sizing:border-box;flex:none}
+.tile{position:relative;break-inside:avoid;margin-bottom:6px;border-radius:8px}
+.who{position:absolute;left:6px;bottom:6px;font:500 10.5px 'IBM Plex Sans KR',sans-serif;color:#1c1c1a;background:rgba(255,255,255,.85);border-radius:999px;padding:2px 7px}
+.badge{position:absolute;right:6px;top:6px;font:600 10px 'IBM Plex Mono',monospace;background:#1c1c1a;color:#fff;border-radius:4px;padding:2px 5px}
+.tab{display:flex;justify-content:space-around;border-top:1px solid #e2e2dd;padding:8px 0 22px;font-size:10px;color:#5f5f5a;background:#fff}
+.tab span{display:flex;flex-direction:column;align-items:center;gap:3px}
+.tab i{width:22px;height:22px;border:1.5px solid currentColor;border-radius:6px;display:block;box-sizing:border-box}
+.cur{color:#1c1c1a;font-weight:700}
+.spec{display:flex;flex-direction:column;gap:12px;font-size:13px;line-height:1.55}
+.si{display:flex;gap:10px}
+.sn{flex:none;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;margin-top:1px}
+.st{font-weight:700}
+.lbl{font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:#5f5f5a;text-transform:uppercase}
+.box{border:1px solid #d6d6d0;border-radius:10px;padding:12px 14px;background:#fff;font-size:12.5px;line-height:1.6}
+</style>
+</helmet>
+<div style="width: 1000px; height: 1060px; box-sizing: border-box; padding: 32px 40px; background: #f5f5f3; color: #1c1c1a; font-family: 'IBM Plex Sans KR', sans-serif; display: flex; flex-direction: column; gap: 24px">
+  <div style="display: flex; align-items: baseline; gap: 14px; border-bottom: 2px solid #1c1c1a; padding-bottom: 12px">
+    <span style="font: 600 14px 'IBM Plex Mono', monospace; color: #1d4ed8">S-02</span>
+    <h1 style="margin: 0; font-size: 24px">홈 피드 · 모바일</h1>
+    <span style="font: 500 13px 'IBM Plex Mono', monospace; color: #5f5f5a">/ · MVP</span>
+  </div>
+  <div style="display: flex; gap: 40px; align-items: flex-start">
+    <div class="phone">
+      <div class="rel" style="display: flex; align-items: center; gap: 14px; padding: 18px 16px 10px">
+        <span class="mk">1</span>
+        <div class="ph" style="width: 84px; height: 24px; border-radius: 4px; font: 700 13px 'IBM Plex Sans KR', sans-serif; color: #1c1c1a">해담</div>
+        <span style="margin-left: auto" class="ic" aria-label="검색"></span>
+        <span class="rel"><span class="ic" aria-label="알림"></span><span style="position: absolute; right: -3px; top: -3px; width: 8px; height: 8px; border-radius: 4px; background: #1d4ed8"></span></span>
+      </div>
+      <div class="rel" style="display: flex; gap: 6px; padding: 4px 16px 12px; overflow: hidden">
+        <span class="mk" style="left: 6px">2</span>
+        <span class="chip on">추천</span><span class="chip">팔로잉</span><span class="chip">코스프레</span><span class="chip">모델·인물</span><span class="chip">풍경</span><span class="chip">영상</span>
+      </div>
+      <div class="rel" style="display: flex; gap: 6px; padding: 0 16px 10px; overflow: hidden"><span class="mk" style="left: 6px">2</span><span class="chip on" style="padding: 4px 10px; font-size: 11px">전체</span><span class="chip" style="padding: 4px 10px; font-size: 11px">2026</span><span class="chip" style="padding: 4px 10px; font-size: 11px">2025</span><span class="chip" style="padding: 4px 10px; font-size: 11px">2024</span><span class="chip" style="padding: 4px 10px; font-size: 11px">이전 ▾</span></div>
+      <div style="flex: 1; overflow: hidden; padding: 0 12px">
+        <div class="rel" style="margin: 4px 0 14px">
+          <span class="mk" style="left: -4px">3</span>
+          <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px"><b>오늘의 픽 <span style="color: #8a8a84; font-weight: 500">· N년 전 오늘</span></b><span style="color: #5f5f5a">전체 보기</span></div>
+          <div style="display: flex; gap: 8px; overflow: hidden">
+            <div class="ph" style="width: 150px; height: 190px; border-radius: 10px; flex: none">픽 1</div>
+            <div class="ph" style="width: 150px; height: 190px; border-radius: 10px; flex: none">픽 2</div>
+            <div class="ph" style="width: 150px; height: 190px; border-radius: 10px; flex: none">픽 3</div>
+          </div>
+        </div>
+        <div class="rel" style="column-count: 2; column-gap: 6px">
+          <span class="mk" style="left: -4px; top: -6px">4</span>
+          <div class="tile ph" style="height: 230px">세로 사진<span class="badge">1/8</span><span class="who">@cos_a</span></div>
+          <div class="tile ph rel" style="height: 150px"><span class="mk" style="top: 6px; left: 6px">7</span>가로 사진<span class="who">@photo_b</span></div>
+          <div class="tile ph rel" style="height: 210px; background: #bdbdb7; flex-direction: column; gap: 4px"><span class="mk" style="top: 6px; left: 6px">6</span><span style="font: 600 12px 'IBM Plex Sans KR', sans-serif; color: #1c1c1a">노출 주의</span><span>블러 처리</span></div>
+          <div class="tile ph rel" style="height: 260px"><span class="mk" style="top: 6px; left: 6px">5</span><span style="width: 36px; height: 36px; border-radius: 18px; border: 2px solid #5f5f5a; display: flex; align-items: center; justify-content: center">▶</span><span class="badge">0:42</span><span class="who">@cos_c</span></div>
+          <div class="tile ph rel" style="height: 88px"><span class="mk" style="top: 6px; left: 6px">9</span>파노라마 2:1<span class="badge">파노라마</span><span class="who">@land_d</span></div>
+          <div class="tile ph" style="height: 200px">인물<span class="who">@model_e</span></div>
+        </div>
+      </div>
+      <nav class="tab rel" aria-label="하단 탭">
+        <span class="mk" style="top: -10px; left: 8px">8</span>
+        <span class="cur"><i></i>홈</span><span><i></i>탐색</span><span><i style="background: #1c1c1a; border-radius: 11px"></i>업로드</span><span><i></i>커뮤니티</span><span><i></i>마이</span>
+      </nav>
+    </div>
+    <div class="spec" style="width: 490px">
+      <span class="lbl">화면 설명</span>
+      <div class="si"><span class="sn">1</span><div><span class="st">상단 바</span><br>로고를 누르면 맨 위로 이동합니다. 검색은 S-04로, 알림은 S-11로 이동하며 읽지 않은 알림이 있으면 점을 표시합니다. 스크롤을 내리면 숨기고 올리면 다시 보입니다.</div></div>
+      <div class="si"><span class="sn">2</span><div><span class="st">피드 칩 · 연도 칩</span><br>'추천'(큐레이션 + 팔로우 혼합)이 기본, '팔로잉'은 시간순. 아래 줄 연도 칩은 <b>촬영 연도</b> 기준으로 1월 1일(한국 시간)에 올해 칩이 자동 생성되고, 지난 연도는 게시물이 있을 때만 표시합니다(4개 초과 시 '이전 ▾'). 카테고리와 함께 적용, 스크롤하면 연도 줄은 접힘.</div></div>
+      <div class="si"><span class="sn">3</span><div><span class="st">오늘의 픽</span><br>운영자가 고른 최대 10개, 가로 스와이프. 옆 탭 'N년 전 오늘'은 같은 날짜의 지난 연도 사진(S-18).</div></div>
+      <div class="si"><span class="sn">4</span><div><span class="st">Masonry 2열 그리드</span><br>원본 비율을 유지하고 BlurHash로 먼저 그립니다. 20개 단위 무한 스크롤. 사진 세트는 장수 배지(1/8)를 붙입니다.</div></div>
+      <div class="si"><span class="sn">5</span><div><span class="st">영상 타일</span><br>재생 아이콘과 길이를 표시합니다. 화면 중앙에 들어오면 음소거 자동재생(설정에서 끌 수 있음, 데이터 절약 모드에서는 꺼짐).</div></div>
+      <div class="si"><span class="sn">6</span><div><span class="st">노출 주의 콘텐츠</span><br>비로그인 · 성인 인증 전에는 블러와 라벨만 보여주고, 누르면 성인 인증 안내 시트를 띄웁니다. 설정에서 아예 숨길 수도 있습니다.</div></div>
+      <div class="si"><span class="sn">7</span><div><span class="st">탭 · 길게 누르기</span><br>탭하면 S-06 상세로 이동합니다. 길게 누르면 확대 미리보기와 좋아요 · 저장 · 공유 · 관심 없음 빠른 동작을 띄웁니다.</div></div>
+      <div class="si"><span class="sn">8</span><div><span class="st">하단 탭</span><br>업로드 버튼만 채워서 강조합니다. 1단계(1인 운영)에서는 관리자에게만 보이고, 일반 회원은 4개 탭입니다. 현재 탭을 다시 누르면 맨 위로 이동합니다.</div></div>
+      <div class="si"><span class="sn">9</span><div><span class="st">파노라마 타일</span><br>가로세로 2.5:1을 넘는 사진은 피드에서 2:1로 가운데를 잘라 보여주고 '파노라마' 배지를 붙입니다. 누르면 좌우로 밀어 보는 파노라마 뷰어(S-06)로 열립니다.</div></div>
+      <div class="box"><b>상태</b> 로딩 스켈레톤 · 팔로잉 0명이면 추천 크리에이터 카드 · 오프라인 배너 · 당겨서 새로고침</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1000,"height":1060}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

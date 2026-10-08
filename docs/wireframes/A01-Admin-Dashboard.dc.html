@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>A-01 관리자 로그인 · 대시보드</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d4ed8}a:hover{color:#1e3a8a}
+.mk{position:absolute;top:-9px;left:-9px;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;z-index:3}
+.rel{position:relative}
+.cap{font:600 12px 'IBM Plex Mono',monospace;color:#5f5f5a;margin-bottom:8px}
+.frame{border:2px solid #1c1c1a;border-radius:12px;background:#fff;overflow:hidden;display:flex;flex-direction:column}
+.bar{height:26px;background:#ececea;border-bottom:1px solid #d6d6d0;display:flex;align-items:center;gap:6px;padding:0 10px;font:500 10.5px 'IBM Plex Mono',monospace;color:#5f5f5a}
+.inp{display:block;width:100%;box-sizing:border-box;border:1px solid #b9b9b3;border-radius:8px;padding:10px 12px;font:400 13px 'IBM Plex Sans KR',sans-serif;background:#fff}
+.fl{font-size:12px;font-weight:600;margin-bottom:5px;display:block}
+.btn{display:block;width:100%;background:#1c1c1a;color:#fff;border:0;border-radius:8px;padding:11px;font:600 13px 'IBM Plex Sans KR',sans-serif}
+.side{width:156px;flex:none;background:#f3f3f0;border-right:1px solid #e2e2dd;padding:14px 10px;display:flex;flex-direction:column;gap:2px;font-size:12.5px}
+.side span{padding:7px 10px;border-radius:6px;color:#3f3f3b}
+.side .cur{background:#1c1c1a;color:#fff;font-weight:600}
+.side .grp{font:600 10px 'IBM Plex Mono',monospace;color:#8a8a84;padding:10px 10px 4px}
+.kpi{border:1px solid #e2e2dd;border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:4px;font-size:12px;color:#5f5f5a}
+.kpi b{font:700 22px 'IBM Plex Mono',monospace;color:#1c1c1a}
+.box{border:1px solid #e2e2dd;border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;font-size:12px}
+.meter{height:8px;border-radius:4px;background:#ececea;overflow:hidden}
+.meter i{display:block;height:8px;background:#1c1c1a}
+.row{display:flex;align-items:center;gap:8px}
+.spec{display:flex;flex-direction:column;gap:11px;font-size:12.5px;line-height:1.5}
+.si{display:flex;gap:10px}
+.sn{flex:none;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;margin-top:1px}
+.st{font-weight:700}
+.lbl{font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:#5f5f5a;text-transform:uppercase}
+</style>
+</helmet>
+<div style="width: 1760px; height: 1120px; box-sizing: border-box; padding: 32px 40px; background: #f5f5f3; color: #1c1c1a; font-family: 'IBM Plex Sans KR', sans-serif; display: flex; flex-direction: column; gap: 24px">
+  <div style="display: flex; align-items: baseline; gap: 14px; border-bottom: 2px solid #1c1c1a; padding-bottom: 12px">
+    <span style="font: 600 14px 'IBM Plex Mono', monospace; color: #1d4ed8">A-01</span>
+    <h1 style="margin: 0; font-size: 24px">관리자 로그인 · 대시보드</h1>
+    <span style="font: 500 13px 'IBM Plex Mono', monospace; color: #5f5f5a">admin.[도메인]/login · /</span>
+  </div>
+  <div style="display: flex; gap: 28px; align-items: flex-start">
+    <div style="width: 340px; flex: none; display: flex; flex-direction: column; gap: 20px">
+      <div>
+        <div class="cap">로그인 ① ID · 비밀번호</div>
+        <div class="frame">
+          <div class="bar">admin.[도메인]/login</div>
+          <div class="rel" style="padding: 24px; display: flex; flex-direction: column; gap: 12px"><span class="mk" style="top: 10px; left: 10px">1</span>
+            <span style="font: 600 10px 'IBM Plex Mono', monospace; color: #b91c1c; border: 1px solid #b91c1c; border-radius: 4px; padding: 1px 6px; align-self: flex-start">운영</span>
+            <b style="font-size: 18px">관리자 로그인</b>
+            <div><label class="fl" for="aid">관리자 ID</label><input id="aid" class="inp" value="admin_owner"></div>
+            <div><label class="fl" for="apw">비밀번호</label><input id="apw" class="inp" type="password" value="••••••••••••••"></div>
+            <button class="btn">다음</button>
+            <span style="font-size: 11px; color: #5f5f5a">5회 실패 시 15분 잠금 · 남은 시도 5회</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="cap">로그인 ② 2단계 인증</div>
+        <div class="frame">
+          <div class="bar">admin.[도메인]/login/otp</div>
+          <div class="rel" style="padding: 24px; display: flex; flex-direction: column; gap: 12px"><span class="mk" style="top: 10px; left: 10px">2</span>
+            <b style="font-size: 18px">인증 코드</b>
+            <span style="font-size: 12px; color: #5f5f5a">OTP 앱에 표시된 6자리 코드를 입력하세요</span>
+            <div style="display: flex; gap: 6px"><span class="inp" style="text-align: center">3</span><span class="inp" style="text-align: center">8</span><span class="inp" style="text-align: center">1</span><span class="inp" style="text-align: center"></span><span class="inp" style="text-align: center"></span><span class="inp" style="text-align: center"></span></div>
+            <button class="btn">로그인</button>
+            <a href="#" style="font-size: 11.5px">복구 코드로 로그인</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="width: 880px; flex: none">
+      <div class="cap">대시보드</div>
+      <div class="frame" style="height: 900px">
+        <div class="bar">admin.[도메인]</div>
+        <div class="rel" style="display: flex; align-items: center; gap: 14px; padding: 10px 16px; border-bottom: 1px solid #e2e2dd"><span class="mk">3</span>
+          <b style="font-size: 14px">해담 관리자</b>
+          <span style="font: 600 10px 'IBM Plex Mono', monospace; color: #b91c1c; border: 1px solid #b91c1c; border-radius: 4px; padding: 1px 6px">운영</span>
+          <span style="flex: 1; max-width: 340px; border: 1px solid #c9c9c4; border-radius: 8px; padding: 6px 10px; font-size: 12px; color: #8a8a84">게시물 · 회원 · 태그 · 신고 번호 검색 ( / )</span>
+          <span style="margin-left: auto; font-size: 12px">admin_owner · 최고관리자 ▾</span>
+        </div>
+        <div style="display: flex; flex: 1; min-height: 0">
+          <nav class="side" aria-label="관리자 메뉴"><span class="cur">대시보드</span><span class="grp">콘텐츠</span><span>업로드</span><span>게시물</span><span>휴지통</span><span class="grp">운영</span><span>검수 · 신고</span><span>회원</span><span>큐레이션</span><span>태그 · 행사</span><span>공지 · 약관</span><span class="grp">관리</span><span>통계</span><span>시스템</span><span>감사 로그</span><span>관리자 계정</span></nav>
+          <div style="flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 14px; overflow: hidden">
+            <div class="rel" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px"><span class="mk">4</span>
+              <div class="kpi">오늘 가입<b>[N]</b></div>
+              <div class="kpi">오늘 업로드<b>[N]</b></div>
+              <div class="kpi">검수 대기<b>[N]</b></div>
+              <div class="kpi" style="border-color: #b91c1c">신고 대기 · 최우선 [N]<b>[N]</b></div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+              <div class="box rel"><span class="mk">5</span>
+                <b style="font-size: 13px">무료 한도 사용률</b>
+                <div class="row"><span style="width: 120px">R2 저장 (10GB)</span><div class="meter" style="flex: 1"><i style="width: 45%"></i></div><span style="width: 40px; text-align: right">[N]%</span></div>
+                <div class="row"><span style="width: 120px">Supabase DB</span><div class="meter" style="flex: 1"><i style="width: 12%"></i></div><span style="width: 40px; text-align: right">[N]%</span></div>
+                <div class="row"><span style="width: 120px">월 활성 사용자</span><div class="meter" style="flex: 1"><i style="width: 5%"></i></div><span style="width: 40px; text-align: right">[N]%</span></div>
+                <div class="row"><span style="width: 120px">Workers 요청</span><div class="meter" style="flex: 1"><i style="width: 30%"></i></div><span style="width: 40px; text-align: right">[N]%</span></div>
+                <span style="color: #5f5f5a">70% 노랑 · 90% 빨강 + 알림</span>
+              </div>
+              <div class="box rel"><span class="mk">6</span>
+                <b style="font-size: 13px">이번 달 비용</b>
+                <div class="row"><span style="flex: 1">Workers 유료</span><b>$5.00</b></div>
+                <div class="row"><span style="flex: 1">R2 저장 초과분</span><b>$[N]</b></div>
+                <div class="row" style="border-top: 1px solid #e2e2dd; padding-top: 6px"><span style="flex: 1">예상 합계</span><b>$[N] (약 [N]원)</b></div>
+                <span style="color: #5f5f5a">지난달 대비 · 6개월 추이 그래프</span>
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+              <div class="box rel"><span class="mk">7</span>
+                <b style="font-size: 13px">처리 실패</b>
+                <span>업로드 처리 실패 [N]건</span>
+                <span>메일 발송 실패 [N]건</span>
+                <a href="#">처리 대기열로</a>
+              </div>
+              <div class="box rel"><span class="mk">8</span>
+                <b style="font-size: 13px">보안 이벤트 (24시간)</b>
+                <span>로그인 실패 급증 [N]회</span>
+                <span>열람 속도 초과 계정 [N]</span>
+                <span>차단된 봇 요청 [N]</span>
+              </div>
+              <div class="box rel"><span class="mk">9</span>
+                <b style="font-size: 13px">백업</b>
+                <span>DB 내보내기: 오늘 [HH:MM] 성공</span>
+                <span>외장하드 백업: [N]일 전</span>
+                <span>복구 훈련: [YYYY.MM.DD]</span>
+              </div>
+            </div>
+            <div class="box rel" style="flex: 1"><span class="mk">10</span>
+              <b style="font-size: 13px">할 일</b>
+              <div class="row" style="border-bottom: 1px solid #ecece7; padding-bottom: 6px"><span style="font: 600 10px 'IBM Plex Mono', monospace; color: #b91c1c; width: 50px">긴급</span><span style="flex: 1">미성년자 관련 신고 1건 — 접수 후 [N]시간 경과</span><a href="#">처리</a></div>
+              <div class="row" style="border-bottom: 1px solid #ecece7; padding-bottom: 6px"><span style="font: 600 10px 'IBM Plex Mono', monospace; color: #b45309; width: 50px">주의</span><span style="flex: 1">내일 오늘의 픽 편성 비어 있음</span><a href="#">편성</a></div>
+              <div class="row" style="border-bottom: 1px solid #ecece7; padding-bottom: 6px"><span style="font: 600 10px 'IBM Plex Mono', monospace; color: #b45309; width: 50px">주의</span><span style="flex: 1">새 태그 제안 [N]건 승인 대기</span><a href="#">검토</a></div>
+              <div class="row"><span style="font: 600 10px 'IBM Plex Mono', monospace; color: #5f5f5a; width: 50px">안내</span><span style="flex: 1">외장하드 백업 7일 경과 — 백업 권장</span><a href="#">확인</a></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="spec" style="width: 380px; margin-top: 20px">
+      <span class="lbl">화면 설명</span>
+      <div class="si"><span class="sn">1</span><div><span class="st">ID · 비밀번호</span><br>Cloudflare Access를 통과한 뒤에만 보이는 화면. ID가 틀렸는지 비밀번호가 틀렸는지 구분해 알려주지 않음.</div></div>
+      <div class="si"><span class="sn">2</span><div><span class="st">2단계 인증</span><br>OTP 6자리, 붙여넣기 지원. 복구 코드는 1회용. 성공 시 새 기기면 다른 관리자 · 이메일로 알림.</div></div>
+      <div class="si"><span class="sn">3</span><div><span class="st">상단 바</span><br>"운영" 빨간 배지 상시 표시(테스트 서버는 회색 "테스트"). 전체 검색은 게시물 ID · 핸들 · 태그 · 신고 번호를 한 번에.</div></div>
+      <div class="si"><span class="sn">4</span><div><span class="st">오늘 지표</span><br>누르면 해당 목록으로 이동. 최우선 신고(미성년자 · 초상권 · 도촬)가 있으면 빨간 테두리.</div></div>
+      <div class="si"><span class="sn">5</span><div><span class="st">무료 한도</span><br>서비스별 사용률. 70% 노랑, 90% 빨강 + 이메일 알림. 막대는 예시.</div></div>
+      <div class="si"><span class="sn">6</span><div><span class="st">비용</span><br>이번 달 예상 비용과 6개월 추이. 광고 · 구독 수익은 없으므로 비용만 관리.</div></div>
+      <div class="si"><span class="sn">7</span><div><span class="st">처리 실패</span><br>업로드 · 메일 발송 실패 건수와 재처리 바로가기.</div></div>
+      <div class="si"><span class="sn">8</span><div><span class="st">보안 이벤트</span><br>최근 24시간 요약. 누르면 A-05 보안 이벤트.</div></div>
+      <div class="si"><span class="sn">9</span><div><span class="st">백업</span><br>DB 자동 내보내기 결과, 외장하드 백업 경과일(직접 기록), 복구 훈련 일자.</div></div>
+      <div class="si"><span class="sn">10</span><div><span class="st">할 일</span><br>긴급 · 주의 · 안내 3단계로 자동 생성되는 작업 목록. 처리하면 사라짐.</div></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1760,"height":1120}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

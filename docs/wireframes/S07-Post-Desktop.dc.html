@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>S-07 게시물 상세 데스크톱</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d4ed8}a:hover{color:#1e3a8a}
+.ph{background:#dcdcd7;display:flex;align-items:center;justify-content:center;color:#5f5f5a;font:500 11px 'IBM Plex Mono',monospace}
+.mk{position:absolute;top:-9px;left:-9px;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;z-index:3}
+.rel{position:relative}
+.chip{border:1px solid #b9b9b3;border-radius:999px;padding:5px 11px;font-size:12px;white-space:nowrap;background:#fff}
+.ic{display:inline-block;width:22px;height:22px;border:1.5px solid currentColor;border-radius:6px;box-sizing:border-box;flex:none}
+.av{width:32px;height:32px;border-radius:16px;background:#cfcfca;flex:none}
+.cr{display:flex;align-items:center;gap:10px;font-size:13px}
+.role{font:600 10.5px 'IBM Plex Mono',monospace;color:#5f5f5a;width:44px}
+.arrow{position:absolute;top:50%;width:40px;height:40px;margin-top:-20px;border-radius:20px;background:rgba(255,255,255,.9);color:#1c1c1a;display:flex;align-items:center;justify-content:center;font:600 16px 'IBM Plex Mono',monospace}
+.spec{display:flex;flex-direction:column;gap:12px;font-size:13px;line-height:1.55}
+.si{display:flex;gap:10px}
+.sn{flex:none;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;margin-top:1px}
+.st{font-weight:700}
+.lbl{font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:#5f5f5a;text-transform:uppercase}
+.box{border:1px solid #d6d6d0;border-radius:10px;padding:12px 14px;background:#fff;font-size:12.5px;line-height:1.6}
+</style>
+</helmet>
+<div style="width: 1760px; height: 1060px; box-sizing: border-box; padding: 32px 40px; background: #f5f5f3; color: #1c1c1a; font-family: 'IBM Plex Sans KR', sans-serif; display: flex; flex-direction: column; gap: 24px">
+  <div style="display: flex; align-items: baseline; gap: 14px; border-bottom: 2px solid #1c1c1a; padding-bottom: 12px">
+    <span style="font: 600 14px 'IBM Plex Mono', monospace; color: #1d4ed8">S-07</span>
+    <h1 style="margin: 0; font-size: 24px">게시물 상세 · 데스크톱 (오버레이)</h1>
+    <span style="font: 500 13px 'IBM Plex Mono', monospace; color: #5f5f5a">/p/[id] · MVP</span>
+  </div>
+  <div style="display: flex; gap: 40px; align-items: flex-start">
+    <div style="width: 1200px; height: 860px; flex: none; border: 2px solid #1c1c1a; border-radius: 12px; background: #2a2a28; overflow: hidden; display: flex; flex-direction: column; position: relative">
+      <div class="rel" style="position: absolute; top: 16px; right: 20px; color: #fff; font-size: 13px; display: flex; gap: 16px; z-index: 2"><span class="mk">1</span><span>원본 페이지로 열기</span><span>닫기 (Esc)</span></div>
+      <div style="display: flex; flex: 1; margin: 52px 24px 24px; background: #fff; border-radius: 12px; overflow: hidden">
+        <div style="width: 70%; display: flex; flex-direction: column; background: #1c1c1a">
+          <div class="rel" style="flex: 1; display: flex; align-items: center; justify-content: center; position: relative"><span class="mk" style="top: 12px; left: 12px">2</span>
+            <div class="ph" style="width: 420px; height: 600px; background: #3a3a37; color: #a3a39d">세로 사진 (화면 맞춤)</div>
+            <span class="arrow" style="left: 16px">‹</span><span class="arrow" style="right: 16px">›</span>
+          </div>
+          <div class="rel" style="display: flex; gap: 6px; padding: 10px; justify-content: center; background: #111110"><span class="mk" style="left: 12px; top: 6px">3</span>
+            <div class="ph" style="width: 44px; height: 56px; border-radius: 4px; outline: 2px solid #fff"></div><div class="ph" style="width: 44px; height: 56px; border-radius: 4px; background: #555"></div><div class="ph" style="width: 44px; height: 56px; border-radius: 4px; background: #555"></div><div class="ph" style="width: 44px; height: 56px; border-radius: 4px; background: #555"></div><div class="ph" style="width: 44px; height: 56px; border-radius: 4px; background: #555"></div><div class="ph" style="width: 44px; height: 56px; border-radius: 4px; background: #555"></div><div class="ph" style="width: 44px; height: 56px; border-radius: 4px; background: #555"></div><div class="ph" style="width: 44px; height: 56px; border-radius: 4px; background: #555"></div>
+          </div>
+        </div>
+        <div style="width: 30%; display: flex; flex-direction: column">
+          <div class="rel cr" style="padding: 16px; border-bottom: 1px solid #e2e2dd"><span class="mk">4</span><span class="av"></span><div style="flex: 1"><b>@moonlight_cos</b><div style="font-size: 11.5px; color: #5f5f5a">코스어 · 인증 · 촬영 2026.09.14</div></div><span style="background: #1c1c1a; color: #fff; border-radius: 999px; padding: 6px 14px; font-size: 12.5px">팔로우</span></div>
+          <div style="flex: 1; overflow: hidden; padding: 14px 16px; display: flex; flex-direction: column; gap: 14px">
+            <div style="font-size: 13px; line-height: 1.55"><b style="font-size: 15px">야간 신사 촬영</b><br>[설명 본문 — 촬영 후기, 의상 제작 메모 등]</div>
+            <div class="rel" style="display: flex; flex-direction: column; gap: 8px"><span class="mk">5</span>
+              <div class="cr"><span class="role">촬영</span><span class="av" style="width: 24px; height: 24px"></span><b>@photo_b</b></div>
+              <div class="cr"><span class="role">보정</span><span class="av" style="width: 24px; height: 24px"></span><b>@retouch_c</b></div>
+              <div class="cr"><span class="role">헤어</span><span class="av" style="width: 24px; height: 24px; background: #fff; border: 1px dashed #b9b9b3"></span><span style="color: #5f5f5a">외부 링크</span></div>
+            </div>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap"><span class="chip">원신</span><span class="chip">라이덴 쇼군</span><span class="chip">[행사명]</span><span class="chip">서울 · 야외</span></div>
+            <div style="font-size: 12px; color: #5f5f5a">[카메라] · [렌즈] · f/[값] · ISO [값]</div>
+            <div class="rel" style="display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #e2e2dd; padding-top: 12px"><span class="mk">6</span>
+              <div style="display: flex; gap: 8px; font-size: 12.5px"><span class="av" style="width: 24px; height: 24px"></span><div><b>@viewer_1</b> 조명 정말 좋네요<div style="color: #5f5f5a; font-size: 11px">1일 · 답글</div></div></div>
+              <div style="display: flex; gap: 8px; font-size: 12.5px"><span class="av" style="width: 24px; height: 24px"></span><div><b>@viewer_2</b> 의상 디테일 질문 있어요<div style="color: #5f5f5a; font-size: 11px">2일 · 답글 1</div></div></div>
+            </div>
+          </div>
+          <div class="rel" style="border-top: 1px solid #e2e2dd; padding: 12px 16px; display: flex; flex-direction: column; gap: 10px"><span class="mk">7</span>
+            <div style="display: flex; gap: 16px; font-size: 12.5px; align-items: center"><span style="display: flex; gap: 6px; align-items: center"><span class="ic"></span>[N]</span><span style="display: flex; gap: 6px; align-items: center"><span class="ic"></span>[N]</span><span class="ic"></span><span class="ic" style="margin-left: auto"></span></div>
+            <div style="display: flex; gap: 8px"><label for="dc" style="position: absolute; left: -9999px">댓글 입력</label><input id="dc" placeholder="댓글 달기" style="flex: 1; border: 1px solid #c9c9c4; border-radius: 999px; padding: 9px 14px; font: 400 13px 'IBM Plex Sans KR', sans-serif"><button style="border: 0; background: none; font: 600 13px 'IBM Plex Sans KR', sans-serif; color: #1d4ed8">게시</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="spec" style="width: 400px">
+      <span class="lbl">화면 설명</span>
+      <div class="si"><span class="sn">1</span><div><span class="st">오버레이 방식</span><br>피드에서 클릭하면 피드 위에 오버레이로 열리고 URL만 /p/[id]로 바뀝니다. 닫으면 피드 스크롤 위치를 그대로 유지합니다. 외부 링크로 들어오면 같은 레이아웃의 단독 페이지로 엽니다.</div></div>
+      <div class="si"><span class="sn">2</span><div><span class="st">뷰어 70%</span><br>원본 비율로 화면에 맞춥니다. 클릭하면 100% 확대, 드래그로 이동. ← → 키로 세트 안의 사진을 넘깁니다. 영상은 이 영역에서 HLS 플레이어로 재생합니다.</div></div>
+      <div class="si"><span class="sn">3</span><div><span class="st">썸네일 스트립</span><br>세트가 2장 이상일 때만 표시합니다.</div></div>
+      <div class="si"><span class="sn">4</span><div><span class="st">정보 패널 30%</span><br>업로더 헤더는 고정, 아래는 패널 안에서만 스크롤합니다.</div></div>
+      <div class="si"><span class="sn">5</span><div><span class="st">크레딧</span><br>모바일 S-06의 ⑥과 같은 규칙. 아바타에 마우스를 올리면 미니 프로필 카드.</div></div>
+      <div class="si"><span class="sn">6</span><div><span class="st">댓글</span><br>최신 20개, 더 보기로 이어 불러옵니다.</div></div>
+      <div class="si"><span class="sn">7</span><div><span class="st">반응 바 + 입력</span><br>패널 하단에 고정합니다. 단축키 L = 좋아요, S = 저장.</div></div>
+      <div class="box"><b>오버레이 아래 (스크롤 시)</b><br>뷰어 영역 아래로 '연관 게시물' 4열 그리드: 같은 캐릭터 → 같은 행사 → 같은 크리에이터.<br><br><b>다운로드 없음</b><br>다운로드 메뉴 없음. 타일을 canvas에 그려 우클릭 · 드래그로 저장할 파일이 없고, 로그인 회원에게는 옅은 @핸들 오버레이.<br><br><b>파노라마</b><br>뷰어 높이에 맞추고 좌우 드래그 · ← → 키로 이동.<br><br><b>추가 명세</b> P-04 참고 (배경 밝기, 실제 크기, 전체화면, 사진별 정보, 권한별 메뉴, 상태 화면).</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1760,"height":1060}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>A-00 관리자 개요</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d4ed8}a:hover{color:#1e3a8a}
+.card{background:#fff;border:1px solid #d6d6d0;border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.lbl{font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:#5f5f5a;text-transform:uppercase}
+.t{display:grid;font-size:12.5px;line-height:1.45}
+.t > div{display:grid;gap:10px;padding:6px 0;border-bottom:1px solid #ecece7}
+.t > div:last-child{border-bottom:0}
+.th{font:600 11px 'IBM Plex Mono',monospace;color:#5f5f5a}
+.y{color:#15803d;font-weight:700;text-align:center}
+.n{color:#a3a39d;text-align:center}
+.note{font-size:12px;color:#3f3f3b;line-height:1.55;background:#f0f0ec;border-radius:8px;padding:9px 11px}
+.gate{flex:1;border:1.5px solid #1c1c1a;border-radius:10px;padding:10px;font-size:12px;line-height:1.4;background:#fafaf8}
+.ar{align-self:center;font:600 14px 'IBM Plex Mono',monospace;color:#5f5f5a}
+.tree{margin:0;font:500 12.5px/1.75 'IBM Plex Sans KR',sans-serif;white-space:pre}
+.p1{font:600 10px 'IBM Plex Mono',monospace;color:#1d4ed8}
+</style>
+</helmet>
+<div style="width: 1640px; height: 1120px; box-sizing: border-box; padding: 32px 40px; background: #f5f5f3; color: #1c1c1a; font-family: 'IBM Plex Sans KR', sans-serif; display: flex; flex-direction: column; gap: 22px">
+  <div style="display: flex; align-items: baseline; gap: 14px; border-bottom: 2px solid #1c1c1a; padding-bottom: 12px">
+    <span style="font: 600 14px 'IBM Plex Mono', monospace; color: #1d4ed8">A-00</span>
+    <h1 style="margin: 0; font-size: 24px">관리자 페이지 개요</h1>
+    <span style="font: 500 13px 'IBM Plex Mono', monospace; color: #5f5f5a">admin.[도메인] · 회원 사이트와 완전 분리</span>
+  </div>
+  <div style="display: grid; grid-template-columns: 1.15fr 1fr 0.85fr; gap: 20px; flex: 1; align-items: start">
+
+    <div style="display: flex; flex-direction: column; gap: 16px">
+      <div class="card">
+        <span class="lbl">접속 보안 — 3중 관문</span>
+        <div style="display: flex; gap: 8px">
+          <div class="gate"><b>① Cloudflare Access</b><br>허용된 이메일만 화면이 열림. 주소를 알아도 로그인 화면조차 안 보임</div>
+          <span class="ar">→</span>
+          <div class="gate"><b>② ID · 비밀번호</b><br>14자 이상, 유출 비밀번호 대조, 5회 실패 시 잠금</div>
+          <span class="ar">→</span>
+          <div class="gate"><b>③ 2단계 인증</b><br>OTP 앱 필수, 복구 코드 10개 발급</div>
+        </div>
+      </div>
+      <div class="card">
+        <span class="lbl">관리자 계정 정책</span>
+        <div class="t">
+          <div style="grid-template-columns: 0.7fr 1.8fr"><b>생성</b><span>회원가입 없음. 첫 최고관리자는 서버 명령어로 생성, 이후 최고관리자만 추가 가능</span></div>
+          <div style="grid-template-columns: 0.7fr 1.8fr"><b>분리</b><span>관리자 계정과 본인의 일반 회원 계정은 따로 사용</span></div>
+          <div style="grid-template-columns: 0.7fr 1.8fr"><b>세션</b><span>30분 미사용 시 로그아웃, 최대 8시간. 다른 기기 로그인 시 알림</span></div>
+          <div style="grid-template-columns: 0.7fr 1.8fr"><b>위험 작업</b><span>영구 삭제 · 영구 정지 · 권한 변경 · 기능 스위치 → 비밀번호 재입력 + 사유 입력</span></div>
+          <div style="grid-template-columns: 0.7fr 1.8fr"><b>기록</b><span>모든 행동은 감사 로그(수정 · 삭제 불가)</span></div>
+          <div style="grid-template-columns: 0.7fr 1.8fr"><b>개인정보</b><span>회원 정보는 마스킹 표시, 원문 열람 시 사유 입력 + 기록</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <span class="lbl">역할별 권한 (1단계는 최고관리자 1명)</span>
+        <div class="t">
+          <div style="grid-template-columns: 1.5fr 0.6fr 0.6fr 0.6fr 0.6fr"><span class="th">메뉴</span><span class="th" style="text-align: center">최고</span><span class="th" style="text-align: center">운영자</span><span class="th" style="text-align: center">에디터</span><span class="th" style="text-align: center">열람</span></div>
+          <div style="grid-template-columns: 1.5fr 0.6fr 0.6fr 0.6fr 0.6fr"><span>대시보드 · 통계</span><span class="y">O</span><span class="y">O</span><span class="y">O</span><span class="y">O</span></div>
+          <div style="grid-template-columns: 1.5fr 0.6fr 0.6fr 0.6fr 0.6fr"><span>업로드 · 게시물</span><span class="y">O</span><span class="y">O</span><span class="y">O</span><span class="n">—</span></div>
+          <div style="grid-template-columns: 1.5fr 0.6fr 0.6fr 0.6fr 0.6fr"><span>큐레이션 · 태그 · 행사</span><span class="y">O</span><span class="y">O</span><span class="y">O</span><span class="n">—</span></div>
+          <div style="grid-template-columns: 1.5fr 0.6fr 0.6fr 0.6fr 0.6fr"><span>검수 · 신고 · 이의 제기</span><span class="y">O</span><span class="y">O</span><span class="n">—</span><span class="n">—</span></div>
+          <div style="grid-template-columns: 1.5fr 0.6fr 0.6fr 0.6fr 0.6fr"><span>회원 제재 · 인증 심사</span><span class="y">O</span><span class="y">O</span><span class="n">—</span><span class="n">—</span></div>
+          <div style="grid-template-columns: 1.5fr 0.6fr 0.6fr 0.6fr 0.6fr"><span>시스템 · 기능 스위치</span><span class="y">O</span><span class="n">—</span><span class="n">—</span><span class="n">—</span></div>
+          <div style="grid-template-columns: 1.5fr 0.6fr 0.6fr 0.6fr 0.6fr"><span>관리자 계정</span><span class="y">O</span><span class="n">—</span><span class="n">—</span><span class="n">—</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="lbl">메뉴 구조 <span class="p1" style="margin-left: 6px">● = 1단계부터 사용</span></span>
+      <pre class="tree">● 대시보드                       A-01
+● 콘텐츠
+   ├ ● 업로드 (대량)             A-02
+   ├ ● 게시물 목록 · 관리         A-03
+   └ ● 휴지통 (30일)
+  검수 · 신고                    A-04
+   ├ 검수 대기열
+   ├ 신고 처리
+   └ 이의 제기
+  회원                           A-05
+   ├ 회원 목록 · 상세 · 제재
+   ├ 크리에이터 인증 심사
+   ├ 크레딧 소유 요청
+   └ 초대 코드
+● 큐레이션
+   ├ ● 오늘의 픽 편성
+   └ ● 연말 결산
+● 데이터
+   ├ ● 태그 · 작품 DB (별칭 병합)
+   └ ● 행사 · 장소
+● 소통
+   ├ ● 공지 · FAQ
+   ├   1:1 문의
+   └ ● 약관 버전 관리
+● 통계 (연도별 포함)
+● 시스템                         A-05
+   ├ ● 저장소 · 비용 · 무료 한도
+   ├ ● 처리 대기열
+   ├ ● 보안 이벤트
+   ├ ● 기능 스위치 · 운영 단계
+   ├ ● 금칙어 · 속도 제한 값
+   └ ● 백업 상태
+● 감사 로그
+● 관리자 계정</pre>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 16px">
+      <div class="card">
+        <span class="lbl">UI 원칙</span>
+        <div class="t">
+          <div style="grid-template-columns: 1fr"><span><b>데스크톱 중심</b> — 왼쪽 메뉴 · 상단 전체 검색 · 표 + 오른쪽 상세 패널</span></div>
+          <div style="grid-template-columns: 1fr"><span><b>모바일은 긴급 업무만</b> — 대시보드, 신고 처리, 읽기 전용 스위치</span></div>
+          <div style="grid-template-columns: 1fr"><span><b>실수 방지</b> — 위험 작업은 빨간 버튼 + 확인 문구 직접 입력, 일괄 작업은 대상 수 재확인</span></div>
+          <div style="grid-template-columns: 1fr"><span><b>환경 표시</b> — 상단에 "운영" / "테스트" 배지 상시 표시</span></div>
+          <div style="grid-template-columns: 1fr"><span><b>단축키</b> — / 검색, J · K 이동, A 승인, R 반려, ? 도움말</span></div>
+          <div style="grid-template-columns: 1fr"><span><b>연도 칩</b> — 게시물 · 통계 화면에서 회원 사이트와 같은 촬영 연도 칩</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <span class="lbl">관리자가 회원 사이트에서</span>
+        <div class="note">관리자로 로그인한 상태에서 게시물 상세를 열면 상단에 관리자 바(숨김 · 등급 변경 · 오늘의 픽 · 이력 · 촬영 동의 기록)가 나타납니다. 관리자 바의 조치도 감사 로그에 남습니다.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1640,"height":1120}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

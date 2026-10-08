@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>S-10 크레딧 요청함 · S-11 알림</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d4ed8}a:hover{color:#1e3a8a}
+.ph{background:#dcdcd7;display:flex;align-items:center;justify-content:center;color:#5f5f5a;font:500 11px 'IBM Plex Mono',monospace}
+.mk{position:absolute;top:-9px;left:-9px;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;z-index:3}
+.rel{position:relative}
+.chip{border:1px solid #b9b9b3;border-radius:999px;padding:5px 11px;font-size:12px;white-space:nowrap;background:#fff}
+.on{background:#1c1c1a;color:#fff;border-color:#1c1c1a}
+.phone{width:390px;height:844px;flex:none;border:2px solid #1c1c1a;border-radius:32px;background:#fff;overflow:hidden;display:flex;flex-direction:column;box-sizing:border-box;position:relative}
+.cap{font:600 12px 'IBM Plex Mono',monospace;color:#5f5f5a;margin-bottom:8px}
+.top{display:flex;align-items:center;gap:12px;padding:18px 16px 12px;font-size:13px}
+.av{width:36px;height:36px;border-radius:18px;background:#cfcfca;flex:none}
+.card{border:1px solid #d6d6d0;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.b1{flex:1;background:#1c1c1a;color:#fff;border:0;border-radius:8px;padding:9px 0;font:600 12.5px 'IBM Plex Sans KR',sans-serif}
+.b2{flex:1;background:#fff;color:#1c1c1a;border:1px solid #b9b9b3;border-radius:8px;padding:8px 0;font:600 12.5px 'IBM Plex Sans KR',sans-serif}
+.sw{width:40px;height:24px;border-radius:12px;background:#1c1c1a;position:relative;flex:none}
+.sw::after{content:'';position:absolute;right:3px;top:3px;width:18px;height:18px;border-radius:9px;background:#fff}
+.nr{display:flex;gap:10px;align-items:center;padding:10px 16px;font-size:12.5px;line-height:1.45}
+.new{background:#f0f3fb}
+.grp{font:600 11px 'IBM Plex Mono',monospace;color:#5f5f5a;padding:12px 16px 4px}
+.tab{display:flex;justify-content:space-around;border-top:1px solid #e2e2dd;padding:8px 0 22px;font-size:10px;color:#5f5f5a;background:#fff;margin-top:auto}
+.tab span{display:flex;flex-direction:column;align-items:center;gap:3px}
+.tab i{width:22px;height:22px;border:1.5px solid currentColor;border-radius:6px;display:block;box-sizing:border-box}
+.cur{color:#1c1c1a;font-weight:700}
+.spec{display:flex;flex-direction:column;gap:12px;font-size:13px;line-height:1.55}
+.si{display:flex;gap:10px}
+.sn{flex:none;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;margin-top:1px}
+.st{font-weight:700}
+.lbl{font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:#5f5f5a;text-transform:uppercase}
+.box{border:1px solid #d6d6d0;border-radius:10px;padding:12px 14px;background:#fff;font-size:12.5px;line-height:1.6}
+</style>
+</helmet>
+<div style="width: 1400px; height: 1100px; box-sizing: border-box; padding: 32px 40px; background: #f5f5f3; color: #1c1c1a; font-family: 'IBM Plex Sans KR', sans-serif; display: flex; flex-direction: column; gap: 24px">
+  <div style="display: flex; align-items: baseline; gap: 14px; border-bottom: 2px solid #1c1c1a; padding-bottom: 12px">
+    <span style="font: 600 14px 'IBM Plex Mono', monospace; color: #1d4ed8">S-10 · S-11</span>
+    <h1 style="margin: 0; font-size: 24px">크레딧 요청함 · 알림</h1>
+    <span style="font: 500 13px 'IBM Plex Mono', monospace; color: #5f5f5a">/me/credits (MVP) · /me/alerts (v1)</span>
+  </div>
+  <div style="display: flex; gap: 32px; align-items: flex-start">
+    <div>
+      <div class="cap">S-10 크레딧 요청함</div>
+      <div class="phone">
+        <div class="top"><span>뒤로</span><b style="font-size: 16px">크레딧 요청함</b></div>
+        <div class="rel" style="display: flex; gap: 20px; padding: 0 16px; border-bottom: 1px solid #e2e2dd; font-size: 13px"><span class="mk" style="left: 4px">1</span><span style="padding: 10px 0; border-bottom: 2px solid #1c1c1a; font-weight: 700">받은 요청 3</span><span style="padding: 10px 0; color: #5f5f5a">보낸 요청</span><span style="padding: 10px 0; color: #5f5f5a">승인됨</span></div>
+        <div style="flex: 1; overflow: hidden; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px">
+          <div class="card rel"><span class="mk">2</span>
+            <div style="display: flex; gap: 10px"><div class="ph" style="width: 64px; height: 80px; border-radius: 6px; flex: none"></div><div style="font-size: 12.5px; line-height: 1.5"><b>@photo_b</b> 님이 회원님을 <b>'코스어'</b>로 태그했습니다<div style="color: #5f5f5a; font-size: 11.5px">'벚꽃 야외 촬영' · 사진 6장 · 2시간 전</div></div></div>
+            <div style="display: flex; gap: 6px"><button class="b1">승인</button><button class="b2">역할 수정 요청</button><button class="b2">거절</button></div>
+          </div>
+          <div class="card">
+            <div style="display: flex; gap: 10px"><div class="ph" style="width: 64px; height: 80px; border-radius: 6px; flex: none"></div><div style="font-size: 12.5px; line-height: 1.5"><b>@cos_x</b> 님이 회원님을 <b>'촬영'</b>으로 태그했습니다<div style="color: #5f5f5a; font-size: 11.5px">'[게시물 제목]' · 1일 전</div></div></div>
+            <div style="display: flex; gap: 6px"><button class="b1">승인</button><button class="b2">역할 수정 요청</button><button class="b2">거절</button></div>
+          </div>
+          <div class="card" style="opacity: .6">
+            <div style="display: flex; gap: 10px"><div class="ph" style="width: 64px; height: 80px; border-radius: 6px; flex: none; filter: blur(0)"></div><div style="font-size: 12.5px; line-height: 1.5"><b>@unknown_y</b> 님이 회원님을 <b>'모델'</b>로 태그했습니다<div style="color: #5f5f5a; font-size: 11.5px">팔로우하지 않는 계정 · 노출 주의 게시물</div></div></div>
+            <div style="display: flex; gap: 6px"><button class="b1">미리보기</button><button class="b2">거절</button><button class="b2">신고</button></div>
+          </div>
+          <div class="rel" style="display: flex; align-items: center; gap: 10px; font-size: 12.5px; padding: 6px 0"><span class="mk">3</span><div style="flex: 1"><b>서로 팔로우한 사람의 태그는 자동 승인</b><div style="color: #5f5f5a; font-size: 11.5px">설정 › 크레딧에서 변경</div></div><span class="sw"></span></div>
+          <div class="rel" style="background: #f0f0ec; border-radius: 10px; padding: 10px 12px; font-size: 12px; color: #3f3f3b; line-height: 1.55"><span class="mk">4</span>승인한 뒤에도 게시물의 더보기 › '내 크레딧 해제'로 언제든 연결을 끊을 수 있습니다.</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="cap">S-11 알림</div>
+      <div class="phone">
+        <div class="top"><b style="font-size: 16px">알림</b><span style="margin-left: auto; color: #5f5f5a; font-size: 12px">모두 읽음</span></div>
+        <div class="rel" style="display: flex; gap: 6px; padding: 0 16px 8px; overflow: hidden"><span class="mk" style="left: 6px">5</span><span class="chip on">전체</span><span class="chip">크레딧</span><span class="chip">반응</span><span class="chip">팔로우</span><span class="chip">운영</span></div>
+        <div style="flex: 1; overflow: hidden">
+          <div class="grp rel"><span class="mk" style="left: 6px; top: 4px">6</span>오늘</div>
+          <div class="nr new"><span class="av"></span><div style="flex: 1"><b>@photo_b</b> 님이 크레딧 태그를 요청했습니다 <a href="#">확인</a><div style="color: #5f5f5a; font-size: 11px">2시간 전</div></div></div>
+          <div class="nr new rel"><span class="mk" style="left: 6px; top: 6px">7</span><div style="display: flex; flex: none"><span class="av" style="width: 28px; height: 28px"></span><span class="av" style="width: 28px; height: 28px; margin-left: -12px; border: 2px solid #fff"></span></div><div style="flex: 1"><b>@viewer_1</b> 님 외 [N]명이 '야간 신사 촬영'을 좋아합니다<div style="color: #5f5f5a; font-size: 11px">3시간 전</div></div><div class="ph" style="width: 40px; height: 48px; border-radius: 4px; flex: none"></div></div>
+          <div class="nr"><span class="av"></span><div style="flex: 1"><b>@viewer_2</b> 님이 댓글을 남겼습니다: "의상 디테일 질문 있어요"<div style="color: #5f5f5a; font-size: 11px">5시간 전</div></div><div class="ph" style="width: 40px; height: 48px; border-radius: 4px; flex: none"></div></div>
+          <div class="grp">이번 주</div>
+          <div class="nr"><span class="av"></span><div style="flex: 1"><b>@cos_x</b> 님이 회원님을 팔로우합니다<div style="color: #5f5f5a; font-size: 11px">2일 전</div></div><span class="chip" style="font-size: 11.5px">맞팔로우</span></div>
+          <div class="nr rel"><span class="mk" style="left: 6px; top: 6px">8</span><span class="av" style="background: #1c1c1a; border-radius: 8px"></span><div style="flex: 1"><b>운영팀</b> 회원님의 신고가 처리되었습니다. 해당 게시물은 비공개 처리되었습니다.<div style="color: #5f5f5a; font-size: 11px">3일 전</div></div></div>
+          <div class="nr"><span class="av"></span><div style="flex: 1"><b>@photo_b</b> 님이 크레딧 승인을 완료했습니다<div style="color: #5f5f5a; font-size: 11px">4일 전</div></div></div>
+        </div>
+        <nav class="tab" aria-label="하단 탭"><span><i></i>홈</span><span><i></i>탐색</span><span><i style="background: #1c1c1a; border-radius: 11px"></i>업로드</span><span><i></i>커뮤니티</span><span class="cur"><i></i>마이</span></nav>
+      </div>
+    </div>
+    <div class="spec" style="width: 440px; margin-top: 20px">
+      <span class="lbl">화면 설명</span>
+      <div class="si"><span class="sn">1</span><div><span class="st">요청 탭</span><br>받은 요청(내가 태그됨) · 보낸 요청(내가 태그한 사람의 응답 대기) · 승인됨. 받은 요청 수는 마이 탭 배지로도 표시합니다.</div></div>
+      <div class="si"><span class="sn">2</span><div><span class="st">요청 카드</span><br>승인 → 내 '크레딧된 작업'에 표시 · 역할 수정 요청 → 업로더에게 원하는 역할 전달 · 거절 → 크레딧에서 이름 제거(업로더에게는 '거절됨'만 표시, 사유 선택 사항). 7일 동안 응답이 없으면 '대기'로 유지하고 공개하지 않습니다.</div></div>
+      <div class="si"><span class="sn">3</span><div><span class="st">자동 승인</span><br>기본값 꺼짐. 켜도 '노출 주의' 게시물과 팔로우하지 않는 계정의 태그는 항상 수동 승인입니다.</div></div>
+      <div class="si"><span class="sn">4</span><div><span class="st">사후 해제</span><br>승인 후에도 언제든 크레딧을 끊을 수 있습니다(초상권 보호). 해제해도 원 게시물은 남고, 본인 사진의 삭제는 신고(S-15) › '내 사진 무단 게시'로 요청합니다.</div></div>
+      <div class="si"><span class="sn">5</span><div><span class="st">알림 필터</span><br>전체 · 크레딧 · 반응 · 팔로우 · 운영. 운영 알림은 끌 수 없습니다.</div></div>
+      <div class="si"><span class="sn">6</span><div><span class="st">시간 그룹</span><br>오늘 · 이번 주 · 이전. 읽지 않은 알림은 연한 배경.</div></div>
+      <div class="si"><span class="sn">7</span><div><span class="st">묶음 알림</span><br>같은 게시물에 대한 좋아요는 한 줄로 묶어 알림 피로를 줄입니다.</div></div>
+      <div class="si"><span class="sn">8</span><div><span class="st">운영 알림</span><br>신고 처리 결과 · 등급 조정 · 태그 승인 결과. 내 게시물이 조치된 경우 이의 제기 링크를 포함합니다.</div></div>
+      <div class="box"><b>푸시</b><br>PWA 웹 푸시 · 카테고리별 켜기/끄기, 야간(22~08시) 방해 금지 기본 켜짐.</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

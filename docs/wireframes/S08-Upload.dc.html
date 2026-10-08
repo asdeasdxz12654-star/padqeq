@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>S-08 업로드</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d4ed8}a:hover{color:#1e3a8a}
+.ph{background:#dcdcd7;display:flex;align-items:center;justify-content:center;color:#5f5f5a;font:500 11px 'IBM Plex Mono',monospace}
+.mk{position:absolute;top:-9px;left:-9px;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;z-index:3}
+.rel{position:relative}
+.chip{border:1px solid #b9b9b3;border-radius:999px;padding:6px 12px;font-size:12px;white-space:nowrap;background:#fff}
+.on{background:#1c1c1a;color:#fff;border-color:#1c1c1a}
+.btn{display:block;width:100%;background:#1c1c1a;color:#fff;border:0;border-radius:10px;padding:13px;font:600 14px 'IBM Plex Sans KR',sans-serif;text-align:center}
+.btn2{display:block;width:100%;background:#fff;color:#1c1c1a;border:1px solid #1c1c1a;border-radius:10px;padding:12px;font:600 14px 'IBM Plex Sans KR',sans-serif;text-align:center}
+.phone{width:390px;height:844px;flex:none;border:2px solid #1c1c1a;border-radius:32px;background:#fff;overflow:hidden;display:flex;flex-direction:column;box-sizing:border-box;position:relative}
+.cap{font:600 12px 'IBM Plex Mono',monospace;color:#5f5f5a;margin-bottom:8px}
+.top{display:flex;align-items:center;justify-content:space-between;padding:18px 16px 12px;font-size:13px;border-bottom:1px solid #e2e2dd}
+.inp{display:block;width:100%;box-sizing:border-box;border:1px solid #b9b9b3;border-radius:10px;padding:10px 12px;font:400 13px 'IBM Plex Sans KR',sans-serif;background:#fff;color:#1c1c1a}
+.fl{font-size:12px;font-weight:600;margin-bottom:5px;display:block}
+.sw{width:40px;height:24px;border-radius:12px;background:#1c1c1a;position:relative;flex:none}
+.sw::after{content:'';position:absolute;right:3px;top:3px;width:18px;height:18px;border-radius:9px;background:#fff}
+.off{background:#c9c9c4}
+.off::after{right:auto;left:3px}
+.radio{display:flex;align-items:center;gap:10px;border:1px solid #c9c9c4;border-radius:10px;padding:10px 12px;font-size:13px}
+.dot{width:16px;height:16px;border-radius:8px;border:1.5px solid #1c1c1a;box-sizing:border-box;flex:none}
+.dot.sel{border:5px solid #1c1c1a}
+.num{position:absolute;right:6px;top:6px;width:20px;height:20px;border-radius:10px;background:#1c1c1a;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center}
+.spec{display:flex;flex-direction:column;gap:9px;font-size:12.5px;line-height:1.5}
+.si{display:flex;gap:10px}
+.sn{flex:none;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;margin-top:1px}
+.st{font-weight:700}
+.lbl{font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:#5f5f5a;text-transform:uppercase}
+.box{border:1px solid #d6d6d0;border-radius:10px;padding:10px 12px;background:#fff;font-size:12px;line-height:1.55}
+</style>
+</helmet>
+<div style="width: 1840px; height: 1100px; box-sizing: border-box; padding: 32px 40px; background: #f5f5f3; color: #1c1c1a; font-family: 'IBM Plex Sans KR', sans-serif; display: flex; flex-direction: column; gap: 24px">
+  <div style="display: flex; align-items: baseline; gap: 14px; border-bottom: 2px solid #1c1c1a; padding-bottom: 12px">
+    <span style="font: 600 14px 'IBM Plex Mono', monospace; color: #1d4ed8">S-08</span>
+    <h1 style="margin: 0; font-size: 24px">업로드 — 3단계 위저드</h1>
+    <span style="font: 500 13px 'IBM Plex Mono', monospace; color: #5f5f5a">/upload · MVP · 1단계(1인 운영)는 관리자 전용 · 데스크톱은 같은 단계를 모달 2단 레이아웃으로</span>
+  </div>
+  <div style="display: flex; gap: 32px; align-items: flex-start">
+    <div>
+      <div class="cap">1 / 3 미디어 선택</div>
+      <div class="phone">
+        <div class="top"><span>취소</span><b>새 게시물</b><span style="color: #1d4ed8; font-weight: 600">다음</span></div>
+        <div class="rel" style="display: flex; gap: 8px; padding: 12px 16px"><span class="mk" style="left: 6px">1</span><span class="chip on">사진 세트</span><span class="chip">영상</span><span style="margin-left: auto; font-size: 12px; color: #5f5f5a; align-self: center">임시저장 1</span></div>
+        <div class="rel" style="padding: 0 16px"><span class="mk">3</span>
+          <div style="font-size: 12px; color: #5f5f5a; margin-bottom: 6px">선택한 순서 · 길게 눌러 순서 변경</div>
+          <div style="display: flex; gap: 6px; overflow: hidden">
+            <div class="ph" style="width: 64px; height: 84px; border-radius: 6px; flex: none; position: relative; outline: 2px solid #1c1c1a"><span style="position: absolute; left: 3px; bottom: 3px; background: #1c1c1a; color: #fff; font: 600 9px 'IBM Plex Sans KR', sans-serif; border-radius: 3px; padding: 1px 4px">대표</span></div>
+            <div class="ph" style="width: 64px; height: 84px; border-radius: 6px; flex: none"></div>
+            <div class="ph" style="width: 64px; height: 84px; border-radius: 6px; flex: none"></div>
+            <div class="ph" style="width: 64px; height: 84px; border-radius: 6px; flex: none"></div>
+            <div style="width: 64px; height: 84px; border-radius: 6px; flex: none; border: 1px dashed #b9b9b3; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #5f5f5a">+</div>
+          </div>
+        </div>
+        <div class="rel" style="flex: 1; overflow: hidden; padding: 14px 16px 0"><span class="mk" style="left: 6px; top: 6px">2</span>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px">
+            <div class="ph" style="height: 116px; position: relative"><span class="num">1</span></div>
+            <div class="ph" style="height: 116px; position: relative"><span class="num">2</span></div>
+            <div class="ph" style="height: 116px"></div>
+            <div class="ph" style="height: 116px; position: relative"><span class="num">3</span></div>
+            <div class="ph" style="height: 116px"></div>
+            <div class="ph" style="height: 116px; position: relative"><span class="num">4</span></div>
+            <div class="ph" style="height: 116px"></div>
+            <div class="ph" style="height: 116px"></div>
+            <div class="ph" style="height: 116px"></div>
+          </div>
+        </div>
+        <div class="rel" style="padding: 12px 16px 26px; font-size: 11.5px; color: #5f5f5a; line-height: 1.6; border-top: 1px solid #e2e2dd"><span class="mk" style="left: 6px">4</span>사진 최대 20장 · JPEG·HEIC·PNG 50MB · RAW 200MB(모바일 100MB)<br>긴 변 4000px로 변환 · 파노라마는 짧은 변 2000px<br><b style="color: #1c1c1a">해담은 원본 백업 서비스가 아닙니다. 원본은 직접 보관해 주세요.</b></div>
+      </div>
+    </div>
+    <div>
+      <div class="cap">2 / 3 정보 입력</div>
+      <div class="phone">
+        <div class="top"><span>이전</span><b>정보 입력</b><span style="color: #1d4ed8; font-weight: 600">다음</span></div>
+        <div style="flex: 1; overflow: hidden; padding: 14px 16px; display: flex; flex-direction: column; gap: 14px">
+          <div class="rel"><span class="mk">5</span><span class="fl">카테고리</span>
+            <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid #1c1c1a; border-radius: 10px; overflow: hidden; font-size: 12px; text-align: center"><span style="background: #1c1c1a; color: #fff; padding: 8px 0">코스프레</span><span style="padding: 8px 0">모델·인물</span><span style="padding: 8px 0">풍경</span><span style="padding: 8px 0">기타</span></div>
+          </div>
+          <div><label class="fl" for="tt">제목</label><input id="tt" class="inp" value="야간 신사 촬영"></div>
+          <div class="rel"><span class="mk">6</span><label class="fl" for="wk">작품 · 캐릭터</label>
+            <div class="inp" style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center"><span class="chip on" style="padding: 3px 9px">원신 ✕</span><span class="chip on" style="padding: 3px 9px">라이덴 쇼군 ✕</span><span style="color: #8a8a84">추가 검색</span></div>
+          </div>
+          <div class="rel"><span class="mk">7</span><span class="fl">크레딧</span>
+            <div style="display: flex; flex-direction: column; gap: 6px">
+              <div style="display: flex; gap: 6px"><span class="inp" style="width: 92px; flex: none">코스어 ▾</span><span class="inp">@moonlight_cos (나)</span></div>
+              <div style="display: flex; gap: 6px"><span class="inp" style="width: 92px; flex: none">촬영 ▾</span><span class="inp">@photo_b <span style="color: #b45309; font-size: 11px">승인 요청 예정</span></span></div>
+              <div style="display: flex; gap: 6px"><span class="inp" style="width: 92px; flex: none">헤어 ▾</span><span class="inp" style="color: #5f5f5a">외부 링크 입력 (미가입자)</span></div>
+              <span style="font-size: 12.5px; color: #1d4ed8; font-weight: 600">+ 크레딧 추가</span>
+            </div>
+          </div>
+          <div class="rel" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px"><span class="mk">8</span>
+            <div><label class="fl" for="ev">행사</label><input id="ev" class="inp" placeholder="선택 안 함"></div>
+            <div><label class="fl" for="pl">장소 · 지역</label><input id="pl" class="inp" value="서울 · 야외"></div>
+          </div>
+          <div class="rel"><span class="mk">9</span><span class="fl">촬영 정보 (EXIF에서 자동)</span><div class="inp" style="color: #5f5f5a; display: flex; align-items: center">[카메라] · [렌즈] · [촬영일]<span style="margin-left: auto" class="sw"></span></div></div>
+          <div><label class="fl" for="ds">설명 · 대체 텍스트</label><textarea id="ds" class="inp" style="height: 56px; resize: none">촬영 후기…</textarea></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="cap">3 / 3 공개 설정</div>
+      <div class="phone">
+        <div class="top"><span>이전</span><b>공개 설정</b><span></span></div>
+        <div style="flex: 1; overflow: hidden; padding: 14px 16px; display: flex; flex-direction: column; gap: 16px">
+          <div class="rel" style="display: flex; flex-direction: column; gap: 6px"><span class="mk">10</span><span class="fl">콘텐츠 등급</span>
+            <div class="radio"><span class="dot sel"></span><div><b>전체 이용가</b><div style="font-size: 11.5px; color: #5f5f5a">누구에게나 표시</div></div></div>
+            <div class="radio"><span class="dot"></span><div><b>노출 주의</b><div style="font-size: 11.5px; color: #5f5f5a">성인 인증 회원에게만, 기본 블러</div></div></div>
+          </div>
+          <div class="rel"><span class="mk">11</span><span class="fl">공개 범위</span>
+            <div style="display: flex; gap: 6px"><span class="chip on">전체</span><span class="chip">팔로워</span><span class="chip">나만 보기</span></div>
+          </div>
+          <div class="rel" style="display: flex; flex-direction: column; gap: 8px"><span class="mk">12</span>
+            <div style="display: flex; align-items: center; font-size: 13px"><b>워터마크</b><span style="margin-left: auto" class="sw"></span></div>
+            <div style="display: flex; gap: 10px; align-items: center"><div class="ph" style="width: 72px; height: 92px; border-radius: 6px; position: relative"><span style="position: absolute; right: 4px; bottom: 4px; font: 600 8px 'IBM Plex Mono', monospace; color: #1c1c1a">@moonlight</span></div><div style="font-size: 12px; color: #5f5f5a; line-height: 1.7">위치: 우하단 ▾<br>투명도: 40% ▾<br>내용: @핸들 ▾</div></div>
+          </div>
+          <div class="rel" style="display: flex; align-items: center; font-size: 13px"><span class="mk">13</span><div><b>추적용 워터마크</b><div style="font-size: 11.5px; color: #5f5f5a">보이지 않는 워터마크는 항상 적용됩니다</div></div><span style="margin-left: auto; font: 600 11px 'IBM Plex Mono', monospace; color: #5f5f5a">고정</span></div>
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 12.5px"><span style="width: 16px; height: 16px; border: 1.5px solid #1c1c1a; border-radius: 4px; flex: none"></span><div><b>사진 속 인물 중 미성년자가 있음</b><div style="font-size: 11px; color: #5f5f5a">체크 시 보호자 동의 기록 필수 · '노출 주의' 선택 불가</div></div></div>
+          <div class="rel" style="background: #f0f0ec; border-radius: 10px; padding: 10px 12px; font-size: 12px; color: #3f3f3b; line-height: 1.55"><span class="mk">14</span><b>위치 정보는 항상 제거됩니다</b><br>사진 속 GPS 정보는 업로드 시 서버에서 삭제됩니다.</div>
+          <div class="rel" style="margin-top: auto; display: flex; flex-direction: column; gap: 8px"><span class="mk">15</span><button class="btn">게시하기</button><button class="btn2">임시저장</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="spec" style="width: 420px; margin-top: 20px">
+      <span class="lbl">화면 설명</span>
+      <div class="si"><span class="sn">1</span><div><span class="st">유형</span> 사진 세트와 영상은 한 게시물에 섞지 않습니다. 임시저장 개수를 표시합니다.</div></div>
+      <div class="si"><span class="sn">2</span><div><span class="st">갤러리</span> 누른 순서대로 번호를 매깁니다. 데스크톱은 드래그앤드롭 영역.</div></div>
+      <div class="si"><span class="sn">3</span><div><span class="st">순서 · 대표</span> 첫 장이 대표(피드 썸네일). 길게 눌러 순서 변경.</div></div>
+      <div class="si"><span class="sn">4</span><div><span class="st">형식 · 용량</span> RAW(CR2·CR3·NEF·ARW·RAF·RW2·ORF·DNG)는 브라우저에서 변환하고 서버로 보내지 않음. '보정 전 원본' 표시 후 확인 게시. 저장은 AVIF 긴 변 4000px, 파노라마(2.5:1 초과)는 짧은 변 2000px·긴 변 최대 16000px. 서버는 8MB(파노라마 12MB) 초과 시 거부.</div></div>
+      <div class="si"><span class="sn">5</span><div><span class="st">카테고리</span> 선택에 따라 아래 필드가 바뀝니다. 풍경 → 작품·캐릭터 대신 지역(시/도) · 계절. 모델·인물 → 작품 필드 숨김.</div></div>
+      <div class="si"><span class="sn">6</span><div><span class="st">작품 · 캐릭터</span> 자동완성(별칭 포함). 없으면 '새 태그 제안' → 운영 승인 대기.</div></div>
+      <div class="si"><span class="sn">7</span><div><span class="st">크레딧</span> 역할 + @핸들. 회원 태그는 게시 직후 승인 요청이 발송됩니다(S-10). 역할 목록: 코스어 · 촬영 · 모델 · 보정 · 헤어·메이크업 · 의상 제작 · 소품 · 영상 편집 · 기타.</div></div>
+      <div class="si"><span class="sn">8</span><div><span class="st">행사 · 장소</span> 행사는 DB에서 선택(촬영일 기준 추천). 장소는 장소명 또는 시/도까지만.</div></div>
+      <div class="si"><span class="sn">9</span><div><span class="st">EXIF</span> 장비 · 설정만 읽어 채웁니다. 스위치로 표시 끄기.</div></div>
+      <div class="si"><span class="sn">10</span><div><span class="st">등급</span> 기본값 '전체'. 미성년자 체크 시 '노출 주의' 비활성. 운영자가 사후 조정하면 업로더에게 알림.</div></div>
+      <div class="si"><span class="sn">11</span><div><span class="st">공개 범위</span> 기본값은 설정(S-14)에서 지정.</div></div>
+      <div class="si"><span class="sn">12</span><div><span class="st">워터마크</span> 서버에서 변환본에만 합성, 원본에는 넣지 않습니다. 미리보기 즉시 반영.</div></div>
+      <div class="si"><span class="sn">13</span><div><span class="st">추적 워터마크 · 다운로드 없음</span> 변환본에 게시물 ID를 보이지 않게 삽입(끌 수 없음). 다운로드 옵션은 없고, 크레딧된 사람에게도 원본은 업로더가 직접 전달.</div></div>
+      <div class="si"><span class="sn">14</span><div><span class="st">GPS 제거</span> 끌 수 없는 고정 정책임을 안내만 합니다.</div></div>
+      <div class="si"><span class="sn">15</span><div><span class="st">게시</span> 업로드는 백그라운드로 진행, 홈 상단에 진행률 바. 실패하면 임시저장으로 돌리고 재시도 버튼.</div></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1840,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

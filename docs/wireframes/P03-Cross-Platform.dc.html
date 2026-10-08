@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>P-03 크로스플랫폼 UI/UX</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d4ed8}a:hover{color:#1e3a8a}
+.card{background:#fff;border:1px solid #d6d6d0;border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.lbl{font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:#5f5f5a;text-transform:uppercase}
+.t{display:grid;font-size:12.5px;line-height:1.45}
+.t > div{display:grid;gap:10px;padding:6px 0;border-bottom:1px solid #ecece7}
+.t > div:last-child{border-bottom:0}
+.th{font:600 11px 'IBM Plex Mono',monospace;color:#5f5f5a}
+.note{font-size:12px;color:#3f3f3b;line-height:1.55;background:#f0f0ec;border-radius:8px;padding:9px 11px}
+.dev{border:1.5px solid #1c1c1a;border-radius:10px;display:flex;align-items:flex-end;justify-content:center;font:600 10px 'IBM Plex Mono',monospace;color:#5f5f5a;padding-bottom:6px;box-sizing:border-box;background:#fafaf8}
+</style>
+</helmet>
+<div style="width: 1640px; height: 1120px; box-sizing: border-box; padding: 32px 40px; background: #f5f5f3; color: #1c1c1a; font-family: 'IBM Plex Sans KR', sans-serif; display: flex; flex-direction: column; gap: 22px">
+  <div style="display: flex; align-items: baseline; gap: 14px; border-bottom: 2px solid #1c1c1a; padding-bottom: 12px">
+    <span style="font: 600 14px 'IBM Plex Mono', monospace; color: #1d4ed8">P-03</span>
+    <h1 style="margin: 0; font-size: 24px">크로스플랫폼 UI/UX — 모든 기기에서 같은 화면</h1>
+    <span style="font: 500 13px 'IBM Plex Mono', monospace; color: #5f5f5a">원칙: 코드 하나 · 디자인 토큰 하나, OS 관례가 요구하는 곳만 다르게</span>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; flex: 1; align-items: start">
+
+    <div style="display: flex; flex-direction: column; gap: 16px">
+      <div class="card">
+        <span class="lbl">지원 범위</span>
+        <div class="t">
+          <div style="grid-template-columns: 0.8fr 1.7fr"><b>iPhone · iPad</b><span>iOS 15 이상 · Safari, Chrome(Safari 엔진). <b>iOS 16.4 미만은 JPEG 변환본</b>으로 표시</span></div>
+          <div style="grid-template-columns: 0.8fr 1.7fr"><b>Android</b><span>Chrome · 삼성 인터넷 최근 2개 버전</span></div>
+          <div style="grid-template-columns: 0.8fr 1.7fr"><b>PC</b><span>Chrome · Edge · Firefox · Safari 최근 2개 버전</span></div>
+          <div style="grid-template-columns: 0.8fr 1.7fr"><b>인앱 브라우저</b><span><b>카카오톡 · 네이버 · 인스타그램</b> (공유 링크 대부분이 여기서 열림)</span></div>
+          <div style="grid-template-columns: 0.8fr 1.7fr"><b>앱</b><span>Android · iOS(Capacitor), PC(Electron) — 같은 웹 코드를 감싸고 캡처 차단 · 푸시 · 공유만 네이티브</span></div>
+          <div style="grid-template-columns: 0.8fr 1.7fr"><b>화면 폭</b><span>최소 320px (갤럭시 폴드 접힘 344px 포함) ~ 2560px</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <span class="lbl">브레이크포인트 · 그리드</span>
+        <div style="display: flex; align-items: flex-end; gap: 12px">
+          <div class="dev" style="width: 44px; height: 80px">320</div>
+          <div class="dev" style="width: 52px; height: 96px">390</div>
+          <div class="dev" style="width: 96px; height: 120px">768</div>
+          <div class="dev" style="width: 150px; height: 100px">1200+</div>
+        </div>
+        <div class="t">
+          <div style="grid-template-columns: 0.8fr 1.7fr"><span>~767px</span><span>피드 2열, 하단 탭 5개, 상세는 바텀시트</span></div>
+          <div style="grid-template-columns: 0.8fr 1.7fr"><span>768~1199px</span><span>피드 3열, 하단 탭 유지, 상세는 전체 화면</span></div>
+          <div style="grid-template-columns: 0.8fr 1.7fr"><span>1200px~</span><span>피드 4~5열 + 우측 레일, 상단 GNB, 상세는 오버레이 70/30</span></div>
+        </div>
+        <div class="note">글자 크기는 clamp()로 화면 폭에 따라 부드럽게 변하고, 카드 같은 부품은 컨테이너 쿼리로 자기 폭에 맞춰 배치를 바꿉니다.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="lbl">기기 간 차이를 없애는 장치</span>
+      <div class="t">
+        <div style="grid-template-columns: 1fr 1.4fr"><span class="th">문제</span><span class="th">해결</span></div>
+        <div style="grid-template-columns: 1fr 1.4fr"><span>OS마다 다른 한글 글꼴</span><span>Pretendard 직접 제공(woff2, 자주 쓰는 글자만)</span></div>
+        <div style="grid-template-columns: 1fr 1.4fr"><span>iOS 주소창으로 높이 변함</span><span>100vh 대신 dvh · svh</span></div>
+        <div style="grid-template-columns: 1fr 1.4fr"><span>노치 · 홈 표시줄</span><span>viewport-fit=cover + safe-area-inset 여백</span></div>
+        <div style="grid-template-columns: 1fr 1.4fr"><span>iOS 입력창 확대</span><span>입력 글자 16px 이상</span></div>
+        <div style="grid-template-columns: 1fr 1.4fr"><span>키보드가 입력창을 가림</span><span>interactive-widget=resizes-content + 댓글창 위치 보정</span></div>
+        <div style="grid-template-columns: 1fr 1.4fr"><span>호버가 터치에서 안 됨</span><span>호버 전용 기능 금지, 효과는 @media (hover: hover)에서만</span></div>
+        <div style="grid-template-columns: 1fr 1.4fr"><span>iOS 가장자리 뒤로가기 vs 사진 넘기기</span><span>뷰어 좌우 20px은 제스처 영역으로 비움</span></div>
+        <div style="grid-template-columns: 1fr 1.4fr"><span>당겨서 새로고침 vs 확대</span><span>뷰어에서 overscroll-behavior: contain</span></div>
+        <div style="grid-template-columns: 1fr 1.4fr"><span>사진 색이 기기마다 다름</span><span>Display P3 프로필 유지, 미지원 화면은 sRGB 자동 변환</span></div>
+        <div style="grid-template-columns: 1fr 1.4fr"><span>AVIF 미지원(구형 iOS)</span><span>&lt;picture&gt;로 AVIF → JPEG 1600px 자동 선택</span></div>
+        <div style="grid-template-columns: 1fr 1.4fr"><span>터치 영역</span><span>모든 버튼 44px 이상</span></div>
+        <div style="grid-template-columns: 1fr 1.4fr"><span>다크 모드 · 움직임 줄이기</span><span>OS 설정을 따르고 설정 화면에서 직접 변경 가능</span></div>
+        <div style="grid-template-columns: 1fr 1.4fr"><span>Android 뒤로 버튼(앱)</span><span>열린 시트 · 뷰어부터 닫고, 마지막에 이전 화면</span></div>
+        <div style="grid-template-columns: 1fr 1.4fr"><span>공유</span><span>Web Share API → 미지원 시 링크 복사</span></div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 16px">
+      <div class="card">
+        <span class="lbl">인앱 브라우저 대응</span>
+        <div class="t">
+          <div style="grid-template-columns: 0.9fr 1.6fr"><b>Google 로그인 차단</b><span>Google이 인앱 로그인을 막음 → 인앱 감지 시 "외부 브라우저로 열기" 안내. 카카오톡은 바로 외부 열기 지원</span></div>
+          <div style="grid-template-columns: 0.9fr 1.6fr"><b>카카오 로그인</b><span>인앱에서도 정상 → 인앱 환경에서는 카카오 로그인을 맨 위에</span></div>
+          <div style="grid-template-columns: 0.9fr 1.6fr"><b>파일 업로드</b><span>인앱에서 불안정 → 업로드 화면에서 외부 브라우저 권장</span></div>
+          <div style="grid-template-columns: 0.9fr 1.6fr"><b>공유 카드</b><span>카카오톡 미리보기용 OG 카드(워터마크 썸네일)</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <span class="lbl">PWA</span>
+        <div class="note">홈 화면 추가(설치형), 전체 화면 표시, 테마 색. iOS 웹 푸시는 홈 화면에 추가한 경우에만 동작(iOS 16.4+) → 설치 안내 배너를 알림 설정 화면에 둠.</div>
+      </div>
+      <div class="card">
+        <span class="lbl">품질 확인 · 성능 목표</span>
+        <div class="t">
+          <div style="grid-template-columns: 0.8fr 1.7fr"><b>자동 테스트</b><span>Playwright: Chromium · WebKit · Firefox × 모바일/데스크톱 크기, 화면 캡처 비교로 깨짐 감지</span></div>
+          <div style="grid-template-columns: 0.8fr 1.7fr"><b>실기기 목록</b><span>iPhone SE, iPhone Pro Max, 구형 iPhone(iOS 15), 갤럭시 S, 갤럭시 폴드(접힘 · 펼침), iPad, PC 1440 · 1920, 카카오톡 인앱(iOS · Android)</span></div>
+          <div style="grid-template-columns: 0.8fr 1.7fr"><b>성능</b><span>중급 Android · 4G 기준: 첫 화면 2.5초 이내, 화면 밀림 0.1 미만(사진 비율만큼 자리 확보), 터치 반응 0.2초 이내</span></div>
+          <div style="grid-template-columns: 0.8fr 1.7fr"><b>접근성</b><span>WCAG 2.2 AA, 대비 4.5:1, 키보드 전체 조작, 대체 텍스트</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1640,"height":1120}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

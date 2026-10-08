@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>S-14 설정 · S-15 신고</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d4ed8}a:hover{color:#1e3a8a}
+.ph{background:#dcdcd7;display:flex;align-items:center;justify-content:center;color:#5f5f5a;font:500 11px 'IBM Plex Mono',monospace}
+.mk{position:absolute;top:-9px;left:-9px;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;z-index:3}
+.rel{position:relative}
+.phone{width:390px;height:844px;flex:none;border:2px solid #1c1c1a;border-radius:32px;background:#fff;overflow:hidden;display:flex;flex-direction:column;box-sizing:border-box;position:relative}
+.cap{font:600 12px 'IBM Plex Mono',monospace;color:#5f5f5a;margin-bottom:8px}
+.gh{font:600 11px 'IBM Plex Mono',monospace;color:#5f5f5a;padding:14px 16px 6px;letter-spacing:.04em}
+.it{display:flex;align-items:center;gap:10px;padding:11px 16px;font-size:13.5px;border-bottom:1px solid #efefea}
+.val{margin-left:auto;font-size:12.5px;color:#5f5f5a}
+.sw{width:40px;height:24px;border-radius:12px;background:#1c1c1a;position:relative;flex:none;margin-left:auto}
+.sw::after{content:'';position:absolute;right:3px;top:3px;width:18px;height:18px;border-radius:9px;background:#fff}
+.off{background:#c9c9c4}
+.off::after{right:auto;left:3px}
+.radio{display:flex;align-items:flex-start;gap:10px;padding:9px 0;font-size:13px;border-bottom:1px solid #efefea}
+.dot{width:16px;height:16px;border-radius:8px;border:1.5px solid #1c1c1a;box-sizing:border-box;flex:none;margin-top:2px}
+.dot.sel{border:5px solid #1c1c1a}
+.spec{display:flex;flex-direction:column;gap:12px;font-size:13px;line-height:1.55}
+.si{display:flex;gap:10px}
+.sn{flex:none;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;margin-top:1px}
+.st{font-weight:700}
+.lbl{font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:#5f5f5a;text-transform:uppercase}
+.box{border:1px solid #d6d6d0;border-radius:10px;padding:12px 14px;background:#fff;font-size:12.5px;line-height:1.6}
+</style>
+</helmet>
+<div style="width: 1400px; height: 1060px; box-sizing: border-box; padding: 32px 40px; background: #f5f5f3; color: #1c1c1a; font-family: 'IBM Plex Sans KR', sans-serif; display: flex; flex-direction: column; gap: 24px">
+  <div style="display: flex; align-items: baseline; gap: 14px; border-bottom: 2px solid #1c1c1a; padding-bottom: 12px">
+    <span style="font: 600 14px 'IBM Plex Mono', monospace; color: #1d4ed8">S-14 · S-15</span>
+    <h1 style="margin: 0; font-size: 24px">설정 · 신고</h1>
+    <span style="font: 500 13px 'IBM Plex Mono', monospace; color: #5f5f5a">/settings · 신고 바텀시트 · MVP</span>
+  </div>
+  <div style="display: flex; gap: 32px; align-items: flex-start">
+    <div>
+      <div class="cap">S-14 설정</div>
+      <div class="phone">
+        <div style="display: flex; gap: 12px; padding: 18px 16px 6px; font-size: 13px"><span>뒤로</span><b style="font-size: 16px">설정</b></div>
+        <div style="flex: 1; overflow: hidden">
+          <div class="gh">계정</div>
+          <div class="it">핸들 · 이메일 · 연결된 로그인<span class="val">›</span></div>
+          <div class="gh rel"><span class="mk" style="left: 4px; top: 10px">1</span>콘텐츠 보기</div>
+          <div class="it"><div>노출 주의 콘텐츠 보기<div style="font-size: 11.5px; color: #b45309">성인 인증 필요</div></div><span class="sw off"></span></div>
+          <div class="it">영상 자동재생<span class="val">Wi-Fi에서만 ›</span></div>
+          <div class="gh rel"><span class="mk" style="left: 4px; top: 10px">2</span>업로드 기본값</div>
+          <div class="it">워터마크<span class="val">켜짐 · 우하단 ›</span></div>
+          <div class="it">기본 공개 범위<span class="val">전체 ›</span></div>
+          <div class="gh rel"><span class="mk" style="left: 4px; top: 10px">3</span>크레딧</div>
+          <div class="it">자동 승인<span class="val">끔 ›</span></div>
+          <div class="gh rel"><span class="mk" style="left: 4px; top: 10px">4</span>개인정보 · 안전</div>
+          <div class="it">메시지 받기<span class="val">팔로워만 ›</span></div>
+          <div class="it">섭외 문의 받기<span class="sw"></span></div>
+          <div class="it">차단 목록<span class="val">[N] ›</span></div>
+          <div class="gh rel"><span class="mk" style="left: 4px; top: 10px">5</span>데이터</div>
+          <div class="it">내 데이터 내려받기<span class="val">›</span></div>
+          <div class="it" style="color: #b91c1c">계정 삭제</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="cap">S-15 신고 (게시물 더보기 › 신고)</div>
+      <div class="phone" style="background: #6b6b66">
+        <div class="ph" style="flex: 1; background: #4a4a46; color: #a3a39d">게시물 (딤 처리)</div>
+        <div style="background: #fff; border-radius: 18px 18px 0 0; padding: 10px 16px 24px; display: flex; flex-direction: column; gap: 6px; height: 640px; box-sizing: border-box">
+          <div style="display: flex; justify-content: center"><span style="width: 40px; height: 4px; border-radius: 2px; background: #c9c9c4"></span></div>
+          <b style="font-size: 16px; margin: 6px 0 4px">신고 사유를 선택하세요</b>
+          <div class="rel"><span class="mk">6</span>
+            <div class="radio"><span class="dot sel"></span><div><b>내 사진이 동의 없이 올라옴</b><div style="font-size: 11.5px; color: #5f5f5a">초상권 · 본인 확인 후 우선 처리</div></div></div>
+            <div class="radio"><span class="dot"></span><div><b>몰래 찍은 사진(도촬)</b></div></div>
+            <div class="radio"><span class="dot"></span><div><b>미성년자 관련 부적절한 콘텐츠</b><div style="font-size: 11.5px; color: #5f5f5a">신고 즉시 임시 비공개</div></div></div>
+            <div class="radio"><span class="dot"></span><div><b>성적인 콘텐츠 · 등급 미표시</b></div></div>
+            <div class="radio"><span class="dot"></span><div><b>내 작품을 무단으로 다시 올림</b></div></div>
+            <div class="radio"><span class="dot"></span><div><b>스팸 · 사기 · 괴롭힘</b></div></div>
+            <div class="radio" style="border-bottom: 0"><span class="dot"></span><div><b>기타</b></div></div>
+          </div>
+          <div class="rel" style="border: 1px dashed #b9b9b3; border-radius: 10px; padding: 10px 12px; font-size: 12px; line-height: 1.5"><span class="mk">7</span><b>본인 확인 자료 (선택)</b><br>사진 속 인물이 본인임을 보여주는 자료 · 원본 파일 등. 운영팀만 열람합니다.</div>
+          <button class="rel" style="margin-top: auto; background: #1c1c1a; color: #fff; border: 0; border-radius: 10px; padding: 13px; font: 600 14px 'IBM Plex Sans KR', sans-serif"><span class="mk">8</span>신고하기</button>
+        </div>
+      </div>
+    </div>
+    <div class="spec" style="width: 440px; margin-top: 20px">
+      <span class="lbl">화면 설명</span>
+      <div class="si"><span class="sn">1</span><div><span class="st">콘텐츠 보기</span><br>노출 주의 보기를 켜려면 본인인증(PASS 등)으로 성인 확인을 거칩니다. 끈 상태에서는 해당 게시물이 피드에서 아예 빠집니다. 데이터 절약을 위한 자동재생 옵션.</div></div>
+      <div class="si"><span class="sn">2</span><div><span class="st">업로드 기본값</span><br>공개 범위 · 워터마크(S-08 ⑪ · ⑫)의 기본값. 게시물마다 바꿀 수 있습니다. 다운로드 설정은 없습니다.</div></div>
+      <div class="si"><span class="sn">3</span><div><span class="st">크레딧 자동 승인</span><br>끔 · 서로 팔로우만 · 팔로우한 사람. 노출 주의 게시물은 항상 수동.</div></div>
+      <div class="si"><span class="sn">4</span><div><span class="st">개인정보 · 안전</span><br>메시지: 모두 · 팔로워만 · 받지 않음. 섭외 문의는 인증 크리에이터만 노출. 차단 목록 관리.</div></div>
+      <div class="si"><span class="sn">5</span><div><span class="st">데이터</span><br>내 게시물 원본 · 메타데이터를 zip으로 내려받기. 계정을 삭제하면 30일 유예 후 영구 삭제, 다른 사람 게시물의 내 크레딧은 '탈퇴한 회원'으로 바뀝니다.</div></div>
+      <div class="si"><span class="sn">6</span><div><span class="st">신고 사유</span><br>사유별로 처리 큐와 우선순위가 다릅니다. 미성년자 · 초상권 · 도촬은 최우선 큐, 미성년자 관련은 접수 즉시 임시 비공개 후 검수합니다.</div></div>
+      <div class="si"><span class="sn">7</span><div><span class="st">증빙 첨부</span><br>초상권 · 저작권 사유를 고르면 나타납니다. 첨부 파일은 처리 후 90일 뒤 삭제.</div></div>
+      <div class="si"><span class="sn">8</span><div><span class="st">제출 후</span><br>"접수되었습니다. 처리 결과는 알림으로 알려드려요" 토스트 → 처리되면 S-11 운영 알림. 신고한 게시물은 신고자 피드에서 바로 숨깁니다.</div></div>
+      <div class="box"><b>운영 규칙 (화면 외)</b><br>· 서로 다른 신고자 [N]명 이상 → 자동 임시 비공개<br>· 조치된 업로더에게는 사유 + 이의 제기 링크 발송<br>· 이미지 해시로 삭제된 사진의 재업로드 차단</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":1060}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

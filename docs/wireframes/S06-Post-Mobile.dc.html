@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>S-06 게시물 상세 모바일</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d4ed8}a:hover{color:#1e3a8a}
+.ph{background:#dcdcd7;display:flex;align-items:center;justify-content:center;color:#5f5f5a;font:500 11px 'IBM Plex Mono',monospace}
+.mk{position:absolute;top:-9px;left:-9px;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;z-index:3}
+.rel{position:relative}
+.chip{border:1px solid #b9b9b3;border-radius:999px;padding:5px 11px;font-size:12px;white-space:nowrap;background:#fff}
+.phone{width:390px;height:844px;flex:none;border:2px solid #1c1c1a;border-radius:32px;background:#fff;overflow:hidden;display:flex;flex-direction:column;box-sizing:border-box;position:relative}
+.cap{font:600 12px 'IBM Plex Mono',monospace;color:#5f5f5a;margin-bottom:8px}
+.ic{display:inline-block;width:22px;height:22px;border:1.5px solid currentColor;border-radius:6px;box-sizing:border-box;flex:none}
+.av{width:32px;height:32px;border-radius:16px;background:#cfcfca;flex:none}
+.cr{display:flex;align-items:center;gap:10px;font-size:13px}
+.role{font:600 10.5px 'IBM Plex Mono',monospace;color:#5f5f5a;width:44px}
+.spec{display:flex;flex-direction:column;gap:10px;font-size:13px;line-height:1.55}
+.si{display:flex;gap:10px}
+.sn{flex:none;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;margin-top:1px}
+.st{font-weight:700}
+.lbl{font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:#5f5f5a;text-transform:uppercase}
+.box{border:1px solid #d6d6d0;border-radius:10px;padding:12px 14px;background:#fff;font-size:12.5px;line-height:1.6}
+</style>
+</helmet>
+<div style="width: 1400px; height: 1060px; box-sizing: border-box; padding: 32px 40px; background: #f5f5f3; color: #1c1c1a; font-family: 'IBM Plex Sans KR', sans-serif; display: flex; flex-direction: column; gap: 24px">
+  <div style="display: flex; align-items: baseline; gap: 14px; border-bottom: 2px solid #1c1c1a; padding-bottom: 12px">
+    <span style="font: 600 14px 'IBM Plex Mono', monospace; color: #1d4ed8">S-06</span>
+    <h1 style="margin: 0; font-size: 24px">게시물 상세 · 모바일</h1>
+    <span style="font: 500 13px 'IBM Plex Mono', monospace; color: #5f5f5a">/p/[id] · MVP</span>
+  </div>
+  <div style="display: flex; gap: 32px; align-items: flex-start">
+    <div>
+      <div class="cap">기본 — 이미지 뷰어</div>
+      <div class="phone" style="background: #1c1c1a; color: #fff">
+        <div class="rel" style="display: flex; align-items: center; padding: 18px 16px; font-size: 13px"><span class="mk" style="left: 150px">1</span><span>뒤로</span><span style="margin: 0 auto; font-family: 'IBM Plex Mono', monospace">1 / 8</span><span style="margin-right: 14px">배경</span><span>더보기</span></div>
+        <div class="ph" style="flex: 1; background: #3a3a37; color: #a3a39d">사진 (원본 비율, 화면 맞춤)</div>
+        <div style="display: flex; justify-content: center; gap: 5px; padding: 10px 0"><span style="width: 6px; height: 6px; border-radius: 3px; background: #fff"></span><span style="width: 6px; height: 6px; border-radius: 3px; background: #6b6b66"></span><span style="width: 6px; height: 6px; border-radius: 3px; background: #6b6b66"></span><span style="width: 6px; height: 6px; border-radius: 3px; background: #6b6b66"></span></div>
+        <div style="padding: 4px 16px 10px; display: flex; flex-direction: column; gap: 12px">
+          <div class="rel" style="display: flex; align-items: center; gap: 18px; font-size: 12.5px"><span class="mk">2</span><span style="display: flex; align-items: center; gap: 6px"><span class="ic"></span>[N]</span><span style="display: flex; align-items: center; gap: 6px"><span class="ic"></span>[N]</span><span style="display: flex; align-items: center; gap: 6px"><span class="ic"></span>공유</span><span style="margin-left: auto; display: flex; align-items: center; gap: 6px"><span class="ic"></span>저장</span></div>
+          <div class="rel cr"><span class="mk">3</span><span class="av" style="background: #6b6b66"></span><div style="flex: 1"><b>@moonlight_cos</b> <span style="font: 600 10px 'IBM Plex Mono', monospace; border: 1px solid #a3a39d; border-radius: 4px; padding: 0 4px">인증</span><div style="font-size: 11.5px; color: #a3a39d">코스어 · 촬영 2026.09.14 · 게시 3일 전</div></div><span style="border: 1px solid #fff; border-radius: 999px; padding: 5px 14px; font-size: 12.5px">팔로우</span></div>
+          <div class="rel" style="font-size: 13px; line-height: 1.5"><span class="mk">4</span><b>야간 신사 촬영</b> — 라이덴 쇼군 · 원신<div style="color: #a3a39d; font-size: 12px">촬영 @photo_b · 보정 @retouch_c 외 1명</div></div>
+        </div>
+        <div class="rel" style="background: #fff; color: #1c1c1a; border-radius: 18px 18px 0 0; padding: 10px 16px 26px; display: flex; flex-direction: column; align-items: center; gap: 6px"><span class="mk" style="left: 8px">5</span><span style="width: 40px; height: 4px; border-radius: 2px; background: #c9c9c4"></span><span style="font-size: 12.5px; font-weight: 600">위로 밀어 정보 · 댓글 보기</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="cap">정보 시트 펼침</div>
+      <div class="phone">
+        <div class="ph" style="height: 110px; flex: none; background: #3a3a37; color: #a3a39d">사진 (축소)</div>
+        <div style="display: flex; justify-content: center; padding: 8px 0"><span style="width: 40px; height: 4px; border-radius: 2px; background: #c9c9c4"></span></div>
+        <div style="flex: 1; overflow: hidden; padding: 0 16px; display: flex; flex-direction: column; gap: 16px">
+          <div class="rel" style="display: flex; flex-direction: column; gap: 10px"><span class="mk">6</span>
+            <b style="font-size: 14px">크레딧</b>
+            <div class="cr"><span class="role">코스어</span><span class="av"></span><b style="flex: 1">@moonlight_cos</b></div>
+            <div class="cr"><span class="role">촬영</span><span class="av"></span><b style="flex: 1">@photo_b</b><span style="font-size: 11.5px; color: #5f5f5a">팔로우</span></div>
+            <div class="cr"><span class="role">보정</span><span class="av"></span><b style="flex: 1">@retouch_c</b><span style="font-size: 11.5px; color: #5f5f5a">팔로우</span></div>
+            <div class="cr"><span class="role">헤어</span><span class="av" style="background: #fff; border: 1px dashed #b9b9b3"></span><span style="flex: 1; color: #5f5f5a">instagram.com/[핸들] (미가입)</span></div>
+          </div>
+          <div class="rel" style="display: flex; flex-direction: column; gap: 8px"><span class="mk">7</span>
+            <b style="font-size: 14px">태그</b>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap"><span class="chip">원신</span><span class="chip">라이덴 쇼군</span><span class="chip">[행사명]</span><span class="chip">서울 · 야외</span><span class="chip">#야경</span></div>
+          </div>
+          <div class="rel" style="font-size: 12.5px; color: #5f5f5a; line-height: 1.6"><span class="mk">8</span><b style="font-size: 14px; color: #1c1c1a">촬영 정보</b><br>[촬영일] · [카메라] · [렌즈] · f/[값] · 1/[값]s · ISO [값]</div>
+          <div class="rel"><span class="mk">9</span>
+            <b style="font-size: 14px">라이덴 쇼군의 다른 코스</b>
+            <div style="display: flex; gap: 6px; margin-top: 8px"><div class="ph" style="width: 84px; height: 110px; border-radius: 8px; flex: none"></div><div class="ph" style="width: 84px; height: 110px; border-radius: 8px; flex: none"></div><div class="ph" style="width: 84px; height: 110px; border-radius: 8px; flex: none"></div><div class="ph" style="width: 84px; height: 110px; border-radius: 8px; flex: none"></div></div>
+          </div>
+          <div class="rel" style="display: flex; flex-direction: column; gap: 10px"><span class="mk">10</span>
+            <b style="font-size: 14px">댓글 [N]</b>
+            <div style="display: flex; gap: 8px; font-size: 12.5px"><span class="av" style="width: 26px; height: 26px"></span><div><b>@viewer_1</b> 조명 정말 좋네요<div style="color: #5f5f5a; font-size: 11px">1일 · 답글</div></div></div>
+          </div>
+        </div>
+        <div style="border-top: 1px solid #e2e2dd; padding: 10px 16px 26px; display: flex; gap: 8px"><label for="cmt" style="position: absolute; left: -9999px">댓글 입력</label><input id="cmt" placeholder="댓글 달기" style="flex: 1; border: 1px solid #c9c9c4; border-radius: 999px; padding: 10px 14px; font: 400 13px 'IBM Plex Sans KR', sans-serif"><button style="border: 0; background: none; font: 600 13px 'IBM Plex Sans KR', sans-serif; color: #1d4ed8">게시</button></div>
+      </div>
+    </div>
+    <div class="spec" style="width: 440px; margin-top: 20px">
+      <span class="lbl">화면 설명</span>
+      <div class="si"><span class="sn">1</span><div><span class="st">뷰어 상단</span><br>장수 표시. 더보기 = 링크 복사 · 신고(S-15) · 관심 없음 · (본인) 수정·삭제. 아래로 쓸어내리면 닫힙니다.</div></div>
+      <div class="si"><span class="sn">2</span><div><span class="st">반응</span><br>좋아요 · 댓글 · 공유 · 저장(컬렉션 선택). 사진을 두 번 탭하면 좋아요. 핀치 확대 지원.</div></div>
+      <div class="si"><span class="sn">3</span><div><span class="st">업로더</span><br>인증 크리에이터는 '인증' 배지. 누르면 프로필(S-09)로 이동합니다.</div></div>
+      <div class="si"><span class="sn">4</span><div><span class="st">제목 + 크레딧 요약</span><br>업로더 외 크레딧을 한 줄로 줄여 보여주고, 누르면 ⑥으로 펼칩니다.</div></div>
+      <div class="si"><span class="sn">5</span><div><span class="st">정보 시트</span><br>3단계 높이(닫힘 · 절반 · 전체). 사진을 가리지 않도록 기본은 닫힘입니다.</div></div>
+      <div class="si"><span class="sn">6</span><div><span class="st">크레딧 카드</span><br>승인된 크레딧만 표시합니다. 승인 대기는 업로더 본인에게만 회색으로 보입니다. 미가입자는 외부 링크(점선 아바타)로 표기합니다.</div></div>
+      <div class="si"><span class="sn">7</span><div><span class="st">구조화 태그</span><br>작품 → 캐릭터 → 행사 → 장소 → 일반 태그 순서. 각각 태그 허브로 연결됩니다.</div></div>
+      <div class="si"><span class="sn">8</span><div><span class="st">촬영 정보</span><br>EXIF에서 장비 · 설정만 표시합니다. 업로더가 숨길 수 있고, GPS는 항상 제거합니다.</div></div>
+      <div class="si"><span class="sn">9</span><div><span class="st">연관 탐색</span><br>같은 캐릭터 → 같은 행사 → 같은 크리에이터 순으로 섹션을 이어 붙입니다.</div></div>
+      <div class="si"><span class="sn">10</span><div><span class="st">댓글</span><br>1단계 답글까지. 업로더는 댓글 끄기 · 고정 가능.</div></div>
+      <div class="box"><b>다운로드 없음 · 캡처 방지</b><br>다운로드 메뉴는 없습니다. 사진은 타일로 나눠 canvas에 그려서 길게 눌러 저장할 이미지 파일이 없습니다. 로그인 회원에게는 옅은 @핸들 오버레이를 표시하고, 앱에서는 캡처 시 검은 화면.<br><b>파노라마</b> 화면 높이에 맞춰 열고 좌우로 밀어 봅니다. 하단에 전체 중 현재 위치를 보여주는 미니맵.<br><b>추가 명세</b> 배경 밝기 · 날짜 · 조회수 · 사진별 정보 · 공유 · 권한별 메뉴 · 상태 화면은 P-04 참고.</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":1060}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

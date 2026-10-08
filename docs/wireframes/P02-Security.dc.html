@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>P-02 보안 · 캡처 방지</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d4ed8}a:hover{color:#1e3a8a}
+.card{background:#fff;border:1px solid #d6d6d0;border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.lbl{font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:#5f5f5a;text-transform:uppercase}
+.t{display:grid;font-size:12.5px;line-height:1.45}
+.t > div{display:grid;gap:10px;padding:6px 0;border-bottom:1px solid #ecece7}
+.t > div:last-child{border-bottom:0}
+.th{font:600 11px 'IBM Plex Mono',monospace;color:#5f5f5a}
+.layer{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;line-height:1.45;padding:7px 0;border-bottom:1px solid #ecece7}
+.layer:last-child{border-bottom:0}
+.num{flex:none;width:22px;height:22px;border-radius:11px;background:#1c1c1a;color:#fff;font:600 11px/22px 'IBM Plex Mono',monospace;text-align:center}
+.ok{font:600 11px 'IBM Plex Mono',monospace;color:#15803d}
+.mid{font:600 11px 'IBM Plex Mono',monospace;color:#b45309}
+.no{font:600 11px 'IBM Plex Mono',monospace;color:#b91c1c}
+.note{font-size:12px;color:#3f3f3b;line-height:1.55;background:#f0f0ec;border-radius:8px;padding:9px 11px}
+</style>
+</helmet>
+<div style="width: 1640px; height: 1120px; box-sizing: border-box; padding: 32px 40px; background: #f5f5f3; color: #1c1c1a; font-family: 'IBM Plex Sans KR', sans-serif; display: flex; flex-direction: column; gap: 22px">
+  <div style="display: flex; align-items: baseline; gap: 14px; border-bottom: 2px solid #1c1c1a; padding-bottom: 12px">
+    <span style="font: 600 14px 'IBM Plex Mono', monospace; color: #1d4ed8">P-02</span>
+    <h1 style="margin: 0; font-size: 24px">보안 · 캡처 방지</h1>
+    <span style="font: 500 13px 'IBM Plex Mono', monospace; color: #5f5f5a">정책 보드 · 원칙: 막을 수 있는 것은 막고, 막지 못한 것은 추적한다</span>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; flex: 1; align-items: start">
+
+    <div style="display: flex; flex-direction: column; gap: 16px">
+      <div class="card">
+        <span class="lbl">5겹 방어</span>
+        <div class="layer"><span class="num">1</span><div><b>엣지 (Cloudflare 무료)</b><br>DDoS 방어, WAF 관리형 규칙, Bot Fight Mode, AI 크롤러 차단, 경로별 요청 속도 제한, HTTPS + HSTS</div></div>
+        <div class="layer"><span class="num">2</span><div><b>인증</b><br>카카오 · Google 소셜 로그인 기본. 관리자 2단계 인증 필수 + 관리 화면은 Cloudflare Access 뒤. httpOnly 쿠키, 갱신 토큰 교체, 새 기기 로그인 알림, 민감 작업 재인증</div></div>
+        <div class="layer"><span class="num">3</span><div><b>앱 서버 (Workers)</b><br>서버 액션 = 공개 API로 취급: 입력 검증(Zod) → 로그인 → 권한. nonce 기반 CSP, frame-ancestors none, SameSite 쿠키, Turnstile 서버 검증</div></div>
+        <div class="layer"><span class="num">4</span><div><b>데이터</b><br>모든 테이블 RLS 기본 거부, secret 키는 서버에만(새 publishable/secret 키 체계), 권한 테스트 자동화, 저장소 비공개, 최소 수집</div></div>
+        <div class="layer"><span class="num">5</span><div><b>감시 · 대응</b><br>가입 · 로그인 실패 · 업로드 · 열람 급증 알림, 읽기 전용 모드 스위치, 키 교체 절차, 분기별 복구 훈련</div></div>
+      </div>
+      <div class="card">
+        <span class="lbl">공급망 · 패치</span>
+        <div class="note">pnpm: 설치 스크립트 차단 + 새로 배포된 패키지 설치 보류. Dependabot, GitHub 비밀키 유출 차단, Actions 커밋 해시 고정, OIDC 배포. Next.js · React 보안 공지는 48시간 안에 적용.</div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 16px">
+      <div class="card">
+        <span class="lbl">캡처 방지 · 플랫폼별</span>
+        <div class="t">
+          <div style="grid-template-columns: 0.9fr 0.7fr 1.6fr"><span class="th">환경</span><span class="th">검은 화면</span><span class="th">방법</span></div>
+          <div style="grid-template-columns: 0.9fr 0.7fr 1.6fr"><b>Android 앱</b><span class="ok">가능</span><span>FLAG_SECURE: 스크린샷 · 녹화 · 최근 앱 미리보기 차단</span></div>
+          <div style="grid-template-columns: 0.9fr 0.7fr 1.6fr"><b>iPhone 앱</b><span class="mid">대체로</span><span>보안 레이어 우회 기법 + 화면 녹화 감지 시 가림</span></div>
+          <div style="grid-template-columns: 0.9fr 0.7fr 1.6fr"><b>PC 앱</b><span class="ok">가능</span><span>Electron setContentProtection</span></div>
+          <div style="grid-template-columns: 0.9fr 0.7fr 1.6fr"><b>웹 일반</b><span class="no">불가</span><span>억제 · 추적만 가능</span></div>
+          <div style="grid-template-columns: 0.9fr 0.7fr 1.6fr"><b>웹 + DRM</b><span class="mid">부분</span><span>Safari · Edge 대체로 차단, 화질 저하 · 유료. 추후 검토</span></div>
+        </div>
+        <div class="note">다른 기기 카메라로 화면을 찍는 것은 어떤 방식으로도 막을 수 없습니다.</div>
+      </div>
+      <div class="card">
+        <span class="lbl">다운로드 차단 · 유출 추적 (웹)</span>
+        <div class="t">
+          <div style="grid-template-columns: 1fr"><span><b>다운로드 기능 없음</b> — 옵션 자체를 두지 않음</span></div>
+          <div style="grid-template-columns: 1fr"><span><b>타일 + canvas</b> — 고화질로 보여주되 저장할 완성 파일이 없음</span></div>
+          <div style="grid-template-columns: 1fr"><span><b>서명 URL</b> — 5분 만료, 외부 사이트 직접 연결 차단</span></div>
+          <div style="grid-template-columns: 1fr"><span><b>입력 차단</b> — 우클릭 · 드래그 · 길게 누르기 저장 메뉴</span></div>
+          <div style="grid-template-columns: 1fr"><span><b>포커스 이탈 블러</b> — 창이 비활성화되면 사진 블러</span></div>
+          <div style="grid-template-columns: 1fr"><span><b>보이지 않는 워터마크</b> — 변환본에 게시물 ID 삽입(항상 적용)</span></div>
+          <div style="grid-template-columns: 1fr"><span><b>@핸들 오버레이</b> — 로그인 회원 화면에 보는 사람 핸들을 옅게 표시</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 16px">
+      <div class="card">
+        <span class="lbl">AI 위협 대응</span>
+        <div class="t">
+          <div style="grid-template-columns: 0.8fr 1.7fr"><b>AI 크롤러</b><span>Cloudflare AI 봇 차단, robots.txt, noai 메타, 서명 URL, 속도 제한</span></div>
+          <div style="grid-template-columns: 0.8fr 1.7fr"><b>AI 브라우저 에이전트</b><span>계정당 열람 속도 제한(예: 1분 60장), 신규 계정 열람량 제한, 비정상 패턴 시 Turnstile 재확인, 워터마크 추적</span></div>
+          <div style="grid-template-columns: 0.8fr 1.7fr"><b>AI 화면 비서</b><span>앱의 FLAG_SECURE · Electron 보호가 함께 차단</span></div>
+          <div style="grid-template-columns: 0.8fr 1.7fr"><b>스팸 · 가짜 계정</b><span>가입 Turnstile, 신규 7일 링크 금지, 반복 게시 차단, 업로드는 초대 회원만</span></div>
+          <div style="grid-template-columns: 0.8fr 1.7fr"><b>딥페이크</b><span>신고 사유 추가 · 최우선 처리, 워터마크로 원본 증명, 약관에 합성물 금지</span></div>
+          <div style="grid-template-columns: 0.8fr 1.7fr"><b>프롬프트 인젝션</b><span>AI 기능 도입 시: 사용자 글은 데이터로만 전달, AI에 수정 · 삭제 권한 없음, 최종 판단은 사람</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <span class="lbl">단계별 적용</span>
+        <div class="t">
+          <div style="grid-template-columns: 0.8fr 1.7fr"><b>오픈 전</b><span>Cloudflare 설정, RLS + 권한 테스트, 관리자 2단계 인증 + Access, 보안 헤더, 업로드 검증, 백업</span></div>
+          <div style="grid-template-columns: 0.8fr 1.7fr"><b>업로드 개방</b><span>Turnstile 전체 적용, 신규 계정 제한, 스팸 필터, 신고 · 검수 대기열</span></div>
+          <div style="grid-template-columns: 0.8fr 1.7fr"><b>1,000명 이상</b><span>OWASP ZAP 정기 점검, 외부 모의해킹 검토</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1640,"height":1120}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

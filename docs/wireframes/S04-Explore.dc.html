@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>S-04 탐색 · S-05 태그 허브</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d4ed8}a:hover{color:#1e3a8a}
+.ph{background:#dcdcd7;display:flex;align-items:center;justify-content:center;color:#5f5f5a;font:500 11px 'IBM Plex Mono',monospace}
+.mk{position:absolute;top:-9px;left:-9px;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;z-index:3}
+.rel{position:relative}
+.chip{border:1px solid #b9b9b3;border-radius:999px;padding:6px 12px;font-size:12px;white-space:nowrap;background:#fff}
+.on{background:#1c1c1a;color:#fff;border-color:#1c1c1a}
+.phone{width:390px;height:844px;flex:none;border:2px solid #1c1c1a;border-radius:32px;background:#fff;overflow:hidden;display:flex;flex-direction:column;box-sizing:border-box;position:relative}
+.cap{font:600 12px 'IBM Plex Mono',monospace;color:#5f5f5a;margin-bottom:8px}
+.ic{display:inline-block;width:20px;height:20px;border:1.5px solid currentColor;border-radius:6px;box-sizing:border-box;flex:none}
+.tile{position:relative;break-inside:avoid;margin-bottom:6px;border-radius:8px}
+.tab{display:flex;justify-content:space-around;border-top:1px solid #e2e2dd;padding:8px 0 22px;font-size:10px;color:#5f5f5a;background:#fff;margin-top:auto}
+.tab span{display:flex;flex-direction:column;align-items:center;gap:3px}
+.tab i{width:22px;height:22px;border:1.5px solid currentColor;border-radius:6px;display:block;box-sizing:border-box}
+.cur{color:#1c1c1a;font-weight:700}
+.sec{display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px}
+.spec{display:flex;flex-direction:column;gap:11px;font-size:13px;line-height:1.55}
+.si{display:flex;gap:10px}
+.sn{flex:none;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;margin-top:1px}
+.st{font-weight:700}
+.lbl{font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:#5f5f5a;text-transform:uppercase}
+.box{border:1px solid #d6d6d0;border-radius:10px;padding:12px 14px;background:#fff;font-size:12.5px;line-height:1.6}
+</style>
+</helmet>
+<div style="width: 1400px; height: 1060px; box-sizing: border-box; padding: 32px 40px; background: #f5f5f3; color: #1c1c1a; font-family: 'IBM Plex Sans KR', sans-serif; display: flex; flex-direction: column; gap: 24px">
+  <div style="display: flex; align-items: baseline; gap: 14px; border-bottom: 2px solid #1c1c1a; padding-bottom: 12px">
+    <span style="font: 600 14px 'IBM Plex Mono', monospace; color: #1d4ed8">S-04 · S-05</span>
+    <h1 style="margin: 0; font-size: 24px">탐색 · 태그 허브</h1>
+    <span style="font: 500 13px 'IBM Plex Mono', monospace; color: #5f5f5a">/explore · /t/[slug] · MVP</span>
+  </div>
+  <div style="display: flex; gap: 32px; align-items: flex-start">
+    <div>
+      <div class="cap">S-04 탐색</div>
+      <div class="phone">
+        <div style="padding: 18px 16px 6px" class="rel"><span class="mk" style="left: 6px; top: 8px">1</span>
+          <div style="border: 1px solid #b9b9b3; border-radius: 12px; padding: 11px 14px; font-size: 13px; color: #5f5f5a; display: flex; gap: 10px; align-items: center"><span class="ic" style="width: 16px; height: 16px"></span>작품, 캐릭터, 크리에이터, 행사<span class="ic" style="margin-left: auto; width: 16px; height: 16px" aria-label="필터"></span></div>
+          <div style="display: flex; gap: 6px; margin-top: 10px; overflow: hidden"><span style="font-size: 11.5px; color: #5f5f5a; align-self: center">최근</span><span class="chip">라이덴 쇼군</span><span class="chip">@photo_b</span><span class="chip">벚꽃 출사</span></div>
+        </div>
+        <div style="flex: 1; overflow: hidden; padding: 10px 16px; display: flex; flex-direction: column; gap: 18px">
+          <div class="rel" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px"><span class="mk">2</span>
+            <div class="ph" style="height: 72px; border-radius: 10px; font: 600 13px 'IBM Plex Sans KR', sans-serif; color: #1c1c1a">코스프레</div>
+            <div class="ph" style="height: 72px; border-radius: 10px; font: 600 13px 'IBM Plex Sans KR', sans-serif; color: #1c1c1a">모델·인물</div>
+            <div class="ph" style="height: 72px; border-radius: 10px; font: 600 13px 'IBM Plex Sans KR', sans-serif; color: #1c1c1a">풍경</div>
+            <div class="ph" style="height: 72px; border-radius: 10px; font: 600 13px 'IBM Plex Sans KR', sans-serif; color: #1c1c1a">영상</div>
+          </div>
+          <div class="rel"><span class="mk">3</span>
+            <div class="sec"><b>지금 많이 찍는 작품</b><span style="color: #5f5f5a">더 보기</span></div>
+            <div style="display: flex; flex-direction: column; gap: 10px">
+              <div style="display: flex; gap: 10px; align-items: center"><div style="display: flex"><div class="ph" style="width: 44px; height: 44px; border-radius: 8px"></div><div class="ph" style="width: 44px; height: 44px; border-radius: 8px; margin-left: -14px; border: 2px solid #fff"></div></div><div style="flex: 1; font-size: 13px"><b>원신</b><div style="font-size: 11.5px; color: #5f5f5a">게시물 [N] · 이번 주 +[N]</div></div><span style="font: 600 12px 'IBM Plex Mono', monospace">1</span></div>
+              <div style="display: flex; gap: 10px; align-items: center"><div style="display: flex"><div class="ph" style="width: 44px; height: 44px; border-radius: 8px"></div><div class="ph" style="width: 44px; height: 44px; border-radius: 8px; margin-left: -14px; border: 2px solid #fff"></div></div><div style="flex: 1; font-size: 13px"><b>블루 아카이브</b><div style="font-size: 11.5px; color: #5f5f5a">게시물 [N] · 이번 주 +[N]</div></div><span style="font: 600 12px 'IBM Plex Mono', monospace">2</span></div>
+              <div style="display: flex; gap: 10px; align-items: center"><div style="display: flex"><div class="ph" style="width: 44px; height: 44px; border-radius: 8px"></div><div class="ph" style="width: 44px; height: 44px; border-radius: 8px; margin-left: -14px; border: 2px solid #fff"></div></div><div style="flex: 1; font-size: 13px"><b>귀멸의 칼날</b><div style="font-size: 11.5px; color: #5f5f5a">게시물 [N] · 이번 주 +[N]</div></div><span style="font: 600 12px 'IBM Plex Mono', monospace">3</span></div>
+            </div>
+          </div>
+          <div class="rel"><span class="mk">4</span>
+            <div class="sec"><b>행사</b><span style="color: #5f5f5a">캘린더</span></div>
+            <div style="display: flex; gap: 8px; overflow: hidden">
+              <div style="flex: none; width: 160px"><div class="ph" style="height: 90px; border-radius: 10px">행사 커버</div><div style="font-size: 12px; margin-top: 6px"><b>[행사명 1]</b><div style="color: #5f5f5a">[날짜] · [장소]</div></div></div>
+              <div style="flex: none; width: 160px"><div class="ph" style="height: 90px; border-radius: 10px">행사 커버</div><div style="font-size: 12px; margin-top: 6px"><b>[행사명 2]</b><div style="color: #5f5f5a">[날짜] · [장소]</div></div></div>
+            </div>
+          </div>
+          <div class="rel"><span class="mk">5</span>
+            <div class="sec"><b>촬영 장소</b><span style="color: #5f5f5a">지도로 보기</span></div>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap"><span class="chip">스튜디오</span><span class="chip">한옥</span><span class="chip">바다</span><span class="chip">폐건물 감성</span><span class="chip">벚꽃 명소</span></div>
+          </div>
+        </div>
+        <nav class="tab" aria-label="하단 탭"><span><i></i>홈</span><span class="cur"><i></i>탐색</span><span><i style="background: #1c1c1a; border-radius: 11px"></i>업로드</span><span><i></i>커뮤니티</span><span><i></i>마이</span></nav>
+      </div>
+    </div>
+    <div>
+      <div class="cap">S-05 태그 허브 (캐릭터 예시)</div>
+      <div class="phone">
+        <div class="ph" style="height: 150px; flex: none; align-items: flex-start; justify-content: space-between; padding: 16px; box-sizing: border-box"><span style="background: #fff; border-radius: 999px; padding: 4px 10px; color: #1c1c1a; font: 500 12px 'IBM Plex Sans KR', sans-serif">뒤로</span><span>대표 커버</span><span style="background: #fff; border-radius: 999px; padding: 4px 10px; color: #1c1c1a; font: 500 12px 'IBM Plex Sans KR', sans-serif">공유</span></div>
+        <div style="padding: 14px 16px 8px; display: flex; flex-direction: column; gap: 8px">
+          <div class="rel" style="font-size: 12px; color: #5f5f5a"><span class="mk" style="left: -12px">6</span>원신 › 캐릭터</div>
+          <div style="display: flex; align-items: center; gap: 10px"><h2 style="margin: 0; font-size: 22px">라이덴 쇼군</h2><span class="rel" style="margin-left: auto"><span class="mk">7</span><button style="background: #1c1c1a; color: #fff; border: 0; border-radius: 999px; padding: 8px 16px; font: 600 13px 'IBM Plex Sans KR', sans-serif">태그 팔로우</button></span></div>
+          <div style="font-size: 12px; color: #5f5f5a">별칭: Raiden Shogun · 雷電将軍 · 라이덴 · 게시물 [N] · 코스어 [N]</div>
+        </div>
+        <div class="rel" style="display: flex; gap: 20px; padding: 0 16px; border-bottom: 1px solid #e2e2dd; font-size: 13px"><span class="mk" style="left: 4px">8</span><span style="padding: 10px 0; border-bottom: 2px solid #1c1c1a; font-weight: 700">인기</span><span style="padding: 10px 0; color: #5f5f5a">최신</span><span style="padding: 10px 0; color: #5f5f5a">영상</span><span style="padding: 10px 0; color: #5f5f5a">코스어</span></div>
+        <div class="rel" style="display: flex; gap: 6px; padding: 10px 16px; overflow: hidden"><span class="mk" style="left: 6px">9</span><span style="font-size: 11.5px; color: #5f5f5a; align-self: center; white-space: nowrap">관련</span><span class="chip">야에 미코</span><span class="chip">에이</span><span class="chip">이나즈마</span><span class="chip">#스튜디오</span></div>
+        <div style="display: flex; gap: 6px; padding: 0 16px 10px"><span class="chip on" style="padding: 4px 10px; font-size: 11px">전체</span><span class="chip" style="padding: 4px 10px; font-size: 11px">2026</span><span class="chip" style="padding: 4px 10px; font-size: 11px">2025</span><span class="chip" style="padding: 4px 10px; font-size: 11px">2024</span></div>
+        <div style="flex: 1; overflow: hidden; padding: 0 12px">
+          <div style="column-count: 2; column-gap: 6px">
+            <div class="tile ph" style="height: 220px">세로</div>
+            <div class="tile ph" style="height: 160px">세로</div>
+            <div class="tile ph" style="height: 180px">세로</div>
+            <div class="tile ph" style="height: 240px">세로</div>
+          </div>
+        </div>
+        <nav class="tab" aria-label="하단 탭"><span><i></i>홈</span><span class="cur"><i></i>탐색</span><span><i style="background: #1c1c1a; border-radius: 11px"></i>업로드</span><span><i></i>커뮤니티</span><span><i></i>마이</span></nav>
+      </div>
+    </div>
+    <div class="spec" style="width: 440px; margin-top: 20px">
+      <span class="lbl">화면 설명</span>
+      <div class="si"><span class="sn">1</span><div><span class="st">검색 + 필터</span><br>결과는 탭으로 나눕니다: 게시물 · 크리에이터 · 태그 · 행사. 필터 아이콘은 바텀시트(카테고리, 컬러톤, 계절, 촬영 기간, 인증 크리에이터만, 영상만)를 엽니다. 최근 검색어는 기기에만 저장합니다.</div></div>
+      <div class="si"><span class="sn">2</span><div><span class="st">카테고리 4종</span><br>누르면 해당 카테고리로 필터된 피드로 이동합니다.</div></div>
+      <div class="si"><span class="sn">3</span><div><span class="st">작품 랭킹</span><br>최근 7일 업로드 수 기준. 누르면 작품 태그 허브(S-05)로 갑니다.</div></div>
+      <div class="si"><span class="sn">4</span><div><span class="st">행사</span><br>다가오는 행사와 막 끝난 행사(사진이 올라오는 시기)를 섞어 보여줍니다. S-12로 연결.</div></div>
+      <div class="si"><span class="sn">5</span><div><span class="st">촬영 장소</span><br>장소 유형 태그. 정확한 좌표가 아닌 장소명 · 시/도 단위로만 묶습니다. 지도 보기는 v2.</div></div>
+      <div class="si"><span class="sn">6</span><div><span class="st">태그 계층</span><br>작품 › 캐릭터 2단계. 브레드크럼을 누르면 상위 작품 허브로 이동합니다. 같은 구조로 행사 · 장소 허브도 만듭니다.</div></div>
+      <div class="si"><span class="sn">7</span><div><span class="st">태그 팔로우</span><br>팔로우한 태그의 새 게시물이 추천 피드에 섞입니다. 별칭(한 · 영 · 일 표기)은 모두 같은 태그로 검색됩니다.</div></div>
+      <div class="si"><span class="sn">8</span><div><span class="st">허브 탭</span><br>인기(최근 30일 반응) · 최신 · 영상 · 코스어(이 캐릭터를 코스한 사람 목록). 아래 연도 칩(촬영 연도)으로 "2025년의 라이덴 쇼군"처럼 좁혀 봅니다.</div></div>
+      <div class="si"><span class="sn">9</span><div><span class="st">관련 태그</span><br>같은 게시물에 함께 붙는 빈도가 높은 태그를 자동 추천합니다.</div></div>
+      <div class="box"><b>태그 관리</b><br>새 작품 · 캐릭터 태그는 사용자가 업로드 중에 제안 → 운영자 승인 후 공식 태그가 됩니다. 승인 전에는 업로더 게시물에만 붙습니다.</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":1060}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

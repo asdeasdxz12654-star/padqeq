@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>P-04 게시물 상세 보강 명세</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d4ed8}a:hover{color:#1e3a8a}
+.card{background:#fff;border:1px solid #d6d6d0;border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.lbl{font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:#5f5f5a;text-transform:uppercase}
+.t{display:grid;font-size:12.5px;line-height:1.45}
+.t > div{display:grid;gap:10px;padding:6px 0;border-bottom:1px solid #ecece7;grid-template-columns:0.8fr 1.8fr}
+.t > div:last-child{border-bottom:0}
+.note{font-size:12px;color:#3f3f3b;line-height:1.55;background:#f0f0ec;border-radius:8px;padding:9px 11px}
+.st{display:flex;flex-wrap:wrap;gap:6px}
+.st span{border:1px solid #c9c9c4;border-radius:6px;padding:4px 8px;font-size:12px;background:#fafaf8}
+</style>
+</helmet>
+<div style="width: 1640px; height: 1120px; box-sizing: border-box; padding: 32px 40px; background: #f5f5f3; color: #1c1c1a; font-family: 'IBM Plex Sans KR', sans-serif; display: flex; flex-direction: column; gap: 22px">
+  <div style="display: flex; align-items: baseline; gap: 14px; border-bottom: 2px solid #1c1c1a; padding-bottom: 12px">
+    <span style="font: 600 14px 'IBM Plex Mono', monospace; color: #1d4ed8">P-04</span>
+    <h1 style="margin: 0; font-size: 24px">게시물 상세 보강 명세</h1>
+    <span style="font: 500 13px 'IBM Plex Mono', monospace; color: #5f5f5a">S-06 · S-07에 추가되는 기능 · 상태 · 권한별 메뉴</span>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; flex: 1; align-items: start">
+
+    <div style="display: flex; flex-direction: column; gap: 16px">
+      <div class="card">
+        <span class="lbl">보기 경험</span>
+        <div class="t">
+          <div><b>배경 밝기</b><span>검정 · 짙은 회색 · 흰색. 마지막 선택을 기억</span></div>
+          <div><b>맞춤 / 실제 크기</b><span>버튼으로 전환, 확대 중 미니맵</span></div>
+          <div><b>전체화면</b><span>모든 UI를 숨기고 사진만. 탭 한 번으로 UI 복귀</span></div>
+          <div><b>사진별 정보</b><span>세트 안에서 넘길 때마다 그 사진의 EXIF · 캡션 · 대체 텍스트로 교체</span></div>
+          <div><b>이전 / 다음 게시물</b><span>같은 업로더 · 같은 시리즈 안에서 ‹ ›</span></div>
+          <div><b>슬라이드쇼</b><span>세트 자동 넘김(4초), 선택 기능</span></div>
+          <div><b>파노라마</b><span>화면 높이에 맞춰 좌우 이동 + 위치 미니맵</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <span class="lbl">정보 표시</span>
+        <div class="t">
+          <div><b>날짜</b><span>촬영일 · 게시일, 수정 시 "수정됨"</span></div>
+          <div><b>조회수</b><span>공개 여부는 업로더 선택. 저장 수 · 유입 경로는 업로더만</span></div>
+          <div><b>등급 안내</b><span>'노출 주의'는 열기 전 안내 화면(성인 인증 회원만 통과)</span></div>
+          <div><b>저작권 표기</b><span>"© @업로더 · 무단 전재 및 AI 학습 이용 금지"</span></div>
+          <div><b>크레딧 정정</b><span>태그된 사람이 역할 수정 · 해제를 바로 요청</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 16px">
+      <div class="card">
+        <span class="lbl">댓글</span>
+        <div class="t">
+          <div><b>정렬</b><span>최신순 · 인기순</span></div>
+          <div><b>배지</b><span>업로더 · 크레딧 인물 배지</span></div>
+          <div><b>기능</b><span>@멘션, 답글 1단계, 수정 · 삭제 · 신고, 업로더 고정 댓글 1개</span></div>
+          <div><b>제한</b><span>업로더가 전체 / 팔로워만 / 끄기 선택. 신규 계정 7일간 링크 금지, 금칙어 필터</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <span class="lbl">공유</span>
+        <div class="t">
+          <div><b>방법</b><span>링크 복사 · 카카오톡 공유 · 시스템 공유 시트</span></div>
+          <div><b>공유 카드</b><span>워터마크가 들어간 작은 썸네일 + 제목 + @업로더. '노출 주의'는 카드에 이미지 없이 문구만</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <span class="lbl">권한별 메뉴</span>
+        <div class="t">
+          <div><b>방문자</b><span>링크 복사 · 신고 · 관심 없음</span></div>
+          <div><b>본인 게시물</b><span>수정 · 삭제 · 공개 범위 · 대표 사진 변경 · 크레딧 승인 현황 · 통계 · 댓글 관리</span></div>
+          <div><b>크레딧 인물</b><span>내 크레딧 해제 · 역할 정정 요청 · 프로필 노출 숨김</span></div>
+          <div><b>관리자</b><span>상단 관리자 바: 숨김 · 등급 변경 · 오늘의 픽 지정 · 검수/신고 이력 · 촬영 동의 기록 보기</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 16px">
+      <div class="card">
+        <span class="lbl">상태별 화면</span>
+        <div class="st"><span>로딩 스켈레톤</span><span>이미지 로드 실패 · 다시 시도</span><span>삭제된 게시물</span><span>비공개 게시물</span><span>차단한 사용자</span><span>나를 차단한 사용자</span><span>신고로 임시 비공개</span><span>검수 대기(업로더만)</span><span>성인 인증 필요</span><span>오프라인</span></div>
+        <div class="note">각 상태는 이유와 다음 행동(홈으로, 다시 시도, 인증하기)을 한 줄로 안내합니다. 존재 여부를 숨겨야 하는 경우(차단 · 비공개)는 "볼 수 없는 게시물입니다"로 통일.</div>
+      </div>
+      <div class="card">
+        <span class="lbl">검색 · 접근성</span>
+        <div class="t">
+          <div><b>검색 노출</b><span>공유 카드 메타, 구조화 데이터(ImageObject · 크레딧), canonical 주소. '노출 주의'는 검색 제외</span></div>
+          <div><b>대체 텍스트</b><span>사진별 입력, 비어 있으면 "작품 · 캐릭터 · 촬영자" 자동 문구</span></div>
+          <div><b>키보드</b><span>← → 사진, Esc 닫기, L 좋아요, S 저장, F 전체화면</span></div>
+          <div><b>스크린리더</b><span>제목 → 업로더 → 사진(대체 텍스트) → 크레딧 → 태그 → 댓글 순서</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <span class="lbl">캡처 방지 연계</span>
+        <div class="note">다운로드 메뉴 없음 · 타일 canvas 렌더링 · 로그인 회원 @핸들 오버레이 · 창 비활성 시 블러 · 앱에서 캡처 시 검은 화면 (P-02)</div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1640,"height":1120}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

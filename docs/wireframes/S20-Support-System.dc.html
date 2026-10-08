@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>S-20 고객센터 · 시스템 페이지</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d4ed8}a:hover{color:#1e3a8a}
+.mk{position:absolute;top:-9px;left:-9px;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;z-index:3}
+.rel{position:relative}
+.chip{border:1px solid #b9b9b3;border-radius:999px;padding:5px 11px;font-size:12px;white-space:nowrap;background:#fff}
+.on{background:#1c1c1a;color:#fff;border-color:#1c1c1a}
+.phone{width:390px;height:844px;flex:none;border:2px solid #1c1c1a;border-radius:32px;background:#fff;overflow:hidden;display:flex;flex-direction:column;box-sizing:border-box;position:relative}
+.cap{font:600 12px 'IBM Plex Mono',monospace;color:#5f5f5a;margin-bottom:8px}
+.it{display:flex;align-items:center;padding:11px 0;border-bottom:1px solid #f0f0ec;font-size:13px}
+.tg{font:600 9.5px 'IBM Plex Mono',monospace;border:1px solid #b9b9b3;border-radius:3px;padding:0 4px;color:#3f3f3b;margin-right:6px}
+.st8{border:1.5px solid #1c1c1a;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:12px;line-height:1.5}
+.st8 b{font-size:13.5px}
+.spec{display:flex;flex-direction:column;gap:12px;font-size:13px;line-height:1.55}
+.si{display:flex;gap:10px}
+.sn{flex:none;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;margin-top:1px}
+.lbl{font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:#5f5f5a;text-transform:uppercase}
+.box{border:1px solid #d6d6d0;border-radius:10px;padding:12px 14px;background:#fff;font-size:12.5px;line-height:1.6}
+</style>
+</helmet>
+<div style="width: 1400px; height: 1060px; box-sizing: border-box; padding: 32px 40px; background: #f5f5f3; color: #1c1c1a; font-family: 'IBM Plex Sans KR', sans-serif; display: flex; flex-direction: column; gap: 24px">
+  <div style="display: flex; align-items: baseline; gap: 14px; border-bottom: 2px solid #1c1c1a; padding-bottom: 12px">
+    <span style="font: 600 14px 'IBM Plex Mono', monospace; color: #1d4ed8">S-20</span>
+    <h1 style="margin: 0; font-size: 24px">고객센터 · 시스템 페이지</h1>
+    <span style="font: 500 13px 'IBM Plex Mono', monospace; color: #5f5f5a">/help · /notice · /legal/* · 404 · 점검 · 인앱 안내 — 오픈 전 필수</span>
+  </div>
+  <div style="display: flex; gap: 32px; align-items: flex-start">
+    <div>
+      <div class="cap">고객센터 (마이 › 고객센터)</div>
+      <div class="phone">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 18px 16px 10px; font-size: 13px"><span>뒤로</span><b style="font-size: 16px">고객센터</b></div>
+        <div class="rel" style="display: flex; gap: 6px; padding: 0 16px 10px"><span class="mk" style="left: 6px">1</span><span class="chip on">공지</span><span class="chip">자주 묻는 질문</span><span class="chip">1:1 문의</span></div>
+        <div style="flex: 1; overflow: hidden; padding: 0 16px">
+          <div class="rel"><span class="mk" style="left: -12px">2</span>
+            <div class="it"><span class="tg" style="border-color: #b91c1c; color: #b91c1c">점검</span><span style="flex: 1">[MM.DD] 새벽 서버 점검 안내</span><span style="font-size: 11px; color: #5f5f5a">10.07</span></div>
+            <div class="it"><span class="tg">약관</span><span style="flex: 1">이용약관 개정 안내 (시행 [YYYY.MM.DD])</span><span style="font-size: 11px; color: #5f5f5a">10.01</span></div>
+            <div class="it"><span class="tg">소식</span><span style="flex: 1">해담 오픈 안내</span><span style="font-size: 11px; color: #5f5f5a">09.20</span></div>
+          </div>
+          <div class="rel" style="margin-top: 18px"><span class="mk" style="left: -12px">3</span>
+            <b style="font-size: 13px">자주 묻는 질문</b>
+            <div class="it">사진을 다운로드할 수 없나요? <span style="margin-left: auto">+</span></div>
+            <div class="it">원본 사진도 보관되나요? <span style="margin-left: auto">+</span></div>
+            <div class="it">크레딧 요청을 받았어요 <span style="margin-left: auto">+</span></div>
+            <div class="it">내 사진이 허락 없이 올라왔어요 <span style="margin-left: auto">+</span></div>
+          </div>
+          <div class="rel" style="margin-top: 18px; border: 1px solid #e2e2dd; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 6px; font-size: 12.5px"><span class="mk">4</span>
+            <b>1:1 문의</b>
+            <span style="color: #5f5f5a">분류: 계정 · 업로드 · 크레딧 · 신고 결과 · 기타</span>
+            <span style="color: #5f5f5a">답변은 알림 · 이메일로 안내 (영업일 기준 [N]일 이내)</span>
+            <span style="align-self: flex-start" class="chip on">문의하기</span>
+          </div>
+        </div>
+        <div class="rel" style="border-top: 1px solid #e2e2dd; padding: 12px 16px 24px; font-size: 11px; color: #5f5f5a; line-height: 1.7"><span class="mk" style="left: 6px">5</span>이용약관 · <b>개인정보처리방침</b> · 운영정책 · 청소년보호정책 · 초상권 · 저작권 정책<br>© 해담 · 무단 전재 및 AI 학습 이용 금지</div>
+      </div>
+    </div>
+    <div>
+      <div class="cap">시스템 페이지 · 안내 상태</div>
+      <div class="phone" style="background: #fafaf8">
+        <div style="flex: 1; overflow: hidden; padding: 20px 16px; display: flex; flex-direction: column; gap: 14px">
+          <div class="st8 rel" style="background: #fff"><span class="mk">6</span><b>찾을 수 없는 페이지 (404)</b><span style="color: #5f5f5a">주소가 바뀌었거나 삭제된 페이지예요.</span><span><a href="#">홈으로</a> · <a href="#">검색하기</a></span></div>
+          <div class="st8 rel" style="background: #fff"><span class="mk">7</span><b>점검 중</b><span style="color: #5f5f5a">더 나은 해담을 위해 점검 중입니다. [HH:MM]에 다시 만나요.</span><span>점검 소식: <a href="#">공식 SNS</a></span></div>
+          <div class="st8 rel" style="background: #fff"><span class="mk">8</span><b>읽기 전용 모드 배너</b><span style="color: #5f5f5a">지금은 사진 보기만 가능해요. 업로드 · 댓글은 잠시 후 다시 열립니다.</span></div>
+          <div class="st8 rel" style="background: #fff"><span class="mk">9</span><b>카카오톡 등 앱 안에서 열었어요</b><span style="color: #5f5f5a">Google 로그인과 사진 업로드는 기본 브라우저에서 더 안정적이에요.</span><span class="chip on" style="align-self: flex-start">기본 브라우저로 열기</span></div>
+          <div class="st8 rel" style="background: #fff"><span class="mk">10</span><b>오류가 발생했어요 (500)</b><span style="color: #5f5f5a">잠시 후 다시 시도해 주세요. 오류 번호 [ID]</span><span><a href="#">다시 시도</a> · <a href="#">문의하기</a></span></div>
+        </div>
+      </div>
+    </div>
+    <div class="spec" style="width: 440px; margin-top: 20px">
+      <span class="lbl">화면 설명</span>
+      <div class="si"><span class="sn">1</span><div><b>고객센터 탭</b><br>공지 · FAQ · 1:1 문의. 비로그인은 공지 · FAQ만.</div></div>
+      <div class="si"><span class="sn">2</span><div><b>공지</b><br>점검 · 약관 · 소식 분류. 점검 공지는 시작 24시간 전부터 홈 상단 배너로도 노출. 광고성 공지는 두지 않음.</div></div>
+      <div class="si"><span class="sn">3</span><div><b>FAQ</b><br>해담 컨셉상 꼭 필요한 질문을 맨 위에: 다운로드가 없는 이유, <b>원본 백업 서비스가 아님</b>, 크레딧, 초상권 신고 방법.</div></div>
+      <div class="si"><span class="sn">4</span><div><b>1:1 문의</b><br>분류 선택 · 내용 · 첨부(선택). 관리자 소통 메뉴에서 답변. 답변 목표 시간을 표시.</div></div>
+      <div class="si"><span class="sn">5</span><div><b>법적 페이지</b><br>모든 화면 하단 · 설정에서 접근. 개인정보처리방침은 굵게(법적 요구). 약관 개정 시 버전 보관, 시행 7일 전 공지.</div></div>
+      <div class="si"><span class="sn">6</span><div><b>404</b><br>삭제 · 비공개 게시물도 존재 여부를 드러내지 않도록 같은 문구 사용.</div></div>
+      <div class="si"><span class="sn">7</span><div><b>점검</b><br>관리자 기능 스위치로 전환. 점검 소식은 사이트 밖(공식 SNS)에서도 확인 가능하게.</div></div>
+      <div class="si"><span class="sn">8</span><div><b>읽기 전용 배너</b><br>A-05 긴급 스위치와 연동, 모든 화면 상단.</div></div>
+      <div class="si"><span class="sn">9</span><div><b>인앱 브라우저 안내</b><br>인앱 감지 시 로그인 · 업로드 화면에서만 표시(열람은 그대로). 닫으면 그 세션 동안 숨김.</div></div>
+      <div class="si"><span class="sn">10</span><div><b>오류</b><br>오류 번호를 보여주고 문의 시 자동 첨부 → 운영자가 로그에서 바로 찾음.</div></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":1060}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>P-01 데이터 저장 · 업로드 기준</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d4ed8}a:hover{color:#1e3a8a}
+.card{background:#fff;border:1px solid #d6d6d0;border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.h{font-size:15px;font-weight:700;margin:0}
+.lbl{font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:#5f5f5a;text-transform:uppercase}
+.t{display:grid;gap:0;font-size:12.5px;line-height:1.45}
+.t > div{display:grid;gap:10px;padding:6px 0;border-bottom:1px solid #ecece7}
+.t > div:last-child{border-bottom:0}
+.th{font:600 11px 'IBM Plex Mono',monospace;color:#5f5f5a}
+.mono{font:500 12px 'IBM Plex Mono',monospace}
+.step{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;line-height:1.45}
+.num{flex:none;width:22px;height:22px;border-radius:11px;background:#1c1c1a;color:#fff;font:600 11px/22px 'IBM Plex Mono',monospace;text-align:center}
+.arrow{width:2px;height:12px;background:#b9b9b3;margin-left:10px}
+.note{font-size:12px;color:#3f3f3b;line-height:1.55;background:#f0f0ec;border-radius:8px;padding:9px 11px}
+.open{font-size:12px;line-height:1.55;border:1.5px dashed #b45309;border-radius:8px;padding:9px 11px;color:#7c2d12}
+</style>
+</helmet>
+<div style="width: 1640px; height: 1120px; box-sizing: border-box; padding: 32px 40px; background: #f5f5f3; color: #1c1c1a; font-family: 'IBM Plex Sans KR', sans-serif; display: flex; flex-direction: column; gap: 22px">
+  <div style="display: flex; align-items: baseline; gap: 14px; border-bottom: 2px solid #1c1c1a; padding-bottom: 12px">
+    <span style="font: 600 14px 'IBM Plex Mono', monospace; color: #1d4ed8">P-01</span>
+    <h1 style="margin: 0; font-size: 24px">데이터 저장 · 업로드 기준</h1>
+    <span style="font: 500 13px 'IBM Plex Mono', monospace; color: #5f5f5a">정책 보드 · 2026-10-08 확정분</span>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; flex: 1; align-items: start">
+
+    <div style="display: flex; flex-direction: column; gap: 16px">
+      <div class="card">
+        <span class="lbl">업로드 입력 기준</span>
+        <div class="t">
+          <div style="grid-template-columns: 1.3fr 1fr"><span class="th">형식</span><span class="th">장당 최대</span></div>
+          <div style="grid-template-columns: 1.3fr 1fr"><span>JPEG · HEIC · PNG</span><span class="mono">50MB</span></div>
+          <div style="grid-template-columns: 1.3fr 1fr"><span>RAW (PC)</span><span class="mono">200MB</span></div>
+          <div style="grid-template-columns: 1.3fr 1fr"><span>RAW (모바일)</span><span class="mono">100MB</span></div>
+          <div style="grid-template-columns: 1.3fr 1fr"><span>한 게시물</span><span class="mono">20장</span></div>
+          <div style="grid-template-columns: 1.3fr 1fr"><span>회원별 월 한도</span><span class="mono">300장 (예시값)</span></div>
+        </div>
+        <div class="note">RAW: CR2 · CR3 · NEF · ARW · RAF · RW2 · ORF · DNG. 회원 브라우저에서 LibRaw(WebAssembly)로 해석하고 <b>RAW 파일은 서버로 보내지 않습니다.</b> 내장 미리보기가 2560px 이상이면 그것을, 작으면 전체 현상. 모바일은 내장 미리보기만. 업로드 화면에 '보정 전 원본' 표시 후 확인 게시.</div>
+      </div>
+      <div class="card">
+        <span class="lbl">서버 저장본</span>
+        <div class="t">
+          <div style="grid-template-columns: 1fr 1.1fr 0.8fr"><span class="th">파일</span><span class="th">크기</span><span class="th">평균 용량</span></div>
+          <div style="grid-template-columns: 1fr 1.1fr 0.8fr"><span>마스터 AVIF</span><span>긴 변 ≤ 4000px</span><span class="mono">2.5MB</span></div>
+          <div style="grid-template-columns: 1fr 1.1fr 0.8fr"><span>상세용</span><span>긴 변 2560px</span><span class="mono">0.6MB</span></div>
+          <div style="grid-template-columns: 1fr 1.1fr 0.8fr"><span>피드용</span><span>긴 변 1200px</span><span class="mono">0.25MB</span></div>
+          <div style="grid-template-columns: 1fr 1.1fr 0.8fr"><span>썸네일</span><span>긴 변 400px</span><span class="mono">0.03MB</span></div>
+          <div style="grid-template-columns: 1fr 1.1fr 0.8fr"><span>구형 기기용 JPEG</span><span>긴 변 1600px</span><span class="mono">0.4MB</span></div>
+          <div style="grid-template-columns: 1fr 1.1fr 0.8fr"><b>합계</b><span></span><b class="mono">≈ 3.9MB</b></div>
+        </div>
+        <div class="note"><b>파노라마 (가로세로 2.5:1 초과)</b> 짧은 변 ≤ 2000px, 긴 변 ≤ 16000px, 장당 6~8MB. 피드는 2:1 가운데 자르기 + '파노라마' 배지, 상세는 좌우 이동 뷰어.<br><b>서버 거부 기준</b> 마스터 8MB(파노라마 12MB) 초과, 위 해상도 규칙 위반, GPS 잔존, SVG · HTML.<br>4000px보다 작은 사진은 키우지 않습니다. 무손실 원본은 서버에 두지 않음(운영자 외장하드 · 회원 각자 보관).</div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 16px">
+      <div class="card">
+        <span class="lbl">저장 구조 · 데이터 흐름</span>
+        <div class="step"><span class="num">1</span><div><b>회원 브라우저</b> — 형식 확인, RAW 해석, AVIF 변환, GPS 제거, 변환본 4종 + 구형 기기용 JPEG 생성</div></div>
+        <div class="arrow"></div>
+        <div class="step"><span class="num">2</span><div><b>업로드 주소 발급 (Workers)</b> — 로그인 · 업로드 한도 확인 후 5분 만료 · 용량 고정 서명 URL</div></div>
+        <div class="arrow"></div>
+        <div class="step"><span class="num">3</span><div><b>R2 저장</b> — 공개 주소 없는 버킷. 경로는 무작위 UUID<br><span class="mono" style="font-size: 11px">display/{미디어ID}/{w4000|w2560|w1200|w400}.avif · w1600.jpg</span></div></div>
+        <div class="arrow"></div>
+        <div class="step"><span class="num">4</span><div><b>서버 검증 (Workers)</b> — 파일 내부 구조 · 해상도 · 용량 · GPS 재확인, 실패 시 삭제 후 거부</div></div>
+        <div class="arrow"></div>
+        <div class="step"><span class="num">5</span><div><b>DB 기록 (Supabase)</b> — 게시물 · 미디어 메타데이터, 상태: 업로드 중 → 게시됨</div></div>
+        <div class="arrow"></div>
+        <div class="step"><span class="num">6</span><div><b>보기 (이미지 게이트)</b> — 세션 · 속도 확인 후 서명 URL. 캐시는 파일 경로 기준이라 보안과 속도 동시 확보</div></div>
+      </div>
+      <div class="card">
+        <span class="lbl">백업 · 삭제 · 보관</span>
+        <div class="t">
+          <div style="grid-template-columns: 0.9fr 1.6fr"><b>사진 백업</b><span>운영자 외장하드 (변환본은 재생성 가능)</span></div>
+          <div style="grid-template-columns: 0.9fr 1.6fr"><b>DB 백업</b><span>GitHub Actions로 매일 내보내기 (Supabase 무료는 자동 백업 없음)</span></div>
+          <div style="grid-template-columns: 0.9fr 1.6fr"><b>게시물 삭제</b><span>즉시 비공개 → 30일 복구 가능 → 영구 삭제 + CDN 캐시 제거</span></div>
+          <div style="grid-template-columns: 0.9fr 1.6fr"><b>회원 탈퇴</b><span>30일 유예 후 삭제, 남의 게시물 속 크레딧은 '탈퇴한 회원'</span></div>
+          <div style="grid-template-columns: 0.9fr 1.6fr"><b>신고 증빙</b><span>처리 후 90일 뒤 삭제</span></div>
+          <div style="grid-template-columns: 0.9fr 1.6fr"><b>불법 촬영물</b><span>즉시 비공개, 법적 의무를 위해 별도 격리 보관</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 16px">
+      <div class="card">
+        <span class="lbl">서비스 구성 · 무료 한도</span>
+        <div class="t">
+          <div style="grid-template-columns: 0.9fr 1fr 1fr"><span class="th">데이터</span><span class="th">서비스</span><span class="th">무료 한도</span></div>
+          <div style="grid-template-columns: 0.9fr 1fr 1fr"><span>회원 계정</span><span>Supabase Auth</span><span>월 활성 5만 명</span></div>
+          <div style="grid-template-columns: 0.9fr 1fr 1fr"><span>DB</span><span>Supabase (서울)</span><span>500MB</span></div>
+          <div style="grid-template-columns: 0.9fr 1fr 1fr"><span>사진</span><span>Cloudflare R2</span><span>10GB, 전송 무료</span></div>
+          <div style="grid-template-columns: 0.9fr 1fr 1fr"><span>웹 · API</span><span>Workers + Next.js 16</span><span>유료 월 $5 (확정)</span></div>
+          <div style="grid-template-columns: 0.9fr 1fr 1fr"><span>영상</span><span>회원 업로드 개방 이후</span><span>—</span></div>
+        </div>
+        <div class="note">저장소는 S3 호환 방식으로 만들어 R2 · Oracle · B2 사이를 코드 변경 없이 옮길 수 있게 합니다(무료 조건 변경 대비).</div>
+      </div>
+      <div class="card">
+        <span class="lbl">비용 추정 · 회원 100명, 1인당 월 20장</span>
+        <div class="t">
+          <div style="grid-template-columns: 0.8fr 1fr 1fr 1fr"><span class="th">시점</span><span class="th">누적</span><span class="th">용량</span><span class="th">R2 월 비용</span></div>
+          <div style="grid-template-columns: 0.8fr 1fr 1fr 1fr"><span>1개월</span><span>2,000장</span><span>8GB</span><span>0원</span></div>
+          <div style="grid-template-columns: 0.8fr 1fr 1fr 1fr"><span>6개월</span><span>12,000장</span><span>47GB</span><span>약 800원</span></div>
+          <div style="grid-template-columns: 0.8fr 1fr 1fr 1fr"><span>1년</span><span>24,000장</span><span>94GB</span><span>약 1,800원</span></div>
+          <div style="grid-template-columns: 0.8fr 1fr 1fr 1fr"><span>2년</span><span>48,000장</span><span>187GB</span><span>약 3,700원</span></div>
+        </div>
+        <div class="note">감상만 하는 회원은 비용에 거의 영향이 없습니다(전송 무료). R2 단가 $0.015/GB · 월, 계약 전 최신 단가 확인.</div>
+      </div>
+      <div class="note"><b>확정 (2026-10-08)</b> Next.js 16 풀스택 · Workers 유료 월 $5 · 영상은 회원 업로드 개방 이후 · iOS 16.4 미만 구형 기기 지원(JPEG 변환본) · 국내 우선 + 다국어 대비 · '노출 주의' 허용 · 크레딧 승인제 유지</div>
+      <div class="note"><b>서비스명: 해담 (확정)</b> 컨셉 A — 추억을 다시 보는 갤러리. 원본 백업 서비스가 아님을 업로드 화면 · 약관에 명시, 사진은 자동 삭제하지 않음.</div>
+      <div class="open"><b>미정</b> 도메인</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1640,"height":1120}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

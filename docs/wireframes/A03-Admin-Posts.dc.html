@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>A-03 관리자 게시물 관리</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d4ed8}a:hover{color:#1e3a8a}
+.ph{background:#dcdcd7;display:flex;align-items:center;justify-content:center;color:#5f5f5a;font:500 10px 'IBM Plex Mono',monospace}
+.mk{position:absolute;top:-9px;left:-9px;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;z-index:3}
+.rel{position:relative}
+.frame{border:2px solid #1c1c1a;border-radius:12px;background:#fff;overflow:hidden;display:flex;flex-direction:column}
+.bar{height:26px;background:#ececea;border-bottom:1px solid #d6d6d0;display:flex;align-items:center;padding:0 10px;font:500 10.5px 'IBM Plex Mono',monospace;color:#5f5f5a}
+.side{width:156px;flex:none;background:#f3f3f0;border-right:1px solid #e2e2dd;padding:14px 10px;display:flex;flex-direction:column;gap:2px;font-size:12.5px}
+.side span{padding:7px 10px;border-radius:6px;color:#3f3f3b}
+.side .cur{background:#1c1c1a;color:#fff;font-weight:600}
+.side .grp{font:600 10px 'IBM Plex Mono',monospace;color:#8a8a84;padding:10px 10px 4px}
+.chip{border:1px solid #b9b9b3;border-radius:999px;padding:3px 9px;font-size:11px;white-space:nowrap;background:#fff}
+.on{background:#1c1c1a;color:#fff;border-color:#1c1c1a}
+.sel{border:1px solid #c9c9c4;border-radius:7px;padding:5px 9px;font-size:11.5px;background:#fff;white-space:nowrap}
+.tr{display:grid;grid-template-columns:22px 40px minmax(0,1.6fr) 0.9fr 0.7fr 0.5fr 0.6fr 0.7fr 0.4fr 0.4fr;gap:8px;align-items:center;font-size:11.5px;padding:6px 8px;border-bottom:1px solid #f0f0ec}
+.th{font:600 10px 'IBM Plex Mono',monospace;color:#5f5f5a;background:#fafaf8}
+.st{font:600 10px 'IBM Plex Mono',monospace;border-radius:4px;padding:1px 5px;justify-self:start}
+.act{border:1px solid #c9c9c4;border-radius:7px;padding:7px 9px;font-size:12px;text-align:center;background:#fff}
+.spec{display:flex;flex-direction:column;gap:11px;font-size:12.5px;line-height:1.5}
+.si{display:flex;gap:10px}
+.sn{flex:none;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;margin-top:1px}
+.lbl{font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:#5f5f5a;text-transform:uppercase}
+</style>
+</helmet>
+<div style="width: 1760px; height: 1120px; box-sizing: border-box; padding: 32px 40px; background: #f5f5f3; color: #1c1c1a; font-family: 'IBM Plex Sans KR', sans-serif; display: flex; flex-direction: column; gap: 24px">
+  <div style="display: flex; align-items: baseline; gap: 14px; border-bottom: 2px solid #1c1c1a; padding-bottom: 12px">
+    <span style="font: 600 14px 'IBM Plex Mono', monospace; color: #1d4ed8">A-03</span>
+    <h1 style="margin: 0; font-size: 24px">게시물 관리</h1>
+    <span style="font: 500 13px 'IBM Plex Mono', monospace; color: #5f5f5a">admin.[도메인]/posts · 휴지통 /posts/trash</span>
+  </div>
+  <div style="display: flex; gap: 28px; align-items: flex-start">
+    <div class="frame" style="width: 1240px; height: 940px; flex: none">
+      <div class="bar">admin.[도메인]/posts?year=2026</div>
+      <div style="display: flex; flex: 1; min-height: 0">
+        <nav class="side" aria-label="관리자 메뉴"><span>대시보드</span><span class="grp">콘텐츠</span><span>업로드</span><span class="cur">게시물</span><span>휴지통</span><span class="grp">운영</span><span>검수 · 신고</span><span>회원</span><span>큐레이션</span><span>태그 · 행사</span><span>공지 · 약관</span><span class="grp">관리</span><span>통계</span><span>시스템</span><span>감사 로그</span></nav>
+        <div style="flex: 1; display: flex; min-width: 0">
+          <div style="flex: 1; padding: 14px; display: flex; flex-direction: column; gap: 10px; min-width: 0">
+            <div class="rel" style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center"><span class="mk">1</span>
+              <span class="sel" style="flex: 1; min-width: 200px; color: #8a8a84">제목 · 게시물 ID · @업로더 · 태그 검색</span>
+              <span class="chip on">전체</span><span class="chip">게시됨</span><span class="chip">예약</span><span class="chip">임시저장</span><span class="chip">숨김</span><span class="chip">검수 대기</span>
+            </div>
+            <div class="rel" style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center"><span class="mk">2</span>
+              <span class="chip">전체 연도</span><span class="chip on">2026</span><span class="chip">2025</span><span class="chip">2024</span><span class="chip">이전 ▾</span>
+              <span style="width: 1px; height: 18px; background: #c9c9c4; margin: 0 4px"></span>
+              <span class="sel">카테고리 ▾</span><span class="sel">등급 ▾</span><span class="sel">신고 1건 이상</span><span class="sel">동의 기록 없음</span>
+              <span style="margin-left: auto; display: flex; gap: 4px"><span class="chip on">표</span><span class="chip">썸네일</span></span>
+            </div>
+            <div class="rel" style="background: #1c1c1a; color: #fff; border-radius: 8px; padding: 8px 12px; display: flex; gap: 14px; align-items: center; font-size: 12px"><span class="mk">3</span>
+              <b>3개 선택됨</b><span>숨김</span><span>등급 변경</span><span>태그 추가</span><span>공개 범위</span><span style="margin-left: auto; color: #fca5a5">삭제 (휴지통)</span>
+            </div>
+            <div class="rel" style="border: 1px solid #e2e2dd; border-radius: 10px; overflow: hidden"><span class="mk">4</span>
+              <div class="tr th"><span></span><span></span><span>제목</span><span>업로더</span><span>카테고리</span><span>촬영</span><span>등급</span><span>상태</span><span>조회</span><span>신고</span></div>
+              <div class="tr" style="background: #f0f3fb"><input type="checkbox" checked aria-label="선택"><div class="ph" style="height: 40px; border-radius: 4px"></div><span><b>야간 신사 촬영</b> · 12장</span><span>@admin</span><span>코스프레</span><span>2026</span><span class="st" style="border: 1px solid #b9b9b3">전체</span><span class="st" style="background: #dcfce7; color: #166534">게시됨</span><span>[N]</span><span>0</span></div>
+              <div class="tr"><input type="checkbox" checked aria-label="선택"><div class="ph" style="height: 40px; border-radius: 4px"></div><span><b>[게시물 제목]</b> · 9장</span><span>@admin</span><span>코스프레</span><span>2026</span><span class="st" style="border: 1px solid #b45309; color: #b45309">노출 주의</span><span class="st" style="background: #fef3c7; color: #92400e">예약 10.10</span><span>—</span><span>0</span></div>
+              <div class="tr"><input type="checkbox" checked aria-label="선택"><div class="ph" style="height: 40px; border-radius: 4px"></div><span><b>[게시물 제목]</b> · 파노라마</span><span>@admin</span><span>풍경</span><span>2026</span><span class="st" style="border: 1px solid #b9b9b3">전체</span><span class="st" style="background: #dcfce7; color: #166534">게시됨</span><span>[N]</span><span>0</span></div>
+              <div class="tr"><input type="checkbox" aria-label="선택"><div class="ph" style="height: 40px; border-radius: 4px"></div><span><b>[게시물 제목]</b> · 5장</span><span>@admin</span><span>모델·인물</span><span>2026</span><span class="st" style="border: 1px solid #b9b9b3">전체</span><span class="st" style="background: #e5e7eb; color: #374151">숨김</span><span>[N]</span><span style="color: #b91c1c; font-weight: 700">2</span></div>
+              <div class="tr"><input type="checkbox" aria-label="선택"><div class="ph" style="height: 40px; border-radius: 4px"></div><span><b>[게시물 제목]</b> · 3장</span><span>@admin</span><span>코스프레</span><span>2026</span><span class="st" style="border: 1px solid #b9b9b3">전체</span><span class="st" style="background: #f3f4f6; color: #6b7280">임시저장</span><span>—</span><span>0</span></div>
+              <div style="display: flex; justify-content: space-between; padding: 8px 10px; font-size: 11.5px; color: #5f5f5a"><span>2026년 [N]개 중 1–50</span><span>‹ 1 2 3 … ›</span></div>
+            </div>
+          </div>
+          <div class="rel" style="width: 320px; flex: none; border-left: 1px solid #e2e2dd; padding: 14px; display: flex; flex-direction: column; gap: 12px; overflow: hidden"><span class="mk" style="left: 4px; top: 6px">5</span>
+            <div style="display: flex; align-items: center; font-size: 12px"><b style="font-size: 13px">야간 신사 촬영</b><span style="margin-left: auto; color: #5f5f5a">닫기 ✕</span></div>
+            <div class="ph" style="height: 170px; border-radius: 8px">미리보기 (1/12)</div>
+            <div style="font-size: 11.5px; color: #5f5f5a; line-height: 1.6">ID p_7f3a… · 촬영 2026.09.14 · 게시 2026.10.05<br>원신 › 라이덴 쇼군 · 서울 · 야외<br>크레딧: 코스어(외부 링크) · 촬영 @admin</div>
+            <div class="rel" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px"><span class="mk">6</span>
+              <span class="act">숨김</span><span class="act">등급 변경</span><span class="act">오늘의 픽 지정</span><span class="act">태그 · 정보 수정</span><span class="act">회원 화면에서 보기</span><span class="act" style="color: #b91c1c; border-color: #b91c1c">삭제</span>
+            </div>
+            <div class="rel" style="border: 1px solid #e2e2dd; border-radius: 8px; padding: 8px 10px; font-size: 11.5px; display: flex; align-items: center"><span class="mk">7</span><span><b>촬영 동의 기록</b> 서면 · 2026.09.14</span><span style="margin-left: auto; color: #1d4ed8">열람 (기록됨)</span></div>
+            <div class="rel" style="display: flex; flex-direction: column; gap: 6px; font-size: 11.5px"><span class="mk">8</span>
+              <b style="font-size: 12px">이력</b>
+              <span>10.05 21:10 · 게시 · @admin</span>
+              <span>10.05 21:08 · 업로드 12장 (RAW 12)</span>
+              <span style="color: #5f5f5a">신고 · 검수 · 등급 변경 이력 없음</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="spec" style="width: 380px">
+      <span class="lbl">화면 설명</span>
+      <div class="si"><span class="sn">1</span><div><b>검색 · 상태</b><br>제목 · ID · 업로더 · 태그 통합 검색. 상태별 칩: 게시됨 · 예약 · 임시저장 · 숨김 · 검수 대기.</div></div>
+      <div class="si"><span class="sn">2</span><div><b>연도 칩 · 필터</b><br>회원 사이트와 같은 촬영 연도 칩(자동 생성). 카테고리 · 등급 · 신고 1건 이상 · <b>동의 기록 없음</b> 필터. 표 / 썸네일 보기 전환.</div></div>
+      <div class="si"><span class="sn">3</span><div><b>일괄 작업</b><br>선택하면 나타나는 작업 바. 실행 전 "N개에 적용합니다" 재확인. 삭제는 휴지통으로(30일 복구).</div></div>
+      <div class="si"><span class="sn">4</span><div><b>목록</b><br>50개 단위 페이지, 열 정렬. 신고 있는 게시물은 빨간 숫자. 예약 게시물은 날짜 표시.</div></div>
+      <div class="si"><span class="sn">5</span><div><b>상세 패널</b><br>행을 누르면 오른쪽에 열림. 목록 위치를 잃지 않음. J · K로 위아래 게시물 이동.</div></div>
+      <div class="si"><span class="sn">6</span><div><b>조치</b><br>숨김(즉시 비공개, 복구 가능) · 등급 변경(업로더 알림) · 오늘의 픽 지정(날짜 선택) · 정보 수정 · 삭제(사유 입력).</div></div>
+      <div class="si"><span class="sn">7</span><div><b>촬영 동의 기록</b><br>파일 열람 시 사유 입력 + 감사 로그. 기록이 없는 인물 사진은 목록에서 경고.</div></div>
+      <div class="si"><span class="sn">8</span><div><b>이력</b><br>업로드 · 게시 · 수정 · 등급 변경 · 신고 · 검수 · 크레딧 승인을 시간순으로.</div></div>
+      <div class="si"><span class="sn">+</span><div><b>휴지통</b><br>같은 표 구조에 '영구 삭제 예정일' 열. 복구 · 즉시 영구 삭제(재인증 + 사유).</div></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1760,"height":1120}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

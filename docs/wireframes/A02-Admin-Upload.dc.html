@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>A-02 관리자 대량 업로드</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d4ed8}a:hover{color:#1e3a8a}
+.ph{background:#dcdcd7;display:flex;align-items:center;justify-content:center;color:#5f5f5a;font:500 10px 'IBM Plex Mono',monospace}
+.mk{position:absolute;top:-9px;left:-9px;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;z-index:3}
+.rel{position:relative}
+.cap{font:600 12px 'IBM Plex Mono',monospace;color:#5f5f5a;margin-bottom:8px}
+.frame{border:2px solid #1c1c1a;border-radius:12px;background:#fff;overflow:hidden;display:flex;flex-direction:column}
+.bar{height:26px;background:#ececea;border-bottom:1px solid #d6d6d0;display:flex;align-items:center;padding:0 10px;font:500 10.5px 'IBM Plex Mono',monospace;color:#5f5f5a}
+.side{width:156px;flex:none;background:#f3f3f0;border-right:1px solid #e2e2dd;padding:14px 10px;display:flex;flex-direction:column;gap:2px;font-size:12.5px}
+.side span{padding:7px 10px;border-radius:6px;color:#3f3f3b}
+.side .cur{background:#1c1c1a;color:#fff;font-weight:600}
+.side .grp{font:600 10px 'IBM Plex Mono',monospace;color:#8a8a84;padding:10px 10px 4px}
+.inp{display:block;width:100%;box-sizing:border-box;border:1px solid #c9c9c4;border-radius:7px;padding:7px 9px;font:400 12px 'IBM Plex Sans KR',sans-serif;background:#fff;color:#1c1c1a}
+.fl{font-size:11.5px;font-weight:600;margin-bottom:4px;display:block}
+.chip{border:1px solid #b9b9b3;border-radius:999px;padding:3px 9px;font-size:11px;white-space:nowrap;background:#fff}
+.on{background:#1c1c1a;color:#fff;border-color:#1c1c1a}
+.q{display:grid;grid-template-columns:22px 34px minmax(0,1fr) 70px 90px;gap:8px;align-items:center;font-size:11.5px;padding:5px 0;border-bottom:1px solid #f0f0ec}
+.tag{font:600 9.5px 'IBM Plex Mono',monospace;border:1px solid #b9b9b3;border-radius:3px;padding:0 4px;color:#3f3f3b}
+.grpcard{border:1.5px solid #1c1c1a;border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.spec{display:flex;flex-direction:column;gap:11px;font-size:12.5px;line-height:1.5}
+.si{display:flex;gap:10px}
+.sn{flex:none;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;margin-top:1px}
+.st{font-weight:700}
+.lbl{font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:#5f5f5a;text-transform:uppercase}
+</style>
+</helmet>
+<div style="width: 1760px; height: 1120px; box-sizing: border-box; padding: 32px 40px; background: #f5f5f3; color: #1c1c1a; font-family: 'IBM Plex Sans KR', sans-serif; display: flex; flex-direction: column; gap: 24px">
+  <div style="display: flex; align-items: baseline; gap: 14px; border-bottom: 2px solid #1c1c1a; padding-bottom: 12px">
+    <span style="font: 600 14px 'IBM Plex Mono', monospace; color: #1d4ed8">A-02</span>
+    <h1 style="margin: 0; font-size: 24px">대량 업로드 — 1단계 운영의 핵심 화면</h1>
+    <span style="font: 500 13px 'IBM Plex Mono', monospace; color: #5f5f5a">admin.[도메인]/upload</span>
+  </div>
+  <div style="display: flex; gap: 28px; align-items: flex-start">
+    <div class="frame" style="width: 1240px; height: 940px; flex: none">
+      <div class="bar">admin.[도메인]/upload</div>
+      <div style="display: flex; flex: 1; min-height: 0">
+        <nav class="side" aria-label="관리자 메뉴"><span>대시보드</span><span class="grp">콘텐츠</span><span class="cur">업로드</span><span>게시물</span><span>휴지통</span><span class="grp">운영</span><span>검수 · 신고</span><span>회원</span><span>큐레이션</span><span>태그 · 행사</span><span>공지 · 약관</span><span class="grp">관리</span><span>통계</span><span>시스템</span><span>감사 로그</span></nav>
+        <div style="flex: 1; display: flex; min-width: 0">
+          <div style="flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 14px; min-width: 0; border-right: 1px solid #e2e2dd">
+            <div class="rel" style="border: 2px dashed #b9b9b3; border-radius: 12px; padding: 18px; display: flex; align-items: center; gap: 16px"><span class="mk">1</span>
+              <div style="flex: 1"><b style="font-size: 14px">폴더 또는 파일을 끌어다 놓기</b><div style="font-size: 11.5px; color: #5f5f5a; margin-top: 4px">JPEG · HEIC · PNG 50MB · RAW 200MB · 한 번에 최대 500장 · 브라우저에서 변환 후 업로드</div></div>
+              <button style="background: #1c1c1a; color: #fff; border: 0; border-radius: 8px; padding: 9px 14px; font: 600 12.5px 'IBM Plex Sans KR', sans-serif">파일 선택</button>
+            </div>
+            <div class="rel" style="border: 1px solid #e2e2dd; border-radius: 10px; padding: 10px 12px"><span class="mk">2</span>
+              <div style="display: flex; align-items: center; gap: 10px; font-size: 12px; margin-bottom: 6px"><b>처리 대기열</b><span style="color: #5f5f5a">142장 중 87장 완료 · 실패 2</span><div style="flex: 1; height: 6px; background: #ececea; border-radius: 3px; overflow: hidden"><div style="width: 61%; height: 6px; background: #1c1c1a"></div></div><a href="#">실패만 보기</a></div>
+              <div class="q"><input type="checkbox" checked aria-label="선택"><div class="ph" style="height: 34px; border-radius: 4px"></div><span>DSC08812.ARW <span class="tag">RAW</span></span><span class="tag" style="justify-self: start">내장 미리보기</span><span style="color: #15803d">완료</span></div>
+              <div class="q"><input type="checkbox" checked aria-label="선택"><div class="ph" style="height: 34px; border-radius: 4px"></div><span>DSC08813.ARW <span class="tag">RAW</span></span><span class="tag" style="justify-self: start">전체 현상</span><span style="color: #b45309">변환 중 64%</span></div>
+              <div class="q"><input type="checkbox" checked aria-label="선택"><div class="ph" style="height: 34px; border-radius: 4px"></div><span>IMG_4410.HEIC</span><span class="tag" style="justify-self: start">파노라마</span><span style="color: #5f5f5a">대기</span></div>
+              <div class="q"><input type="checkbox" aria-label="선택"><div class="ph" style="height: 34px; border-radius: 4px"></div><span>scan_001.png</span><span></span><span style="color: #b91c1c">실패 · 재시도</span></div>
+            </div>
+            <div class="rel" style="display: flex; flex-direction: column; gap: 10px"><span class="mk">3</span>
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 12.5px"><b>게시물 묶기</b><span style="color: #5f5f5a">촬영 시각이 30분 이상 떨어지면 자동으로 나눔 · 드래그로 이동</span><span style="margin-left: auto" class="chip">자동 다시 나누기</span></div>
+              <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+                <div class="grpcard" style="background: #fafaf8">
+                  <div style="display: flex; gap: 8px; align-items: center; font-size: 12px"><input type="checkbox" checked aria-label="묶음 선택"><b>묶음 1 · 12장</b><span style="color: #5f5f5a">2026.09.14 19:02–19:40</span></div>
+                  <div style="display: flex; gap: 4px"><div class="ph" style="width: 52px; height: 66px; border-radius: 4px; outline: 2px solid #1c1c1a">대표</div><div class="ph" style="width: 52px; height: 66px; border-radius: 4px"></div><div class="ph" style="width: 52px; height: 66px; border-radius: 4px"></div><div class="ph" style="width: 52px; height: 66px; border-radius: 4px"></div><div class="ph" style="width: 52px; height: 66px; border-radius: 4px">+8</div></div>
+                  <span style="font-size: 11px; color: #15803d">작품 · 크레딧 · 동의 기록 입력됨</span>
+                </div>
+                <div class="grpcard">
+                  <div style="display: flex; gap: 8px; align-items: center; font-size: 12px"><input type="checkbox" aria-label="묶음 선택"><b>묶음 2 · 9장</b><span style="color: #5f5f5a">2026.09.14 20:15–20:31</span></div>
+                  <div style="display: flex; gap: 4px"><div class="ph" style="width: 52px; height: 66px; border-radius: 4px">대표</div><div class="ph" style="width: 52px; height: 66px; border-radius: 4px"></div><div class="ph" style="width: 52px; height: 66px; border-radius: 4px"></div><div class="ph" style="width: 52px; height: 66px; border-radius: 4px"></div><div class="ph" style="width: 52px; height: 66px; border-radius: 4px">+5</div></div>
+                  <span style="font-size: 11px; color: #b91c1c">동의 기록 없음 — 게시 불가</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="width: 330px; flex: none; padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow: hidden">
+            <b style="font-size: 13px">선택한 묶음 1개에 일괄 적용</b>
+            <div class="rel"><span class="mk">4</span><span class="fl">카테고리</span><div style="display: flex; gap: 4px"><span class="chip on">코스프레</span><span class="chip">모델·인물</span><span class="chip">풍경</span></div></div>
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+              <div><label class="fl" for="w">작품 · 캐릭터</label><input id="w" class="inp" value="원신 · 라이덴 쇼군"></div>
+              <div><label class="fl" for="e">행사 · 장소</label><input id="e" class="inp" value="서울 · 야외"></div>
+            </div>
+            <div><span class="fl">촬영일 (EXIF 자동 · 연도 칩 기준)</span><div class="inp" style="color: #5f5f5a">2026.09.14 → 2026 칩</div></div>
+            <div class="rel"><span class="mk">5</span><span class="fl">크레딧</span>
+              <div style="display: flex; flex-direction: column; gap: 4px">
+                <div style="display: flex; gap: 4px"><span class="inp" style="width: 70px; flex: none">촬영</span><span class="inp">@admin (나)</span></div>
+                <div style="display: flex; gap: 4px"><span class="inp" style="width: 70px; flex: none">코스어</span><span class="inp">instagram.com/[핸들] (미가입)</span></div>
+              </div>
+            </div>
+            <div class="rel" style="border: 1.5px solid #1c1c1a; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px; font-size: 12px"><span class="mk">6</span>
+              <b>촬영 동의 기록 (비공개)</b>
+              <div style="display: flex; gap: 4px"><span class="chip on">서면</span><span class="chip">메시지</span><span class="chip">구두</span></div>
+              <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px"><span class="inp">동의일 2026.09.14</span><span class="inp">동의서.pdf 첨부</span></div>
+              <label style="display: flex; gap: 6px; align-items: center"><input type="checkbox">사진 속 인물 중 미성년자 있음 (보호자 동의 필수)</label>
+            </div>
+            <div class="rel"><span class="mk">7</span><span class="fl">등급 · 공개</span><div style="display: flex; gap: 4px; flex-wrap: wrap"><span class="chip on">전체 이용가</span><span class="chip">노출 주의</span><span class="chip on">전체 공개</span><span class="chip">워터마크 켬</span></div></div>
+            <div class="rel" style="margin-top: auto; display: flex; flex-direction: column; gap: 6px"><span class="mk">8</span>
+              <div style="display: flex; gap: 4px"><span class="chip on">즉시 게시</span><span class="chip">예약 2026.10.10 20:00</span><span class="chip">임시저장</span></div>
+              <button style="background: #1c1c1a; color: #fff; border: 0; border-radius: 8px; padding: 11px; font: 600 13px 'IBM Plex Sans KR', sans-serif">선택한 묶음 게시 (1개 · 12장)</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="spec" style="width: 380px">
+      <span class="lbl">화면 설명</span>
+      <div class="si"><span class="sn">1</span><div><span class="st">드롭 영역</span><br>폴더째 끌어다 놓기. 한 번에 최대 500장. 변환은 관리자 PC 브라우저에서 진행되므로 창을 닫지 않도록 안내(닫으면 이어서 진행).</div></div>
+      <div class="si"><span class="sn">2</span><div><span class="st">처리 대기열</span><br>파일별 변환 방식(내장 미리보기 / 전체 현상 / 파노라마)과 상태. 실패 파일만 모아 재시도. 같은 사진(해시 일치)은 "이미 올린 사진" 경고.</div></div>
+      <div class="si"><span class="sn">3</span><div><span class="st">게시물 묶기</span><br>촬영 시각 간격으로 자동 분류, 드래그로 사진 이동 · 묶음 분리/합치기, 대표 사진 지정. 묶음 하나가 게시물 하나.</div></div>
+      <div class="si"><span class="sn">4</span><div><span class="st">일괄 적용</span><br>선택한 묶음 전체에 카테고리 · 작품 · 행사 · 장소를 한 번에. 개별 수정도 가능.</div></div>
+      <div class="si"><span class="sn">5</span><div><span class="st">크레딧</span><br>회원이면 승인 요청 발송, 미가입자는 외부 링크로 기록 → 가입 후 크레딧 소유 요청으로 연결.</div></div>
+      <div class="si"><span class="sn">6</span><div><span class="st">촬영 동의 기록</span><br>1단계 초상권 보호 장치. 인물 사진(코스프레 · 모델)은 <b>기록이 없으면 게시 불가</b>. 첨부 파일은 비공개 버킷에 저장, 열람 시 감사 로그. 미성년자 체크 시 보호자 동의 필수 + '노출 주의' 비활성.</div></div>
+      <div class="si"><span class="sn">7</span><div><span class="st">등급 · 공개</span><br>회원 업로드(S-08)와 같은 규칙.</div></div>
+      <div class="si"><span class="sn">8</span><div><span class="st">게시 방식</span><br>즉시 · 예약 · 임시저장. 예약 게시물은 A-03에서 일정 확인 · 변경.</div></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1760,"height":1120}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

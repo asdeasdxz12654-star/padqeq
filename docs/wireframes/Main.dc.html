@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>개요 · 화면 기획서</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d4ed8}a:hover{color:#1e3a8a}
+.lbl{font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:#5f5f5a;text-transform:uppercase;margin-bottom:10px}
+.row{display:grid;grid-template-columns:56px minmax(0,1fr) 150px 44px;gap:8px;padding:7px 0;border-bottom:1px solid #e0e0da;font-size:13px;align-items:baseline}
+.mono{font:500 12px 'IBM Plex Mono',monospace;color:#5f5f5a}
+.id{font:600 12px 'IBM Plex Mono',monospace;color:#1d4ed8}
+.tag{font:600 10px 'IBM Plex Mono',monospace;border:1px solid #b9b9b3;border-radius:4px;padding:1px 5px;text-align:center}
+.tree{font:500 13px/1.75 'IBM Plex Sans KR',sans-serif;white-space:pre;margin:0}
+.rule{display:flex;flex-direction:column;gap:2px;padding:9px 0;border-bottom:1px solid #e0e0da;font-size:13px;line-height:1.5}
+.rule b{font-size:13px}
+.sn{flex:none;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center}
+</style>
+</helmet>
+<div style="width: 1280px; height: 1040px; box-sizing: border-box; padding: 40px 48px; background: #f5f5f3; color: #1c1c1a; font-family: 'IBM Plex Sans KR', sans-serif; display: flex; flex-direction: column; gap: 28px">
+  <div style="display: flex; align-items: flex-end; gap: 16px; border-bottom: 2px solid #1c1c1a; padding-bottom: 16px">
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <span style="font: 600 14px 'IBM Plex Mono', monospace; color: #1d4ed8">S-00 · 개요</span>
+      <h1 style="margin: 0; font-size: 34px; font-weight: 700; letter-spacing: -0.01em">해담 — 화면 기획서</h1>
+      <span style="font-size: 14px; color: #3f3f3b">"해마다, 잊지 않도록" · 코스프레 · 모델 · 풍경 사진을 해마다 담아 두고 다시 꺼내 보는 추억 갤러리 (원본 백업 서비스 아님 · 사진 자동 삭제 없음)</span>
+    </div>
+    <span style="margin-left: auto; font: 500 13px 'IBM Plex Mono', monospace; color: #5f5f5a">v0.1 · 2026-10-08 · 와이어프레임(Lo-fi)</span>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 470px 300px minmax(0, 1fr); gap: 40px; flex: 1">
+    <div>
+      <div class="lbl">화면 목록</div>
+      <div class="row" style="border-bottom: 1px solid #1c1c1a"><span class="mono">ID</span><span class="mono">화면</span><span class="mono">경로</span><span class="mono">단계</span></div>
+      <div class="row"><span class="id">S-01</span><span>온보딩 (가입·역할·관심)</span><span class="mono">/signup</span><span class="tag">MVP</span></div>
+      <div class="row"><span class="id">S-02</span><span>홈 피드 · 모바일</span><span class="mono">/</span><span class="tag">MVP</span></div>
+      <div class="row"><span class="id">S-03</span><span>홈 · 데스크톱</span><span class="mono">/</span><span class="tag">MVP</span></div>
+      <div class="row"><span class="id">S-04</span><span>탐색 · 검색</span><span class="mono">/explore</span><span class="tag">MVP</span></div>
+      <div class="row"><span class="id">S-05</span><span>태그 허브 (작품·캐릭터)</span><span class="mono">/t/[slug]</span><span class="tag">MVP</span></div>
+      <div class="row"><span class="id">S-06</span><span>게시물 상세 · 모바일</span><span class="mono">/p/[id]</span><span class="tag">MVP</span></div>
+      <div class="row"><span class="id">S-07</span><span>게시물 상세 · 데스크톱</span><span class="mono">/p/[id]</span><span class="tag">MVP</span></div>
+      <div class="row"><span class="id">S-08</span><span>업로드 (미디어·정보·공개)</span><span class="mono">/upload</span><span class="tag">MVP</span></div>
+      <div class="row"><span class="id">S-09</span><span>프로필 · 포트폴리오</span><span class="mono">/@[handle]</span><span class="tag">MVP</span></div>
+      <div class="row"><span class="id">S-10</span><span>크레딧 요청함</span><span class="mono">/me/credits</span><span class="tag">MVP</span></div>
+      <div class="row"><span class="id">S-11</span><span>알림</span><span class="mono">/me/alerts</span><span class="tag">v1</span></div>
+      <div class="row"><span class="id">S-12</span><span>행사 페이지</span><span class="mono">/events/[id]</span><span class="tag">v1</span></div>
+      <div class="row"><span class="id">S-13</span><span>구인·섭외 게시판</span><span class="mono">/board/casting</span><span class="tag">v2</span></div>
+      <div class="row"><span class="id">S-14</span><span>설정</span><span class="mono">/settings</span><span class="tag">MVP</span></div>
+      <div class="row"><span class="id">S-15</span><span>신고 (바텀시트)</span><span class="mono">모달</span><span class="tag">MVP</span></div>
+      <div class="row"><span class="id">S-16~20</span><span>메시지 · 디렉토리 · 캘린더 · N년 전 오늘 · 연말 결산 · 크레딧 연결 · 이의 제기 · 고객센터</span><span class="mono">추가 화면</span><span class="tag">MVP~v2</span></div>
+      <div class="row"><span class="id">P-01</span><span>데이터 저장 · 업로드 기준</span><span class="mono">정책 보드</span><span class="tag">—</span></div>
+      <div class="row"><span class="id">P-02</span><span>보안 · 캡처 방지</span><span class="mono">정책 보드</span><span class="tag">—</span></div>
+      <div class="row"><span class="id">P-03·04</span><span>크로스플랫폼 · 상세 보강 명세</span><span class="mono">정책 보드</span><span class="tag">—</span></div>
+      <div class="row"><span class="id">A-00~05</span><span>관리자 페이지</span><span class="mono">admin.[도메인]</span><span class="tag">MVP</span></div>
+    </div>
+
+    <div>
+      <div class="lbl">정보 구조 (하단 탭 5)</div>
+      <pre class="tree">홈
+ ├ 추천 / 팔로잉 피드
+ ├ 오늘의 픽
+ └ 다가오는 행사
+탐색
+ ├ 카테고리 4종
+ ├ 작품·캐릭터 → 태그 허브
+ ├ 행사 · 장소
+ └ 검색 + 필터
+업로드 (+)
+ └ 사진 세트 / 영상
+커뮤니티
+ ├ 행사 캘린더
+ ├ 구인·섭외 게시판
+ ├ 촬영 장소 정보
+ └ 자유 · Q&amp;A
+마이
+ ├ 포트폴리오
+ ├ 컬렉션
+ ├ 크레딧 요청함
+ ├ 알림 · 메시지
+ └ 설정</pre>
+    </div>
+
+    <div>
+      <div class="lbl">공통 규칙</div>
+      <div class="rule"><b>내비게이션</b><span>모바일: 하단 탭 5개(홈·탐색·업로드·커뮤니티·마이). 데스크톱: 상단 GNB + 우측 업로드 버튼. 같은 탭을 다시 누르면 맨 위로 이동합니다.</span></div>
+      <div class="rule"><b>브레이크포인트</b><span>~767px 모바일(피드 2열) · 768~1199px 태블릿(3열) · 1200px~ 데스크톱(4~5열 + 우측 레일)</span></div>
+      <div class="rule"><b>테마</b><span>다크 모드 기본, 라이트 모드 지원. 무채색 UI에 포인트 컬러 1개(좋아요·주요 버튼)만 사용합니다. 와이어프레임은 가독성을 위해 라이트로 그렸습니다.</span></div>
+      <div class="rule"><b>이미지</b><span>원본 비율 유지, AVIF 변환본만 서빙(긴 변 4000px, 파노라마 예외), EXIF GPS 항상 제거, 다운로드 기능 없음.</span></div>
+      <div class="rule"><b>광고·구독 없음</b><span>어떤 화면에도 광고 슬롯이나 유료 등급을 두지 않습니다. 모든 기능은 모든 회원에게 동일하게 제공합니다.</span></div>
+      <div class="rule"><b>접근성</b><span>터치 영역 44px 이상, 업로드 시 대체 텍스트 입력란 제공, 대비 4.5:1 이상.</span></div>
+      <div class="rule" style="border-bottom: 0"><b>표기 범례</b><span style="display: flex; align-items: center; gap: 8px"><span class="sn">1</span>와이어프레임의 번호는 오른쪽 설명 패널의 같은 번호 항목과 대응합니다.</span><span style="display: flex; align-items: center; gap: 8px"><span style="width: 36px; height: 20px; background: #dcdcd7; flex: none"></span>회색 상자는 이미지·영상 자리입니다.</span></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1040}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

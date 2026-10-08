@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>S-01 온보딩</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d4ed8}a:hover{color:#1e3a8a}
+.ph{background:#dcdcd7;display:flex;align-items:center;justify-content:center;color:#5f5f5a;font:500 11px 'IBM Plex Mono',monospace}
+.mk{position:absolute;top:-9px;left:-9px;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;z-index:3}
+.rel{position:relative}
+.chip{border:1px solid #b9b9b3;border-radius:999px;padding:6px 12px;font-size:12px;white-space:nowrap;background:#fff}
+.on{background:#1c1c1a;color:#fff;border-color:#1c1c1a}
+.btn{display:block;width:100%;background:#1c1c1a;color:#fff;border:0;border-radius:10px;padding:13px;font:600 14px 'IBM Plex Sans KR',sans-serif;text-align:center}
+.btn2{display:block;width:100%;background:#fff;color:#1c1c1a;border:1px solid #1c1c1a;border-radius:10px;padding:12px;font:600 14px 'IBM Plex Sans KR',sans-serif;text-align:center}
+.phone{width:390px;height:844px;flex:none;border:2px solid #1c1c1a;border-radius:32px;background:#fff;overflow:hidden;display:flex;flex-direction:column;box-sizing:border-box;position:relative}
+.cap{font:600 12px 'IBM Plex Mono',monospace;color:#5f5f5a;margin-bottom:8px}
+.ic{display:inline-block;width:18px;height:18px;border:1.5px solid currentColor;border-radius:5px;box-sizing:border-box;flex:none}
+.av{width:36px;height:36px;border-radius:18px;background:#cfcfca;flex:none}
+.inp{display:block;width:100%;box-sizing:border-box;border:1px solid #b9b9b3;border-radius:10px;padding:12px;font:400 14px 'IBM Plex Sans KR',sans-serif;background:#fff;color:#1c1c1a}
+.spec{display:flex;flex-direction:column;gap:12px;font-size:13px;line-height:1.55}
+.si{display:flex;gap:10px}
+.sn{flex:none;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;margin-top:1px}
+.st{font-weight:700}
+.lbl{font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:#5f5f5a;text-transform:uppercase}
+.box{border:1px solid #d6d6d0;border-radius:10px;padding:12px 14px;background:#fff;font-size:12.5px;line-height:1.6}
+</style>
+</helmet>
+<div style="width: 1840px; height: 1060px; box-sizing: border-box; padding: 32px 40px; background: #f5f5f3; color: #1c1c1a; font-family: 'IBM Plex Sans KR', sans-serif; display: flex; flex-direction: column; gap: 24px">
+  <div style="display: flex; align-items: baseline; gap: 14px; border-bottom: 2px solid #1c1c1a; padding-bottom: 12px">
+    <span style="font: 600 14px 'IBM Plex Mono', monospace; color: #1d4ed8">S-01</span>
+    <h1 style="margin: 0; font-size: 24px">온보딩 — 가입 · 역할 선택 · 관심 설정</h1>
+    <span style="font: 500 13px 'IBM Plex Mono', monospace; color: #5f5f5a">/signup · MVP</span>
+  </div>
+  <div style="display: flex; gap: 32px; align-items: flex-start">
+    <div>
+      <div class="cap">① 가입 방식</div>
+      <div class="phone">
+        <div style="flex: 1; display: flex; flex-direction: column; padding: 72px 28px 36px; gap: 16px">
+          <div class="ph" style="width: 64px; height: 64px; border-radius: 16px; font: 700 15px 'IBM Plex Sans KR', sans-serif; color: #1c1c1a">해담</div>
+          <h2 style="margin: 12px 0 0; font-size: 26px; line-height: 1.35">해마다,<br>잊지 않도록</h2>
+          <p style="margin: 0; font-size: 14px; color: #5f5f5a">그해의 코스프레 · 인물 · 풍경을 담아 두고 다시 꺼내 보는 갤러리</p>
+          <div class="ph" style="flex: 1; border-radius: 14px; margin: 8px 0">대표 사진 콜라주</div>
+          <div class="rel" style="display: flex; flex-direction: column; gap: 10px">
+            <span class="mk">1</span>
+            <button class="btn">카카오로 계속하기</button>
+            <button class="btn2">Google로 계속하기</button>
+            <button class="btn2">이메일로 가입</button>
+          </div>
+          <p class="rel" style="margin: 4px 0 0; font-size: 11.5px; color: #5f5f5a; text-align: center"><span class="mk">2</span>만 14세 이상 가입 가능 · <a href="#">이용약관</a> · <a href="#">개인정보처리방침</a></p>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="cap">② 역할 선택 + 핸들</div>
+      <div class="phone">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px 20px 8px; font-size: 13px; color: #5f5f5a"><span>뒤로</span><span style="font-family: 'IBM Plex Mono', monospace">2 / 3</span><span>건너뛰기</span></div>
+        <div style="height: 3px; background: #e2e2dd; margin: 0 20px"><div style="width: 66%; height: 3px; background: #1c1c1a"></div></div>
+        <div style="flex: 1; padding: 24px 20px; display: flex; flex-direction: column; gap: 16px">
+          <h2 style="margin: 0; font-size: 22px">어떤 활동을 하시나요?</h2>
+          <p style="margin: -8px 0 0; font-size: 13px; color: #5f5f5a">여러 개 선택할 수 있어요. 나중에 바꿀 수 있습니다.</p>
+          <div class="rel" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+            <span class="mk">3</span>
+            <div style="border: 2px solid #1c1c1a; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 6px"><span class="ic"></span><b style="font-size: 14px">코스어</b><span style="font-size: 11.5px; color: #5f5f5a">코스튬 촬영물 업로드</span></div>
+            <div style="border: 2px solid #1c1c1a; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 6px"><span class="ic"></span><b style="font-size: 14px">포토그래퍼</b><span style="font-size: 11.5px; color: #5f5f5a">인물 · 풍경 촬영</span></div>
+            <div style="border: 1px solid #c9c9c4; border-radius: 12px; padding: 15px; display: flex; flex-direction: column; gap: 6px"><span class="ic"></span><b style="font-size: 14px">모델</b><span style="font-size: 11.5px; color: #5f5f5a">인물 모델 활동</span></div>
+            <div style="border: 1px solid #c9c9c4; border-radius: 12px; padding: 15px; display: flex; flex-direction: column; gap: 6px"><span class="ic"></span><b style="font-size: 14px">보정 · 편집</b><span style="font-size: 11.5px; color: #5f5f5a">리터칭 · 영상 편집</span></div>
+            <div style="border: 1px solid #c9c9c4; border-radius: 12px; padding: 15px; display: flex; flex-direction: column; gap: 6px; grid-column: span 2"><span class="ic"></span><b style="font-size: 14px">감상 위주</b><span style="font-size: 11.5px; color: #5f5f5a">둘러보고 저장하는 게 좋아요</span></div>
+          </div>
+          <div class="rel" style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px">
+            <span class="mk">4</span>
+            <label for="handle" style="font-size: 13px; font-weight: 600">핸들</label>
+            <input id="handle" class="inp" value="@moonlight_cos">
+            <span style="font-size: 11.5px; color: #15803d">사용할 수 있는 핸들입니다</span>
+          </div>
+          <button class="btn" style="margin-top: auto">다음</button>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="cap">③ 관심 설정</div>
+      <div class="phone">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px 20px 8px; font-size: 13px; color: #5f5f5a"><span>뒤로</span><span style="font-family: 'IBM Plex Mono', monospace">3 / 3</span><span>건너뛰기</span></div>
+        <div style="height: 3px; background: #1c1c1a; margin: 0 20px"></div>
+        <div style="flex: 1; padding: 24px 20px; display: flex; flex-direction: column; gap: 14px">
+          <h2 style="margin: 0; font-size: 22px">무엇을 보고 싶으세요?</h2>
+          <div class="rel" style="display: flex; gap: 8px; flex-wrap: wrap">
+            <span class="mk">5</span>
+            <span class="chip on">코스프레</span><span class="chip on">모델·인물</span><span class="chip">풍경</span><span class="chip">영상</span>
+          </div>
+          <div class="rel" style="display: flex; flex-direction: column; gap: 10px">
+            <span class="mk">6</span>
+            <label for="work" style="font-size: 13px; font-weight: 600">좋아하는 작품 · 캐릭터</label>
+            <input id="work" class="inp" placeholder="작품 또는 캐릭터 검색">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap"><span class="chip on">원신</span><span class="chip on">블루 아카이브</span><span class="chip">귀멸의 칼날</span><span class="chip">체인소 맨</span><span class="chip">페이트</span><span class="chip">+ 더 보기</span></div>
+          </div>
+          <div class="rel" style="display: flex; flex-direction: column; gap: 10px; margin-top: 6px">
+            <span class="mk">7</span>
+            <span style="font-size: 13px; font-weight: 600">추천 크리에이터</span>
+            <div style="display: flex; align-items: center; gap: 10px"><span class="av"></span><div style="flex: 1; font-size: 13px"><b>@creator_a</b><div style="font-size: 11.5px; color: #5f5f5a">코스어 · 원신</div></div><button class="chip on" style="font-family: inherit">팔로우</button></div>
+            <div style="display: flex; align-items: center; gap: 10px"><span class="av"></span><div style="flex: 1; font-size: 13px"><b>@creator_b</b><div style="font-size: 11.5px; color: #5f5f5a">포토그래퍼 · 서울</div></div><button class="chip" style="font-family: inherit">팔로우</button></div>
+            <div style="display: flex; align-items: center; gap: 10px"><span class="av"></span><div style="flex: 1; font-size: 13px"><b>@creator_c</b><div style="font-size: 11.5px; color: #5f5f5a">모델 · 부산</div></div><button class="chip" style="font-family: inherit">팔로우</button></div>
+          </div>
+          <button class="btn" style="margin-top: auto">시작하기</button>
+        </div>
+      </div>
+    </div>
+    <div class="spec" style="width: 440px; margin-left: 16px">
+      <span class="lbl">화면 설명</span>
+      <div class="si"><span class="sn">1</span><div><span class="st">소셜 로그인 우선</span><br>카카오 · Google · 이메일 순서로 배치합니다. 이메일 가입은 인증 메일 확인 후 ②로 이동합니다.</div></div>
+      <div class="si"><span class="sn">2</span><div><span class="st">연령 제한 고지</span><br>생년월일로 만 14세 미만 가입을 막습니다. 성인 인증은 가입 단계에서 받지 않고, '노출 주의' 콘텐츠를 처음 열 때 요청합니다.</div></div>
+      <div class="si"><span class="sn">3</span><div><span class="st">역할 다중 선택</span><br>선택한 역할은 프로필 배지가 되고, 업로드 시 크레딧 역할의 기본값으로 쓰입니다. 감상 위주만 고르면 업로드 안내를 줄입니다.</div></div>
+      <div class="si"><span class="sn">4</span><div><span class="st">핸들</span><br>영문 소문자 · 숫자 · _ 3~20자. 입력 중 중복을 실시간으로 검사합니다. 크레딧 태그(@)의 기준값입니다.</div></div>
+      <div class="si"><span class="sn">5</span><div><span class="st">카테고리 관심</span><br>추천 피드 가중치에 반영합니다. 최소 1개 선택이 기본값입니다.</div></div>
+      <div class="si"><span class="sn">6</span><div><span class="st">작품 · 캐릭터 관심</span><br>작품 DB 자동완성을 씁니다. 한글 · 영문 · 일본어 표기를 별칭으로 묶어 같은 태그로 처리합니다.</div></div>
+      <div class="si"><span class="sn">7</span><div><span class="st">추천 크리에이터</span><br>⑤ · ⑥ 선택 기반으로 인증 크리에이터를 우선 노출합니다. 팔로우가 0명이면 홈 '팔로잉' 탭이 빈 상태가 되므로 3명 팔로우를 권장합니다(강제하지 않음).</div></div>
+      <div class="box"><b>예외 · 상태</b><br>· <b>1단계(1인 운영)</b>: ②의 역할 선택은 생략하고 핸들만 입력. 업로드는 관리자만<br>· ② · ③은 '건너뛰기' 가능 → 이후 마이 › 설정에서 변경<br>· 가입 도중 이탈하면 다음 로그인 때 이어서 진행<br>· 핸들 중복 / 금칙어 → 입력란 아래 오류 문구</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1840,"height":1060}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

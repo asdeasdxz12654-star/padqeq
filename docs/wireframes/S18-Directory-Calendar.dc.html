@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>S-17 크리에이터 디렉토리 · 행사 캘린더</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d4ed8}a:hover{color:#1e3a8a}
+.ph{background:#dcdcd7;display:flex;align-items:center;justify-content:center;color:#5f5f5a;font:500 10px 'IBM Plex Mono',monospace}
+.mk{position:absolute;top:-9px;left:-9px;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;z-index:3}
+.rel{position:relative}
+.chip{border:1px solid #b9b9b3;border-radius:999px;padding:5px 11px;font-size:12px;white-space:nowrap;background:#fff}
+.on{background:#1c1c1a;color:#fff;border-color:#1c1c1a}
+.phone{width:390px;height:844px;flex:none;border:2px solid #1c1c1a;border-radius:32px;background:#fff;overflow:hidden;display:flex;flex-direction:column;box-sizing:border-box;position:relative}
+.cap{font:600 12px 'IBM Plex Mono',monospace;color:#5f5f5a;margin-bottom:8px}
+.av{width:44px;height:44px;border-radius:22px;background:#cfcfca;flex:none}
+.cr{border:1px solid #e2e2dd;border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.tg{font:600 9.5px 'IBM Plex Mono',monospace;border:1px solid #b9b9b3;border-radius:3px;padding:0 4px;color:#3f3f3b}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;font:500 11px 'IBM Plex Mono',monospace;text-align:center}
+.cal span{height:40px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:4px;border-radius:6px;box-sizing:border-box}
+.dot{width:5px;height:5px;border-radius:3px;background:#1c1c1a;margin-top:4px}
+.ev{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid #f0f0ec;font-size:12.5px}
+.tab{display:flex;justify-content:space-around;border-top:1px solid #e2e2dd;padding:8px 0 22px;font-size:10px;color:#5f5f5a;background:#fff;margin-top:auto}
+.tab span{display:flex;flex-direction:column;align-items:center;gap:3px}
+.tab i{width:22px;height:22px;border:1.5px solid currentColor;border-radius:6px;display:block;box-sizing:border-box}
+.cur{color:#1c1c1a;font-weight:700}
+.spec{display:flex;flex-direction:column;gap:12px;font-size:13px;line-height:1.55}
+.si{display:flex;gap:10px}
+.sn{flex:none;width:20px;height:20px;border-radius:10px;background:#1d4ed8;color:#fff;font:600 11px/20px 'IBM Plex Mono',monospace;text-align:center;margin-top:1px}
+.st{font-weight:700}
+.lbl{font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:#5f5f5a;text-transform:uppercase}
+</style>
+</helmet>
+<div style="width: 1400px; height: 1060px; box-sizing: border-box; padding: 32px 40px; background: #f5f5f3; color: #1c1c1a; font-family: 'IBM Plex Sans KR', sans-serif; display: flex; flex-direction: column; gap: 24px">
+  <div style="display: flex; align-items: baseline; gap: 14px; border-bottom: 2px solid #1c1c1a; padding-bottom: 12px">
+    <span style="font: 600 14px 'IBM Plex Mono', monospace; color: #1d4ed8">S-17</span>
+    <h1 style="margin: 0; font-size: 24px">크리에이터 디렉토리 · 행사 캘린더</h1>
+    <span style="font: 500 13px 'IBM Plex Mono', monospace; color: #5f5f5a">/creators (2단계~) · /events (v1)</span>
+  </div>
+  <div style="display: flex; gap: 32px; align-items: flex-start">
+    <div>
+      <div class="cap">크리에이터 디렉토리</div>
+      <div class="phone">
+        <div style="display: flex; align-items: center; padding: 18px 16px 10px"><b style="font-size: 16px">크리에이터</b></div>
+        <div class="rel" style="display: flex; gap: 6px; padding: 0 16px 6px; overflow: hidden"><span class="mk" style="left: 6px">1</span><span class="chip on">전체</span><span class="chip">코스어</span><span class="chip">포토그래퍼</span><span class="chip">모델</span><span class="chip">보정</span></div>
+        <div class="rel" style="display: flex; gap: 6px; padding: 0 16px 10px; overflow: hidden"><span class="mk" style="left: 6px">2</span><span class="chip">지역: 서울 ▾</span><span class="chip">작품 ▾</span><span class="chip">섭외 가능</span><span class="chip">인증만</span></div>
+        <div style="flex: 1; overflow: hidden; padding: 0 16px; display: flex; flex-direction: column; gap: 10px">
+          <div class="cr rel"><span class="mk">3</span>
+            <div style="display: flex; gap: 10px; align-items: center"><span class="av"></span><div style="flex: 1; font-size: 12.5px"><b>@photo_b</b> <span class="tg">인증</span> <span class="tg">섭외 가능</span><div style="color: #5f5f5a">포토그래퍼 · 서울 · 2023년부터 활동</div></div><span class="chip">팔로우</span></div>
+            <div style="display: flex; gap: 4px"><div class="ph" style="flex: 1; height: 84px; border-radius: 6px"></div><div class="ph" style="flex: 1; height: 84px; border-radius: 6px"></div><div class="ph" style="flex: 1; height: 84px; border-radius: 6px"></div></div>
+          </div>
+          <div class="cr">
+            <div style="display: flex; gap: 10px; align-items: center"><span class="av"></span><div style="flex: 1; font-size: 12.5px"><b>@moonlight_cos</b> <span class="tg">인증</span><div style="color: #5f5f5a">코스어 · 서울 · 원신 · 블루 아카이브</div></div><span class="chip">팔로우</span></div>
+            <div style="display: flex; gap: 4px"><div class="ph" style="flex: 1; height: 84px; border-radius: 6px"></div><div class="ph" style="flex: 1; height: 84px; border-radius: 6px"></div><div class="ph" style="flex: 1; height: 84px; border-radius: 6px"></div></div>
+          </div>
+          <div class="cr">
+            <div style="display: flex; gap: 10px; align-items: center"><span class="av"></span><div style="flex: 1; font-size: 12.5px"><b>@model_e</b><div style="color: #5f5f5a">모델 · 부산</div></div><span class="chip">팔로우</span></div>
+          </div>
+        </div>
+        <nav class="tab" aria-label="하단 탭"><span><i></i>홈</span><span class="cur"><i></i>탐색</span><span><i style="background: #1c1c1a; border-radius: 11px"></i>업로드</span><span><i></i>커뮤니티</span><span><i></i>마이</span></nav>
+      </div>
+    </div>
+    <div>
+      <div class="cap">행사 캘린더 (월간)</div>
+      <div class="phone">
+        <div class="rel" style="display: flex; align-items: center; padding: 18px 16px 10px"><span class="mk" style="left: 6px">4</span><span style="font-size: 14px">‹</span><b style="margin: 0 auto; font: 700 16px 'IBM Plex Mono', monospace">2026.11</b><span style="font-size: 14px">›</span></div>
+        <div class="rel" style="display: flex; gap: 6px; padding: 0 16px 8px"><span class="mk" style="left: 6px">5</span><span class="chip on">월간</span><span class="chip">목록</span><span class="chip">참가 예정만</span></div>
+        <div class="rel" style="padding: 0 12px"><span class="mk" style="left: 0">6</span>
+          <div class="cal" style="color: #8a8a84; margin-bottom: 2px"><span style="height: 20px">일</span><span style="height: 20px">월</span><span style="height: 20px">화</span><span style="height: 20px">수</span><span style="height: 20px">목</span><span style="height: 20px">금</span><span style="height: 20px">토</span></div>
+          <div class="cal">
+            <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span style="background: #ececea">7<i class="dot"></i></span>
+            <span style="background: #ececea">8<i class="dot"></i></span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span>
+            <span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span style="background: #1c1c1a; color: #fff">21<i class="dot" style="background: #fff"></i></span>
+            <span style="background: #1c1c1a; color: #fff">22<i class="dot" style="background: #fff"></i></span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span>
+            <span>29</span><span>30</span><span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+        <div class="rel" style="flex: 1; overflow: hidden; padding: 8px 16px"><span class="mk" style="left: 6px; top: 6px">7</span>
+          <div class="ev"><div style="width: 46px; text-align: center; font: 600 11px 'IBM Plex Mono', monospace; border: 1px solid #1c1c1a; border-radius: 6px; padding: 4px 0">11.21<br>–22</div><div style="flex: 1"><b>[행사명 1]</b><div style="color: #5f5f5a">[장소] · 참가 예정 [N]명</div></div><span class="chip on" style="font-size: 11px">참가 예정</span></div>
+          <div class="ev"><div style="width: 46px; text-align: center; font: 600 11px 'IBM Plex Mono', monospace; border: 1px solid #c9c9c4; border-radius: 6px; padding: 4px 0">11.07<br>–08</div><div style="flex: 1"><b>[행사명 2]</b><div style="color: #5f5f5a">[장소] · 사진 [N]장</div></div><span class="chip" style="font-size: 11px">사진 보기</span></div>
+        </div>
+        <nav class="tab" aria-label="하단 탭"><span><i></i>홈</span><span><i></i>탐색</span><span><i style="background: #1c1c1a; border-radius: 11px"></i>업로드</span><span class="cur"><i></i>커뮤니티</span><span><i></i>마이</span></nav>
+      </div>
+    </div>
+    <div class="spec" style="width: 440px; margin-top: 20px">
+      <span class="lbl">화면 설명</span>
+      <div class="si"><span class="sn">1</span><div><span class="st">역할 필터</span><br>코스어 · 포토그래퍼 · 모델 · 보정. 1단계에는 운영자만 있으므로 메뉴 숨김, 2단계부터 노출.</div></div>
+      <div class="si"><span class="sn">2</span><div><span class="st">조건 필터</span><br>지역(시/도) · 주로 하는 작품 · 섭외 가능(섭외 문의를 켠 인증 크리에이터) · 인증만.</div></div>
+      <div class="si"><span class="sn">3</span><div><span class="st">크리에이터 카드</span><br>대표 사진 3장, 역할 · 지역 · 활동 시작 연도. 정렬은 최근 활동순(인기순 없음 — 신규 크리에이터도 노출되도록). 누르면 프로필(S-09).</div></div>
+      <div class="si"><span class="sn">4</span><div><span class="st">월 이동</span><br>좌우 스와이프 또는 ‹ ›. 지난달로 가면 그 달 행사의 사진 모아보기로 이어짐(추억 연결).</div></div>
+      <div class="si"><span class="sn">5</span><div><span class="st">보기 전환</span><br>월간 달력 · 목록 · 내가 참가 예정인 행사만.</div></div>
+      <div class="si"><span class="sn">6</span><div><span class="st">달력</span><br>행사가 있는 날 점 표시, 참가 예정 행사는 검게 칠함. 날짜를 누르면 아래 목록이 그날로 이동.</div></div>
+      <div class="si"><span class="sn">7</span><div><span class="st">행사 목록</span><br>다가오는 행사는 '참가 예정', 지난 행사는 '사진 보기'. 누르면 행사 페이지(S-12). 캘린더 앱에 추가(.ics).</div></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":1060}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
