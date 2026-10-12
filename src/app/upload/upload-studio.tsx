@@ -213,7 +213,7 @@ export function UploadStudio({ isAdmin, currentYear }: { isAdmin: boolean; curre
       if (!published.ok) throw new Error(published.error);
 
       startTransition(() => {
-        router.push("/");
+        router.push(`/p/${current.postId}`);
         router.refresh();
       });
     } catch (e) {

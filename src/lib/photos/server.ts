@@ -43,3 +43,28 @@ export async function photoSources(
   );
   return { avifSrcSet: avif.join(", "), fallback: await signImagePath(secret, token, "1600") };
 }
+
+export type ViewerSources = {
+  /** 화면 너비에 맞춰 고를 AVIF (작은 것부터) */
+  avif: { width: number; url: string }[];
+  /** AVIF를 못 여는 기기용 */
+  jpeg: string;
+};
+
+/** 상세 뷰어(canvas)용 서명 주소. photoSources와 마찬가지로 RLS로 읽은 행만 넘긴다. */
+export async function viewerSources(photo: {
+  storage_key: string;
+  width: number;
+  height: number;
+}): Promise<ViewerSources | null> {
+  const token = storageToken(photo.storage_key);
+  if (!token) return null;
+  const secret = imageUrlSecret();
+  const avif = await Promise.all(
+    (["1200", "2560"] as const).map(async (name) => ({
+      width: variantSize(photo.width, photo.height, name).width,
+      url: await signImagePath(secret, token, name),
+    })),
+  );
+  return { avif, jpeg: await signImagePath(secret, token, "1600") };
+}

@@ -10,6 +10,9 @@
     "binding": "ASSETS"
   },
   "observability": { "enabled": true },
+  // 도메인을 사기 전까지는 haedam.<계정>.workers.dev 주소로 연다. 버전별 미리보기 주소는 끈다.
+  "workers_dev": true,
+  "preview_urls": false,
   // 공개해도 되는 값만 여기에. 비밀값은 `wrangler secret put`으로 넣는다.
   "vars": {
     "NEXT_PUBLIC_SUPABASE_URL": "https://icmzonndhmqdmqlrmhkn.supabase.co",

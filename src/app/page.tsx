@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ProtectedPhoto } from "@/components/protected-photo";
 import { YearChips } from "@/components/year-chips";
 import { photoSources } from "@/lib/photos/server";
@@ -50,7 +51,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
             const cover = covers[index];
             return (
               <li key={post.id} className="mb-2 break-inside-avoid xl:mb-4">
-                <article>
+                <article className="relative">
                   {cover?.sources ? (
                     <div
                       className={`overflow-hidden rounded-lg bg-slot ${cover.photo.is_panorama ? "aspect-[2/1]" : ""}`}
@@ -70,7 +71,12 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
                     <div role="img" aria-label={post.title} className="aspect-[4/5] rounded-lg bg-slot" />
                   )}
                   <div className="px-1 pt-2 pb-1">
-                    <h2 className="truncate text-sm font-medium">{post.title}</h2>
+                    <h2 className="truncate text-sm font-medium">
+                      {/* 카드 전체를 누를 수 있게 (링크 영역을 카드로 넓힘) */}
+                      <Link href={`/p/${post.id}`} className="after:absolute after:inset-0">
+                        {post.title}
+                      </Link>
+                    </h2>
                     <p className="text-xs text-quiet">
                       @{post.author?.handle} · {CATEGORY_LABEL[post.category]} · {post.shot_year}
                     </p>

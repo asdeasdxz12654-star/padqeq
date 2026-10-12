@@ -19,11 +19,14 @@ export async function GET(request: NextRequest, ctx: RouteContext<"/img/[token]/
   const { token, variant } = await ctx.params;
   const { searchParams } = request.nextUrl;
 
-  // 브라우저가 보내는 요청 출처 정보. 다른 사이트에서 불러오거나(cross-site)
-  // 주소를 직접 열면(document) 거부한다. 헤더가 없는 오래된 브라우저는 서명만으로 판단.
+  // 브라우저가 보내는 요청 출처 정보. 헤더가 없는 오래된 브라우저는 서명만으로 판단.
+  //  · <img>(image): 같은 사이트 안에서만
+  //  · 상세 뷰어의 fetch(empty): 같은 출처에서만 (canvas에 그리기 위해)
+  //  · 주소를 직접 열기(document) · 다른 사이트에서 불러오기: 거부
   const site = request.headers.get("sec-fetch-site");
   const dest = request.headers.get("sec-fetch-dest");
-  if (site === "cross-site" || (dest !== null && dest !== "image")) return deny(403);
+  if (site === "cross-site") return deny(403);
+  if (dest !== null && dest !== "image" && !(dest === "empty" && site === "same-origin")) return deny(403);
 
   const check = await verifyImageRequest(imageUrlSecret(), {
     token,
