@@ -59,11 +59,9 @@ pnpm check                   # 린트 · 타입 · 테스트 (CI와 같음)
    - 비밀값: `SUPABASE_DB_URL`(Session pooler), `BACKUP_AGE_RECIPIENT`(age 공개키), `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`(백업 버킷 전용 토큰)
    - 저장소 변수 `BACKUP_ENABLED=true`로 켜기
    - R2 `haedam-backups` 버킷에 30일 보관 후 삭제 규칙 추가
-4. **로그인 (Supabase › Authentication)**
+4. **로그인 (Google 계정만)**
+   - Google Cloud Console: OAuth 동의 화면 + OAuth 클라이언트(웹), 승인된 리디렉션 URI `https://<PROJECT_REF>.supabase.co/auth/v1/callback`
+   - Supabase › Authentication › Sign In / Providers: Google 켜고 Client ID · Secret 입력, **Email은 끔** (API로 이메일 가입하는 길 차단)
    - URL Configuration: Site URL은 서비스 주소, Redirect URLs에 `http://localhost:3000/**`와 서비스 주소 `/**` 추가
-   - Email Templates: Magic Link · Confirm signup 본문에 인증 코드 `{{ .Token }}` 표시 (앱은 코드 입력 방식)
-   - 기본 메일 발송은 시간당 몇 통 · 팀원 주소로만 제한 → 공개 전 Custom SMTP 연결
-   - 카카오 · Google: Providers에서 켜면 로그인 화면에 버튼이 자동으로 나타남
-   - 봇 차단: Attack Protection에서 Turnstile을 켜고, 같은 사이트 키를 `wrangler.jsonc` vars의 `TURNSTILE_SITE_KEY`에 넣음
 5. **DB 변경 반영**: Actions › **DB 마이그레이션** 실행 (먼저 확인만, 그다음 `apply` 체크)
 6. **운영자 계정**: 가입 후 DB 콘솔에서 `update profiles set role = 'admin', can_upload = true where handle = '...'`

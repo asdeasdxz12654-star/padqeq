@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { CALLBACK_ERRORS } from "@/lib/auth/auth-errors";
 import { safeNextPath, withNext } from "@/lib/auth/next-path";
-import { getAuthProviders } from "@/lib/auth/providers";
+import { isGoogleEnabled } from "@/lib/auth/providers";
 import { getViewer } from "@/lib/auth/viewer";
-import { turnstileSiteKey } from "@/lib/env";
 import { LoginPanel } from "./login-panel";
 
 export const metadata: Metadata = {
@@ -19,7 +18,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const viewer = await getViewer();
   if (viewer) redirect(viewer.profile ? next : withNext("/welcome", next));
 
-  const providers = await getAuthProviders();
+  const googleEnabled = await isGoogleEnabled();
   const error = typeof params.error === "string" ? (CALLBACK_ERRORS[params.error] ?? null) : null;
 
   return (
@@ -30,7 +29,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
         그해의 코스프레 · 인물 · 풍경을 담아 두고 다시 꺼내 보는 갤러리
       </p>
 
-      <LoginPanel next={next} providers={providers} turnstileSiteKey={turnstileSiteKey()} initialError={error} />
+      <LoginPanel next={next} googleEnabled={googleEnabled} initialError={error} />
     </div>
   );
 }

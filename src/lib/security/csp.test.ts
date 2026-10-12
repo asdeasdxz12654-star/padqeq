@@ -16,6 +16,10 @@ describe("buildCsp", () => {
     expect(buildCsp({ nonce: "x", supabaseUrl })).toContain("frame-ancestors 'none'");
   });
 
+  it("해담 안에 다른 사이트를 iframe으로 넣지 않는다", () => {
+    expect(buildCsp({ nonce: "x", supabaseUrl })).toContain("frame-src 'none'");
+  });
+
   it("외부 이미지를 허용하지 않는다", () => {
     const img = buildCsp({ nonce: "x", supabaseUrl })
       .split("; ")

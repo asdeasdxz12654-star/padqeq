@@ -1,98 +1,40 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useTransition } from "react";
-import { Turnstile } from "@/components/turnstile";
+import { useState, useTransition } from "react";
 import { authErrorMessage } from "@/lib/auth/auth-errors";
-import type { AuthProviders } from "@/lib/auth/providers";
 import { createClient } from "@/lib/supabase/client";
 
-// 로그인 요청은 브라우저에서 Supabase로 바로 보낸다.
-// 서버를 거치면 모든 요청이 같은 IP로 보여 Supabase의 IP별 요청 제한에 한꺼번에 걸린다.
-
-const RESEND_SECONDS = 60;
+// 로그인 · 가입은 Google 계정 하나로만 받는다.
+// 요청은 브라우저에서 Supabase로 바로 보낸다 (PKCE 확인값이 이 브라우저 쿠키에 남아야 함).
 
 type Props = {
   next: string;
-  providers: AuthProviders;
-  turnstileSiteKey: string | null;
+  googleEnabled: boolean;
   initialError: string | null;
 };
 
-export function LoginPanel({ next, providers, turnstileSiteKey, initialError }: Props) {
-  const [step, setStep] = useState<"email" | "code">("email");
-  const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
+export function LoginPanel({ next, googleEnabled, initialError }: Props) {
   const [error, setError] = useState<string | null>(initialError);
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  // 토큰은 한 번만 쓸 수 있으므로 요청할 때마다 위젯을 새로 그린다
-  const [captchaRound, setCaptchaRound] = useState(0);
-  const [cooldown, setCooldown] = useState(0);
   const [pending, startTransition] = useTransition();
 
-  useEffect(() => {
-    if (cooldown <= 0) return;
-    const timer = setTimeout(() => setCooldown((s) => s - 1), 1000);
-    return () => clearTimeout(timer);
-  }, [cooldown]);
-
-  const callbackUrl = () => {
-    const url = new URL("/auth/callback", window.location.origin);
-    if (next !== "/") url.searchParams.set("next", next);
-    return url.toString();
-  };
-
-  const needsCaptcha = turnstileSiteKey !== null;
-
-  function signInWith(provider: "kakao" | "google") {
+  function signInWithGoogle() {
     setError(null);
     startTransition(async () => {
+      const redirectTo = new URL("/auth/callback", window.location.origin);
+      if (next !== "/") redirectTo.searchParams.set("next", next);
       const { error } = await createClient().auth.signInWithOAuth({
-        provider,
-        options: { redirectTo: callbackUrl() },
+        provider: "google",
+        options: {
+          redirectTo: redirectTo.toString(),
+          // 여러 Google 계정이 있으면 고를 수 있게
+          queryParams: { prompt: "select_account" },
+        },
       });
-      // 성공하면 브라우저가 로그인 화면으로 이동한다
+      // 성공하면 브라우저가 Google 화면으로 이동한다
       if (error) setError(authErrorMessage(error));
     });
   }
-
-  function sendCode() {
-    setError(null);
-    startTransition(async () => {
-      const { error } = await createClient().auth.signInWithOtp({
-        email: email.trim(),
-        options: { shouldCreateUser: true, captchaToken: captchaToken ?? undefined },
-      });
-      setCaptchaToken(null);
-      setCaptchaRound((n) => n + 1);
-      if (error) {
-        setError(authErrorMessage(error));
-        return;
-      }
-      setStep("code");
-      setCode("");
-      setCooldown(RESEND_SECONDS);
-    });
-  }
-
-  function verifyCode() {
-    setError(null);
-    startTransition(async () => {
-      const { error } = await createClient().auth.verifyOtp({
-        email: email.trim(),
-        token: code,
-        type: "email",
-      });
-      if (error) {
-        setError(authErrorMessage(error));
-        return;
-      }
-      // 세션 쿠키가 생겼으니 서버에서 가입 여부를 확인하고 알맞은 화면으로 보낸다
-      window.location.assign(callbackUrl());
-    });
-  }
-
-  const hasSocial = providers.kakao || providers.google;
 
   return (
     <div className="mt-10 flex flex-col gap-3">
@@ -102,137 +44,26 @@ export function LoginPanel({ next, providers, turnstileSiteKey, initialError }: 
         </p>
       )}
 
-      {step === "email" && (
-        <>
-          {providers.kakao && (
-            <button
-              type="button"
-              disabled={pending}
-              onClick={() => signInWith("kakao")}
-              // 카카오 로그인 버튼 디자인 가이드: 배경 #FEE500, 글자 85% 검정
-              className="min-h-12 rounded-xl bg-[#FEE500] px-4 font-semibold text-black/85 disabled:opacity-60"
-            >
-              카카오로 계속하기
-            </button>
-          )}
-          {providers.google && (
-            <button
-              type="button"
-              disabled={pending}
-              onClick={() => signInWith("google")}
-              className="min-h-12 rounded-xl border border-line bg-white px-4 font-semibold text-[#1f1f1f] disabled:opacity-60"
-            >
-              Google로 계속하기
-            </button>
-          )}
-
-          {hasSocial && (
-            <div className="my-2 flex items-center gap-3 text-xs text-quiet" aria-hidden="true">
-              <span className="h-px flex-1 bg-line" />
-              또는 이메일로
-              <span className="h-px flex-1 bg-line" />
-            </div>
-          )}
-
-          <form
-            className="flex flex-col gap-3"
-            onSubmit={(e) => {
-              e.preventDefault();
-              sendCode();
-            }}
-          >
-            <label className="flex flex-col gap-1.5 text-sm">
-              이메일
-              <input
-                type="email"
-                name="email"
-                required
-                autoComplete="email"
-                inputMode="email"
-                autoCapitalize="none"
-                spellCheck={false}
-                maxLength={254}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="min-h-12 rounded-xl border border-line bg-surface px-3 text-base outline-none focus:border-accent"
-              />
-            </label>
-            {turnstileSiteKey && (
-              <Turnstile key={captchaRound} siteKey={turnstileSiteKey} onToken={setCaptchaToken} />
-            )}
-            <button
-              type="submit"
-              disabled={pending || (needsCaptcha && !captchaToken)}
-              className="min-h-12 rounded-xl bg-accent px-4 font-semibold text-on-accent disabled:opacity-60"
-            >
-              {pending ? "보내는 중…" : "인증 코드 받기"}
-            </button>
-            <p className="text-xs leading-relaxed text-quiet">
-              처음이면 자동으로 가입이 시작돼요. 비밀번호 없이 메일로 받은 코드로 로그인합니다.
-            </p>
-          </form>
-        </>
-      )}
-
-      {step === "code" && (
-        <form
-          className="flex flex-col gap-3"
-          onSubmit={(e) => {
-            e.preventDefault();
-            verifyCode();
-          }}
+      {googleEnabled ? (
+        <button
+          type="button"
+          disabled={pending}
+          onClick={signInWithGoogle}
+          // Google 로그인 버튼 가이드: 흰 배경 · 회색 테두리 · #1F1F1F 글자
+          className="flex min-h-12 items-center justify-center gap-3 rounded-xl border border-[#747775] bg-white px-4 font-medium text-[#1f1f1f] disabled:opacity-60"
         >
-          <p className="text-sm leading-relaxed">
-            <strong className="break-all">{email.trim()}</strong>(으)로 보낸 인증 코드를 입력해 주세요.
-            <span className="block text-quiet">메일이 안 보이면 스팸함도 확인해 주세요.</span>
-          </p>
-          <label className="flex flex-col gap-1.5 text-sm">
-            인증 코드
-            <input
-              name="code"
-              required
-              autoComplete="one-time-code"
-              inputMode="numeric"
-              pattern="[0-9]{6,10}"
-              maxLength={10}
-              autoFocus
-              value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-              className="min-h-12 rounded-xl border border-line bg-surface px-3 text-center font-mono text-xl tracking-[0.4em] outline-none focus:border-accent"
-            />
-          </label>
-          <button
-            type="submit"
-            disabled={pending || code.length < 6}
-            className="min-h-12 rounded-xl bg-accent px-4 font-semibold text-on-accent disabled:opacity-60"
-          >
-            {pending ? "확인 중…" : "확인"}
-          </button>
-          <div className="flex justify-between text-sm">
-            <button
-              type="button"
-              className="text-quiet underline-offset-4 hover:underline"
-              onClick={() => {
-                setStep("email");
-                setError(null);
-              }}
-            >
-              다른 이메일로
-            </button>
-            <button
-              type="button"
-              disabled={pending || cooldown > 0 || (needsCaptcha && !captchaToken)}
-              onClick={sendCode}
-              className="text-accent underline-offset-4 hover:underline disabled:text-quiet disabled:no-underline"
-            >
-              {cooldown > 0 ? `${cooldown}초 뒤 다시 받기` : "코드 다시 받기"}
-            </button>
-          </div>
-          {turnstileSiteKey && cooldown === 0 && (
-            <Turnstile key={captchaRound} siteKey={turnstileSiteKey} onToken={setCaptchaToken} />
-          )}
-        </form>
+          <GoogleMark />
+          {pending ? "Google로 이동 중…" : "Google 계정으로 계속하기"}
+        </button>
+      ) : (
+        <p className="rounded-lg border border-line px-3 py-3 text-sm text-quiet">
+          로그인을 준비하고 있어요. 잠시 뒤 다시 찾아 주세요.
+        </p>
       )}
+
+      <p className="text-xs leading-relaxed text-quiet">
+        처음이면 Google 로그인 뒤 핸들을 정하면 가입이 끝나요. 해담은 Google 비밀번호를 받지 않아요.
+      </p>
 
       <p className="mt-6 text-center text-xs leading-relaxed text-quiet">
         만 14세 이상 가입할 수 있어요 ·{" "}
@@ -245,5 +76,29 @@ export function LoginPanel({ next, providers, turnstileSiteKey, initialError }: 
         </Link>
       </p>
     </div>
+  );
+}
+
+/** Google "G" 로고 (외부 이미지 금지 CSP라 인라인 SVG) */
+function GoogleMark() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 48 48" className="size-5 shrink-0">
+      <path
+        fill="#EA4335"
+        d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
+      />
+      <path
+        fill="#4285F4"
+        d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
+      />
+      <path
+        fill="#34A853"
+        d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
+      />
+    </svg>
   );
 }

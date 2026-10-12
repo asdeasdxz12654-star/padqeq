@@ -1,16 +1,9 @@
 // Supabase Auth 오류 코드 → 화면 문구.
-// 이메일이 가입돼 있는지 여부는 드러내지 않는다.
 
 const MESSAGES: Record<string, string> = {
-  over_email_send_rate_limit: "인증 메일을 너무 자주 요청했어요. 잠시 뒤 다시 시도해 주세요.",
   over_request_rate_limit: "요청이 너무 많아요. 잠시 뒤 다시 시도해 주세요.",
-  otp_expired: "코드가 맞지 않거나 만료됐어요. 새 코드를 받아 주세요.",
-  captcha_failed: "보안 확인에 실패했어요. 다시 시도해 주세요.",
-  email_address_invalid: "이메일 주소를 확인해 주세요.",
-  validation_failed: "입력한 내용을 확인해 주세요.",
+  provider_disabled: "지금은 Google 로그인을 쓸 수 없어요.",
   signup_disabled: "지금은 새로 가입할 수 없어요.",
-  email_provider_disabled: "지금은 이메일 로그인을 쓸 수 없어요.",
-  provider_disabled: "지금은 이 방법으로 로그인할 수 없어요.",
   user_banned: "이용이 제한된 계정이에요. 고객센터로 문의해 주세요.",
 };
 
@@ -22,7 +15,7 @@ export function authErrorMessage(error: { code?: string | undefined } | null | u
 
 /** /login?error= 값 (콜백에서 실패했을 때) */
 export const CALLBACK_ERRORS: Record<string, string> = {
-  oauth: "로그인을 마치지 못했어요. 다시 시도해 주세요.",
-  expired: "로그인 링크가 만료됐어요. 다시 시도해 주세요.",
+  oauth: "Google 로그인을 마치지 못했어요. 다시 시도해 주세요.",
+  expired: "로그인 시간이 지났어요. 다시 시도해 주세요.",
   session: "로그인 상태를 확인하지 못했어요. 다시 로그인해 주세요.",
 };
