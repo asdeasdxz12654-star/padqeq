@@ -55,7 +55,7 @@ pnpm check                   # 린트 · 타입 · 테스트 (CI와 같음)
 
 1. **Supabase**: 서울 리전 프로젝트 생성 → `pnpm exec supabase link` → `pnpm db:push` → `pnpm db:types`
 2. **Cloudflare**: Workers 유료 플랜, R2 버킷 `haedam-photos` · `haedam-backups` 생성(공개 접근 끔), `wrangler.jsonc`의 `vars`에 Supabase URL · publishable 키 입력 → `pnpm cf:types`
-3. **백업** (저장소 Settings › Environments › `backup`)
+3. **백업** (저장소 Settings › Environments › `dhepa`)
    - 비밀값: `SUPABASE_DB_URL`(Session pooler), `BACKUP_AGE_RECIPIENT`(age 공개키), `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`(백업 버킷 전용 토큰)
    - 저장소 변수 `BACKUP_ENABLED=true`로 켜기
    - R2 `haedam-backups` 버킷에 30일 보관 후 삭제 규칙 추가

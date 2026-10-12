@@ -18,8 +18,8 @@ jobs:
     if: vars.BACKUP_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    # 저장소 Settings › Environments › backup 에 비밀값을 넣는다
-    environment: backup
+    # 저장소 Settings › Environments › dhepa 에 비밀값을 넣는다
+    environment: dhepa
     steps:
       - name: pg_dump · age 설치
         run: |
