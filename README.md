@@ -8,7 +8,7 @@
 
 - 화면 기획서 (캔버스): https://claude.ai/artifact/BByFMXte9uq67HyQG5tQnp
   - 원본 파일: [`docs/wireframes/`](docs/wireframes/) — 회원 화면 S-01~20, 정책 보드 P-01~04, 관리자 A-00~05
-- 정책 문서 초안 (이용약관 · 개인정보처리방침 · 운영정책 등): https://claude.ai/code/artifact/74f5dfc5-3fc6-4775-ba5a-1f944dee850c
+- 정책 문서 초안 (이용약관 · 개인정보처리방침 · 운영정책 등): https://claude.ai/artifact/FSgVcUdpuEPsioRNSfzG4T
   - 오픈 전 법률 전문가 검토 필요
 
 ## 핵심 원칙
