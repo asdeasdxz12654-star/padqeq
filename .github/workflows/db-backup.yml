@@ -24,7 +24,10 @@ jobs:
       - name: pg_dump · age 설치
         run: |
           sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
-          sudo apt-get install -y --no-install-recommends postgresql-client age
+          sudo apt-get install -y --no-install-recommends postgresql-client-18 age
+          # 러너에 미리 깔린 구버전 pg_dump가 PATH에 먼저 잡히므로 18을 경로로 지정한다.
+          # pg_dump는 자기보다 낮은 서버 버전을 덤프할 수 있다 (Supabase 17 → OK)
+          /usr/lib/postgresql/18/bin/pg_dump --version
 
       - name: 덤프 → 암호화 → R2 업로드
         env:
@@ -37,6 +40,9 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
           AWS_DEFAULT_REGION: auto
+          # R2는 최신 AWS CLI가 기본으로 붙이는 체크섬 헤더를 일부 지원하지 않는다
+          AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+          AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
         run: |
           set -euo pipefail
           day=$(date -u +%F)
@@ -44,7 +50,7 @@ jobs:
           file="haedam-${stamp}.dump.age"
 
           # 평문 덤프는 디스크에 남기지 않는다
-          pg_dump --format=custom --no-owner --no-privileges \
+          /usr/lib/postgresql/18/bin/pg_dump --format=custom --no-owner --no-privileges \
             --schema=public --schema=private --schema=auth \
             "$SUPABASE_DB_URL" \
             | age --encrypt --recipient "$BACKUP_AGE_RECIPIENT" > "$file"
