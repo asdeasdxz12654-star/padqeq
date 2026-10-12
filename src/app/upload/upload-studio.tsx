@@ -15,8 +15,10 @@ import { MIN_YEAR } from "@/lib/year-chips";
 import { createDraft, discardDraft, publishPost } from "./actions";
 import type { ConvertMessage, ConvertRequest } from "./convert.worker";
 
-// 1차 지원 형식: 브라우저가 바로 여는 것. HEIC · RAW는 다음 단계(변환 라이브러리)에서.
-const ACCEPT = ["image/jpeg", "image/png", "image/webp", "image/avif"];
+// 지원 형식. HEIC는 Windows · 안드로이드에서 MIME이 비어 오기도 해 확장자도 함께 본다. RAW는 다음 단계.
+const ACCEPT = ["image/jpeg", "image/png", "image/webp", "image/avif", "image/heic", "image/heif"];
+const ACCEPT_EXTENSIONS = /\.(jpe?g|png|webp|avif|heic|heif)$/i;
+const isAccepted = (file: File) => ACCEPT.includes(file.type) || (file.type === "" && ACCEPT_EXTENSIONS.test(file.name));
 const UPLOAD_CONCURRENCY = 3;
 
 type Item = {
@@ -108,7 +110,7 @@ export function UploadStudio({ isAdmin, currentYear }: { isAdmin: boolean; curre
     const room = MAX_PHOTOS_PER_POST - items.length;
     const accepted: { item: Item; file: File }[] = [];
     for (const file of Array.from(fileList)) {
-      if (!ACCEPT.includes(file.type)) skipped.push(`${file.name} (형식: HEIC · RAW는 곧 지원)`);
+      if (!isAccepted(file)) skipped.push(`${file.name} (지원하지 않는 형식 · RAW는 곧 지원)`);
       else if (file.size > MAX_INPUT_BYTES) skipped.push(`${file.name} (50MB 초과)`);
       else if (accepted.length >= room) skipped.push(`${file.name} (한 게시물 ${MAX_PHOTOS_PER_POST}장까지)`);
       else {
@@ -248,12 +250,12 @@ export function UploadStudio({ isAdmin, currentYear }: { isAdmin: boolean; curre
         >
           <span className="font-semibold">사진을 끌어다 놓거나 눌러서 고르기</span>
           <span className="text-xs text-quiet">
-            JPEG · PNG · WebP · AVIF, 장당 50MB, 게시물 하나에 {MAX_PHOTOS_PER_POST}장까지
+            JPEG · HEIC(아이폰) · PNG · WebP · AVIF, 장당 50MB, 게시물 하나에 {MAX_PHOTOS_PER_POST}장까지
           </span>
           <input
             type="file"
             multiple
-            accept={ACCEPT.join(",")}
+            accept={[...ACCEPT, ".heic", ".heif"].join(",")}
             className="sr-only"
             disabled={Boolean(draft)}
             onChange={(e) => {

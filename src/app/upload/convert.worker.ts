@@ -4,6 +4,7 @@
 //  · 4000px보다 작은 사진은 키우지 않는다
 
 import { encodeAvif, preloadAvif } from "./avif-encoder";
+import { decodeHeif, isHeif } from "./heif-decoder";
 import { VARIANT_NAMES, VARIANTS, type VariantName, variantSize } from "@/lib/photos/variants";
 
 export type ConvertRequest = { id: string; file: File };
@@ -45,14 +46,21 @@ function draw(source: CanvasImageSource, width: number, height: number, backgrou
   return canvas;
 }
 
+/** 브라우저가 직접 열 수 있으면 그대로, 못 여는 HEIC는 libheif로 */
+async function openImage(file: File): Promise<ImageBitmap> {
+  try {
+    return await createImageBitmap(file, { imageOrientation: "from-image" });
+  } catch (error) {
+    if (await isHeif(file)) return decodeHeif(file);
+    throw error instanceof Error && error.message ? new Error("이 사진을 열 수 없어요") : error;
+  }
+}
+
 async function convert({ id, file }: ConvertRequest) {
   const post = (message: ConvertMessage) => scope.postMessage(message);
   const total = VARIANT_NAMES.length;
 
-  const [bitmap] = await Promise.all([
-    createImageBitmap(file, { imageOrientation: "from-image" }),
-    preloadAvif(),
-  ]);
+  const [bitmap] = await Promise.all([openImage(file), preloadAvif()]);
   const master = variantSize(bitmap.width, bitmap.height, "4000");
   const files = {} as Record<VariantName, Blob>;
 
