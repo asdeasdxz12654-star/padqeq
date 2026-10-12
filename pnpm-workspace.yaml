@@ -1,0 +1,16 @@
+# 공급망 보안 설정
+# 공개된 지 7일(분 단위)이 안 된 버전은 설치하지 않음 — 악성 버전은 보통 며칠 안에 발견·삭제됨
+minimumReleaseAge: 10080
+# 이전 버전보다 신뢰 근거(프로비넌스)가 약해진 새 버전은 거부 (계정 탈취 대비)
+trustPolicy: no-downgrade
+# 30일 넘게 문제없이 배포돼 있던 버전은 위 검사에서 제외 (프로비넌스 도입 전 패키지의 오탐 방지)
+trustPolicyIgnoreAfter: 43200
+# 하위 의존성이 git·URL 같은 레지스트리 밖 출처를 쓰지 못하게
+blockExoticSubdeps: true
+# 설치 스크립트는 명시적으로 허용한 패키지만 실행
+allowBuilds:
+  sharp: false
+  unrs-resolver: false
+  esbuild: true
+  workerd: true
+  supabase: true

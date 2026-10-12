@@ -1,0 +1,28 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "haedam",
+  // OpenNext가 만든 Next 앱을 worker.ts가 감싼다 (CSP · 세션 갱신 · 예약 작업)
+  "main": "worker.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": { "enabled": true },
+  // 공개해도 되는 값만 여기에. 비밀값은 `wrangler secret put`으로 넣는다.
+  "vars": {
+    "NEXT_PUBLIC_SUPABASE_URL": "https://jbrgrflzpdwlwoyuysdb.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_Wu8MXf2r21Gmxkimu1ooPg_Onaw3-nO"
+  },
+  "r2_buckets": [
+    // 사진(AVIF 마스터 · 변환본). 공개 접근은 끈 상태로 만든다.
+    { "binding": "PHOTOS", "bucket_name": "haedam-photos" },
+    // DB 백업 전용. 사진 버킷과 분리.
+    { "binding": "BACKUPS", "bucket_name": "haedam-backups" }
+  ],
+  "triggers": {
+    // 매일 03:00 KST(18:00 UTC): DB 일시정지 방지 + 백업 상태 확인
+    "crons": ["0 18 * * *"]
+  }
+}

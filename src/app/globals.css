@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+/* 다크 모드가 기본. data-theme="light"일 때 라이트 (설정에서 전환) */
+@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
+
+:root {
+  --bg: #111110;
+  --surface: #1c1c1a;
+  --line: #2e2e2b;
+  --text: #f2f2ee;
+  --text-quiet: #a3a39c;
+  --slot: #2a2a27;
+  /* 포인트 컬러 1개: 좋아요 · 주요 버튼 */
+  --accent: #6b9bff;
+  --on-accent: #0b1220;
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --bg: #f5f5f3;
+  --surface: #ffffff;
+  --line: #e0e0da;
+  --text: #1c1c1a;
+  --text-quiet: #5f5f5a;
+  --slot: #dcdcd7;
+  --accent: #1d4ed8;
+  --on-accent: #ffffff;
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
+  --color-text: var(--text);
+  --color-quiet: var(--text-quiet);
+  --color-slot: var(--slot);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --font-sans: var(--font-plex-kr), system-ui, sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  /* iOS 홈 인디케이터 · 하단 탭 겹침 방지 */
+  padding-bottom: env(safe-area-inset-bottom);
+  -webkit-text-size-adjust: 100%;
+}
+
+/* 사진 보호: 길게 눌러 저장 · 드래그 · 선택 막기 */
+.photo-guard {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

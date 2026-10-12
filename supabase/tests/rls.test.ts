@@ -1,0 +1,283 @@
+import type { PGlite } from "@electric-sql/pglite";
+import { beforeAll, describe, expect, it } from "vitest";
+import { asUser, createTestDb } from "./harness";
+
+const ADMIN = "00000000-0000-4000-8000-00000000000a";
+const MEMBER = "00000000-0000-4000-8000-00000000000b";
+const OTHER = "00000000-0000-4000-8000-00000000000c";
+const PUBLISHED = "10000000-0000-4000-8000-000000000001";
+const DRAFT = "10000000-0000-4000-8000-000000000002";
+
+let db: PGlite;
+
+beforeAll(async () => {
+  db = await createTestDb();
+  // 시드는 슈퍼유저로 넣는다 (RLS 우회). 게시 규칙 트리거는 그대로 동작한다.
+  await db.exec(`
+    insert into auth.users (id) values ('${ADMIN}'), ('${MEMBER}'), ('${OTHER}');
+    insert into public.profiles (id, handle, display_name, role, can_upload) values
+      ('${ADMIN}', 'haedam', '운영자', 'admin', true),
+      ('${MEMBER}', 'moon_cos', '문', 'member', false),
+      ('${OTHER}', 'photo_b', '비', 'member', false);
+
+    insert into public.posts (id, author_id, title, category, shot_year) values
+      ('${PUBLISHED}', '${ADMIN}', '야간 신사 촬영', 'cosplay', 2025),
+      ('${DRAFT}', '${ADMIN}', '작업 중', 'landscape', 2026);
+    insert into public.photos (post_id, position, storage_key, width, height, bytes)
+      values ('${PUBLISHED}', 0, 'p/1', 4000, 2667, 3000000);
+    insert into public.consent_records (post_id, subject_label, consented_on, created_by)
+      values ('${PUBLISHED}', '코스어 문', '2025-05-01', '${ADMIN}');
+    update public.posts set status = 'published' where id = '${PUBLISHED}';
+
+    insert into public.credits (post_id, role, member_id, status) values
+      ('${PUBLISHED}', 'cosplayer', '${MEMBER}', 'pending');
+    insert into public.credits (post_id, role, external_label, status) values
+      ('${PUBLISHED}', 'photographer', '@studio', 'external');
+  `);
+});
+
+const count = (rows: { rows: unknown[] }) => rows.rows.length;
+
+describe("게시물 공개 범위", () => {
+  it("비로그인은 게시된 글만 본다", async () => {
+    const rows = await asUser(db, null, (tx) => tx.query<{ id: string }>("select id from posts"));
+    expect(rows.rows.map((r) => r.id)).toEqual([PUBLISHED]);
+  });
+
+  it("운영자는 초안도 본다", async () => {
+    const rows = await asUser(db, ADMIN, (tx) => tx.query("select id from posts"));
+    expect(count(rows)).toBe(2);
+  });
+
+  it("비로그인은 초안의 사진을 볼 수 없다", async () => {
+    await db.exec(
+      `insert into photos (post_id, position, storage_key, width, height, bytes) values ('${DRAFT}', 0, 'd/1', 1000, 800, 500000)`,
+    );
+    const rows = await asUser(db, null, (tx) => tx.query("select storage_key from photos"));
+    expect(rows.rows).toEqual([{ storage_key: "p/1" }]);
+  });
+
+  it("연도 칩용 촬영 연도는 게시된 글만 센다", async () => {
+    const rows = await asUser(db, null, (tx) => tx.query("select * from published_shot_years()"));
+    expect(rows.rows).toEqual([{ year: 2025, post_count: 1 }]);
+  });
+});
+
+describe("업로드 권한", () => {
+  it("업로드 권한이 없는 회원은 글을 쓸 수 없다", async () => {
+    await expect(
+      asUser(db, MEMBER, (tx) =>
+        tx.query(
+          `insert into posts (author_id, title, category, shot_year) values ('${MEMBER}', 't', 'cosplay', 2026)`,
+        ),
+      ),
+    ).rejects.toThrow(/row-level security/);
+  });
+
+  it("남의 이름으로 글을 쓸 수 없다", async () => {
+    await expect(
+      asUser(db, ADMIN, (tx) =>
+        tx.query(
+          `insert into posts (author_id, title, category, shot_year) values ('${MEMBER}', 't', 'cosplay', 2026)`,
+        ),
+      ),
+    ).rejects.toThrow(/row-level security/);
+  });
+
+  it("회원은 자기 역할이나 업로드 권한을 바꿀 수 없다", async () => {
+    await expect(
+      asUser(db, MEMBER, (tx) => tx.query(`update profiles set role = 'admin' where id = '${MEMBER}'`)),
+    ).rejects.toThrow(/permission denied/);
+    await expect(
+      asUser(db, MEMBER, (tx) => tx.query(`update profiles set can_upload = true where id = '${MEMBER}'`)),
+    ).rejects.toThrow(/permission denied/);
+  });
+
+  it("가입할 때 운영자 권한을 넣을 수 없다", async () => {
+    const id = "00000000-0000-4000-8000-00000000000d";
+    await db.exec(`insert into auth.users (id) values ('${id}')`);
+    await expect(
+      asUser(db, id, (tx) =>
+        tx.query(`insert into profiles (id, handle, display_name, role) values ('${id}', 'newbie', 'n', 'admin')`),
+      ),
+    ).rejects.toThrow(/permission denied/);
+    const ok = await asUser(db, id, (tx) =>
+      tx.query(`insert into profiles (id, handle, display_name) values ('${id}', 'newbie', 'n') returning role`),
+    );
+    expect(ok.rows).toEqual([{ role: "member" }]);
+  });
+});
+
+describe("게시 규칙", () => {
+  async function draftWithPhoto(tx: Parameters<Parameters<typeof asUser>[2]>[0], hasPeople: boolean) {
+    const post = await tx.query<{ id: string }>(
+      `insert into posts (author_id, title, category, shot_year, has_people)
+       values ('${ADMIN}', '새 글', 'cosplay', 2026, $1) returning id`,
+      [hasPeople],
+    );
+    const id = post.rows[0].id;
+    await tx.query(
+      `insert into photos (post_id, position, storage_key, width, height, bytes) values ($1, 0, $2, 3000, 2000, 2000000)`,
+      [id, `k/${id}`],
+    );
+    return id;
+  }
+
+  it("촬영 동의 기록이 없으면 게시할 수 없다", async () => {
+    await expect(
+      asUser(db, ADMIN, async (tx) => {
+        const id = await draftWithPhoto(tx, true);
+        await tx.query("update posts set status = 'published' where id = $1", [id]);
+      }),
+    ).rejects.toThrow(/촬영 동의 기록/);
+  });
+
+  it("동의 기록이 있으면 게시되고 게시 시각이 남는다", async () => {
+    const row = await asUser(db, ADMIN, async (tx) => {
+      const id = await draftWithPhoto(tx, true);
+      await tx.query(
+        `insert into consent_records (post_id, subject_label, consented_on, created_by) values ($1, '모델', '2026-10-01', $2)`,
+        [id, ADMIN],
+      );
+      return tx.query("update posts set status = 'published' where id = $1 returning published_at", [id]);
+    });
+    expect(row.rows[0]).toHaveProperty("published_at");
+  });
+
+  it("사람이 없는 풍경 사진은 동의 기록 없이 게시된다", async () => {
+    const row = await asUser(db, ADMIN, async (tx) => {
+      const id = await draftWithPhoto(tx, false);
+      return tx.query("update posts set status = 'published' where id = $1 returning status", [id]);
+    });
+    expect(row.rows).toEqual([{ status: "published" }]);
+  });
+
+  it("사진이 없으면 게시할 수 없다", async () => {
+    await expect(
+      asUser(db, ADMIN, async (tx) => {
+        const post = await tx.query<{ id: string }>(
+          `insert into posts (author_id, title, category, shot_year, has_people)
+           values ('${ADMIN}', '빈 글', 'landscape', 2026, false) returning id`,
+        );
+        await tx.query("update posts set status = 'published' where id = $1", [post.rows[0].id]);
+      }),
+    ).rejects.toThrow(/사진이 없는/);
+  });
+
+  it("노출 주의(sensitive)는 봉인되어 있다", async () => {
+    await expect(
+      asUser(db, ADMIN, (tx) => tx.query(`update posts set sensitive = true where id = '${DRAFT}'`)),
+    ).rejects.toThrow(/sensitive_sealed/);
+  });
+
+  it("미성년자가 있으면 보호자 동의가 필수다", async () => {
+    await expect(
+      asUser(db, ADMIN, (tx) =>
+        tx.query(
+          `insert into consent_records (post_id, subject_label, consented_on, created_by, has_minor)
+           values ('${DRAFT}', '학생 코스어', '2026-10-01', '${ADMIN}', true)`,
+        ),
+      ),
+    ).rejects.toThrow(/minor_needs_guardian/);
+  });
+});
+
+describe("사진 크기 기준", () => {
+  const insertPhoto = (w: number, h: number, bytes: number) =>
+    asUser(db, ADMIN, (tx) =>
+      tx.query(
+        `insert into photos (post_id, position, storage_key, width, height, bytes) values ('${DRAFT}', 5, 'size/test', $1, $2, $3) returning is_panorama`,
+        [w, h, bytes],
+      ),
+    );
+
+  it("일반 사진은 긴 변 4000px까지", async () => {
+    await expect(insertPhoto(5000, 3333, 3_000_000)).rejects.toThrow(/photo_size_rules/);
+  });
+
+  it("8MB를 넘는 마스터는 거부", async () => {
+    await expect(insertPhoto(4000, 3000, 9 * 1024 * 1024)).rejects.toThrow(/photo_size_rules/);
+  });
+
+  it("파노라마는 긴 변 16000px · 짧은 변 2000px까지 허용", async () => {
+    const r = await insertPhoto(12000, 1800, 10 * 1024 * 1024);
+    expect(r.rows).toEqual([{ is_panorama: true }]);
+    await expect(insertPhoto(17000, 1800, 10 * 1024 * 1024)).rejects.toThrow(/photo_size_rules/);
+  });
+});
+
+describe("크레딧", () => {
+  it("승인 전 회원 크레딧은 남에게 보이지 않는다", async () => {
+    const anon = await asUser(db, null, (tx) => tx.query("select status from credits"));
+    expect(anon.rows).toEqual([{ status: "external" }]);
+    const mine = await asUser(db, MEMBER, (tx) => tx.query("select status from credits order by status"));
+    expect(count(mine)).toBe(2);
+  });
+
+  it("당사자는 승인할 수 있다", async () => {
+    const r = await asUser(db, MEMBER, (tx) =>
+      tx.query(`update credits set status = 'approved' where member_id = '${MEMBER}' returning status`),
+    );
+    expect(r.rows).toEqual([{ status: "approved" }]);
+  });
+
+  it("작성자는 남의 크레딧을 대신 승인할 수 없다", async () => {
+    const r = await asUser(db, ADMIN, (tx) =>
+      tx.query(`update credits set status = 'approved' where member_id = '${MEMBER}' returning id`),
+    );
+    expect(count(r)).toBe(0);
+  });
+
+  it("다른 회원은 남의 크레딧을 승인할 수 없다", async () => {
+    const r = await asUser(db, OTHER, (tx) =>
+      tx.query(`update credits set status = 'approved' where member_id = '${MEMBER}' returning id`),
+    );
+    expect(count(r)).toBe(0);
+  });
+});
+
+describe("비공개 기록", () => {
+  it("촬영 동의 기록은 비로그인에게 권한 자체가 없다", async () => {
+    await expect(asUser(db, null, (tx) => tx.query("select * from consent_records"))).rejects.toThrow(
+      /permission denied/,
+    );
+  });
+
+  it("회원은 촬영 동의 기록을 볼 수 없고 운영자만 본다", async () => {
+    const member = await asUser(db, MEMBER, (tx) => tx.query("select * from consent_records"));
+    expect(count(member)).toBe(0);
+    const admin = await asUser(db, ADMIN, (tx) => tx.query("select * from consent_records"));
+    expect(count(admin)).toBe(1);
+  });
+
+  it("감사 로그는 API 역할로 접근할 수 없다", async () => {
+    await expect(asUser(db, ADMIN, (tx) => tx.query("select * from private.audit_log"))).rejects.toThrow(
+      /permission denied/,
+    );
+  });
+
+  it("게시 상태 변경은 감사 로그에 남는다", async () => {
+    const r = await db.query("select action, detail from private.audit_log");
+    expect(r.rows).toContainEqual({ action: "post_status", detail: { from: "draft", to: "published" } });
+  });
+});
+
+describe("신고", () => {
+  it("회원은 신고할 수 있지만 남의 신고는 볼 수 없다", async () => {
+    await db.exec(
+      `insert into reports (reporter_id, post_id, reason) values ('${OTHER}', '${PUBLISHED}', 'portrait_rights')`,
+    );
+    const member = await asUser(db, MEMBER, (tx) => tx.query("select * from reports"));
+    expect(count(member)).toBe(0);
+    const admin = await asUser(db, ADMIN, (tx) => tx.query("select * from reports"));
+    expect(count(admin)).toBe(1);
+  });
+
+  it("남의 이름으로 신고할 수 없다", async () => {
+    await expect(
+      asUser(db, MEMBER, (tx) =>
+        tx.query(`insert into reports (reporter_id, post_id, reason) values ('${OTHER}', '${PUBLISHED}', 'spam')`),
+      ),
+    ).rejects.toThrow(/row-level security/);
+  });
+});

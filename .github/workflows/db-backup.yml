@@ -1,0 +1,57 @@
+name: DB 백업
+
+# 매일 02:00 KST(17:00 UTC). 03:00 KST에 Worker가 백업이 들어왔는지 확인한다.
+on:
+  schedule:
+    - cron: "0 17 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: db-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    # 비밀값을 다 넣은 뒤 저장소 변수 BACKUP_ENABLED=true 로 켠다
+    if: vars.BACKUP_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # 저장소 Settings › Environments › backup 에 비밀값을 넣는다
+    environment: backup
+    steps:
+      - name: pg_dump · age 설치
+        run: |
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y --no-install-recommends postgresql-client age
+
+      - name: 덤프 → 암호화 → R2 업로드
+        env:
+          # Supabase › Connect › Session pooler 주소 (GitHub 러너는 IPv6 직접 연결 불가)
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          # age 공개키. 개인키는 운영자가 오프라인으로 보관 (복구할 때만 사용)
+          BACKUP_AGE_RECIPIENT: ${{ secrets.BACKUP_AGE_RECIPIENT }}
+          # haedam-backups 버킷에만 쓰기 권한이 있는 R2 API 토큰
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
+          AWS_DEFAULT_REGION: auto
+        run: |
+          set -euo pipefail
+          day=$(date -u +%F)
+          stamp=$(date -u +%Y%m%dT%H%M%SZ)
+          file="haedam-${stamp}.dump.age"
+
+          # 평문 덤프는 디스크에 남기지 않는다
+          pg_dump --format=custom --no-owner --no-privileges \
+            --schema=public --schema=private --schema=auth \
+            "$SUPABASE_DB_URL" \
+            | age --encrypt --recipient "$BACKUP_AGE_RECIPIENT" > "$file"
+
+          # 빈 파일 업로드 방지
+          test "$(stat -c %s "$file")" -gt 1024
+
+          aws s3 cp "$file" "s3://haedam-backups/db/${day}/${file}" --endpoint-url "$R2_ENDPOINT"
+          rm -f "$file"
+          echo "백업 완료: db/${day}/${file}"
