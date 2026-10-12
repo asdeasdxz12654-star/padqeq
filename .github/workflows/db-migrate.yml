@@ -1,0 +1,46 @@
+name: DB 마이그레이션
+
+# supabase/migrations 의 새 파일을 운영 DB에 반영한다. 사람이 직접 실행할 때만 돈다.
+# 액세스 토큰 없이 백업과 같은 DB 주소(SUPABASE_DB_URL)로 접속한다.
+on:
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: "실제로 반영 (끄면 반영할 목록만 확인)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: db-migrate
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: dhepa
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: pnpm 설치
+        run: npm install --global pnpm@12.11.2
+      - name: 의존성 설치 (Supabase CLI 버전 고정)
+        run: pnpm install --frozen-lockfile
+
+      - name: 반영할 마이그레이션 확인
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: pnpm exec supabase db push --db-url "$SUPABASE_DB_URL" --dry-run
+
+      - name: 반영
+        if: inputs.apply
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: pnpm exec supabase db push --db-url "$SUPABASE_DB_URL" --yes

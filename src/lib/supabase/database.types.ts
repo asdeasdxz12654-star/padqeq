@@ -330,6 +330,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_my_profile: {
+        Args: {
+          birth_date: string
+          new_display_name: string
+          new_handle: string
+          policy_version: string
+        }
+        Returns: undefined
+      }
+      handle_status: { Args: { target: string }; Returns: string }
       published_shot_years: {
         Args: never
         Returns: {

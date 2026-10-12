@@ -93,7 +93,7 @@ describe("업로드 권한", () => {
     ).rejects.toThrow(/permission denied/);
   });
 
-  it("가입할 때 운영자 권한을 넣을 수 없다", async () => {
+  it("프로필을 직접 넣을 수 없다 (가입 함수만 사용)", async () => {
     const id = "00000000-0000-4000-8000-00000000000d";
     await db.exec(`insert into auth.users (id) values ('${id}')`);
     await expect(
@@ -101,10 +101,11 @@ describe("업로드 권한", () => {
         tx.query(`insert into profiles (id, handle, display_name, role) values ('${id}', 'newbie', 'n', 'admin')`),
       ),
     ).rejects.toThrow(/permission denied/);
-    const ok = await asUser(db, id, (tx) =>
-      tx.query(`insert into profiles (id, handle, display_name) values ('${id}', 'newbie', 'n') returning role`),
-    );
-    expect(ok.rows).toEqual([{ role: "member" }]);
+    await expect(
+      asUser(db, id, (tx) =>
+        tx.query(`insert into profiles (id, handle, display_name) values ('${id}', 'newbie', 'n')`),
+      ),
+    ).rejects.toThrow(/permission denied/);
   });
 });
 
