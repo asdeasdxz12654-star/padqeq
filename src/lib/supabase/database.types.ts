@@ -164,7 +164,7 @@ export type Database = {
           is_panorama?: boolean | null
           position: number
           post_id: string
-          storage_key: string
+          storage_key?: string
           taken_at?: string | null
           width: number
         }
@@ -340,6 +340,17 @@ export type Database = {
         Returns: undefined
       }
       handle_status: { Args: { target: string }; Returns: string }
+      publish_my_post: {
+        Args: {
+          consent_note?: string
+          consented_on?: string
+          guardian_consent?: boolean
+          has_minor?: boolean
+          subject_label?: string
+          target: string
+        }
+        Returns: undefined
+      }
       published_shot_years: {
         Args: never
         Returns: {

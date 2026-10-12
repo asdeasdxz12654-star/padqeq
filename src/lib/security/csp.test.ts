@@ -6,8 +6,8 @@ const supabaseUrl = "https://abc.supabase.co";
 describe("buildCsp", () => {
   it("운영 정책은 nonce만 허용하고 eval·인라인 스크립트를 막는다", () => {
     const csp = buildCsp({ nonce: "n0nce", supabaseUrl });
-    expect(csp).toContain("script-src 'self' 'nonce-n0nce' 'strict-dynamic'");
-    expect(csp).not.toContain("unsafe-eval");
+    expect(csp).toContain("script-src 'self' 'nonce-n0nce' 'strict-dynamic' 'wasm-unsafe-eval'");
+    expect(csp).not.toMatch(/'unsafe-eval'/);
     expect(csp).not.toMatch(/script-src[^;]*'unsafe-inline'/);
     expect(csp).toContain("style-src 'self' 'nonce-n0nce'");
   });

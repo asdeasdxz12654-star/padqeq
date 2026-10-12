@@ -11,6 +11,7 @@ import { default as nextHandler } from "./.open-next/worker.js";
 import { buildCsp, createNonce } from "./src/lib/security/csp";
 
 const BACKUP_MAX_AGE_MS = 26 * 60 * 60 * 1000;
+const SESSIONLESS_PREFIXES = ["/img/", "/_next/static/", "/wasm/"];
 
 export default {
   async fetch(request, env, ctx) {
@@ -22,7 +23,10 @@ export default {
     headers.set("content-security-policy", csp);
     headers.set("x-nonce", nonce);
 
-    const setCookies = await refreshSession(request, headers, env);
+    // 사진 · 정적 파일 요청에는 세션이 필요 없다 (이미지 게이트는 서명으로 판단)
+    const { pathname } = new URL(request.url);
+    const needsSession = !SESSIONLESS_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+    const setCookies = needsSession ? await refreshSession(request, headers, env) : [];
 
     const upstream: Response = await nextHandler.fetch(new Request(request, { headers }), env, ctx);
     const response = new Response(upstream.body, upstream);

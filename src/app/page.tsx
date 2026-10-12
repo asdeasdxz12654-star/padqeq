@@ -1,4 +1,6 @@
+import { ProtectedPhoto } from "@/components/protected-photo";
 import { YearChips } from "@/components/year-chips";
+import { photoSources } from "@/lib/photos/server";
 import { createClient } from "@/lib/supabase/server";
 import { buildYearChips, parseYearParam } from "@/lib/year-chips";
 
@@ -25,6 +27,13 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
   if (posts.error) throw posts.error;
 
   const chips = buildYearChips(years.data.map((row) => row.year));
+  // RLS로 읽어 온(볼 수 있는) 사진에만 서명 주소를 붙인다
+  const covers = await Promise.all(
+    posts.data.map(async (post) => {
+      const cover = post.photos[0];
+      return cover ? { photo: cover, sources: await photoSources(cover) } : null;
+    }),
+  );
 
   return (
     <div className="mx-auto max-w-[1440px]">
@@ -37,24 +46,29 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         </p>
       ) : (
         <ul className="columns-2 gap-2 px-2 md:columns-3 md:px-6 xl:columns-5 xl:gap-4">
-          {posts.data.map((post) => {
-            const cover = post.photos[0];
+          {posts.data.map((post, index) => {
+            const cover = covers[index];
             return (
               <li key={post.id} className="mb-2 break-inside-avoid xl:mb-4">
                 <article>
-                  {/* 사진은 이미지 게이트(타일 · 워터마크) 연결 후 표시. 지금은 비율만 맞춘 자리 */}
-                  <div
-                    role="img"
-                    aria-label={cover?.alt_text || post.title}
-                    className="photo-guard rounded-lg bg-slot"
-                    style={{
-                      aspectRatio: cover
-                        ? cover.is_panorama
-                          ? "2 / 1"
-                          : `${cover.width} / ${cover.height}`
-                        : "4 / 5",
-                    }}
-                  />
+                  {cover?.sources ? (
+                    <div
+                      className={`overflow-hidden rounded-lg bg-slot ${cover.photo.is_panorama ? "aspect-[2/1]" : ""}`}
+                    >
+                      <ProtectedPhoto
+                        sources={cover.sources}
+                        alt={cover.photo.alt_text || post.title}
+                        width={cover.photo.width}
+                        height={cover.photo.height}
+                        // 피드 열 수: 2 · 3(md) · 5(xl)
+                        sizes="(min-width: 1280px) 20vw, (min-width: 768px) 33vw, 50vw"
+                        priority={index < 4}
+                        className={`block w-full ${cover.photo.is_panorama ? "h-full object-cover" : "h-auto"}`}
+                      />
+                    </div>
+                  ) : (
+                    <div role="img" aria-label={post.title} className="aspect-[4/5] rounded-lg bg-slot" />
+                  )}
                   <div className="px-1 pt-2 pb-1">
                     <h2 className="truncate text-sm font-medium">{post.title}</h2>
                     <p className="text-xs text-quiet">

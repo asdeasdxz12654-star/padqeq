@@ -21,7 +21,14 @@ export function buildCsp({
   const directives: Record<string, string[]> = {
     "default-src": ["'self'"],
     // strict-dynamic: nonce가 붙은 스크립트가 불러온 스크립트만 실행
-    "script-src": ["'self'", `'nonce-${nonce}'`, "'strict-dynamic'", ...(dev ? ["'unsafe-eval'"] : [])],
+    // wasm-unsafe-eval: 업로드 화면의 AVIF 인코더(WebAssembly) 컴파일만 허용. JS eval은 계속 금지.
+    "script-src": [
+      "'self'",
+      `'nonce-${nonce}'`,
+      "'strict-dynamic'",
+      "'wasm-unsafe-eval'",
+      ...(dev ? ["'unsafe-eval'"] : []),
+    ],
     "style-src": ["'self'", dev ? "'unsafe-inline'" : `'nonce-${nonce}'`],
     // SSR로 그려진 style 속성용. 속성 스타일은 스크립트를 실행할 수 없다.
     "style-src-attr": ["'unsafe-inline'"],

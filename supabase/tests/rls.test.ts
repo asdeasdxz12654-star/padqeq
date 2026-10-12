@@ -118,8 +118,8 @@ describe("게시 규칙", () => {
     );
     const id = post.rows[0].id;
     await tx.query(
-      `insert into photos (post_id, position, storage_key, width, height, bytes) values ($1, 0, $2, 3000, 2000, 2000000)`,
-      [id, `k/${id}`],
+      `insert into photos (post_id, position, width, height, bytes) values ($1, 0, 3000, 2000, 2000000)`,
+      [id],
     );
     return id;
   }
@@ -183,11 +183,45 @@ describe("게시 규칙", () => {
   });
 });
 
+describe("사진 파일 위치", () => {
+  it("파일 위치는 DB가 무작위로 정한다", async () => {
+    const rows = await asUser(db, ADMIN, (tx) =>
+      tx.query<{ storage_key: string }>(
+        `insert into photos (post_id, position, width, height, bytes) values ('${DRAFT}', 7, 1000, 800, 500000) returning storage_key`,
+      ),
+    );
+    expect(rows.rows[0]?.storage_key).toMatch(/^p\/[0-9a-f]{32}$/);
+  });
+
+  it("회원이 파일 위치를 지정하거나 바꿀 수 없다 (남의 파일 끌어오기 방지)", async () => {
+    await expect(
+      asUser(db, ADMIN, (tx) =>
+        tx.query(
+          `insert into photos (post_id, position, storage_key, width, height, bytes) values ('${DRAFT}', 8, 'p/1', 1000, 800, 500000)`,
+        ),
+      ),
+    ).rejects.toThrow(/permission denied/);
+    await expect(
+      asUser(db, ADMIN, (tx) => tx.query(`update photos set storage_key = 'p/1' where post_id = '${DRAFT}'`)),
+    ).rejects.toThrow(/permission denied/);
+  });
+
+  it("게시된 글에는 사진을 새로 붙일 수 없다", async () => {
+    await expect(
+      asUser(db, ADMIN, (tx) =>
+        tx.query(
+          `insert into photos (post_id, position, width, height, bytes) values ('${PUBLISHED}', 9, 1000, 800, 500000)`,
+        ),
+      ),
+    ).rejects.toThrow(/row-level security/);
+  });
+});
+
 describe("사진 크기 기준", () => {
   const insertPhoto = (w: number, h: number, bytes: number) =>
     asUser(db, ADMIN, (tx) =>
       tx.query(
-        `insert into photos (post_id, position, storage_key, width, height, bytes) values ('${DRAFT}', 5, 'size/test', $1, $2, $3) returning is_panorama`,
+        `insert into photos (post_id, position, width, height, bytes) values ('${DRAFT}', 5, $1, $2, $3) returning is_panorama`,
         [w, h, bytes],
       ),
     );
@@ -280,5 +314,57 @@ describe("신고", () => {
         tx.query(`insert into reports (reporter_id, post_id, reason) values ('${OTHER}', '${PUBLISHED}', 'spam')`),
       ),
     ).rejects.toThrow(/row-level security/);
+  });
+});
+
+describe("게시 함수 (동의 기록 + 게시를 한 번에)", () => {
+  const draft = async (tx: Parameters<Parameters<typeof asUser>[2]>[0], hasPeople: boolean) => {
+    const post = await tx.query<{ id: string }>(
+      `insert into posts (author_id, title, category, shot_year, has_people) values ('${ADMIN}', '게시 함수', 'cosplay', 2026, $1) returning id`,
+      [hasPeople],
+    );
+    const id = post.rows[0]!.id;
+    await tx.query(`insert into photos (post_id, position, width, height, bytes) values ($1, 0, 3000, 2000, 2000000)`, [id]);
+    return id;
+  };
+
+  it("동의 기록과 함께 게시된다", async () => {
+    const result = await asUser(db, ADMIN, async (tx) => {
+      const id = await draft(tx, true);
+      await tx.query("select public.publish_my_post($1, '코스어 문', date '2026-09-14')", [id]);
+      const post = await tx.query<{ status: string }>("select status::text from posts where id = $1", [id]);
+      const consent = await tx.query("select 1 from consent_records where post_id = $1", [id]);
+      return { status: post.rows[0]?.status, consents: consent.rows.length };
+    });
+    expect(result).toEqual({ status: "published", consents: 1 });
+  });
+
+  it("게시가 막히면 동의 기록도 남지 않는다", async () => {
+    // 사진 없는 글: 동의 기록은 들어가지만 게시 규칙에 걸려 전체가 되돌려져야 한다
+    const leftovers = await asUser(db, ADMIN, async (tx) => {
+      const post = await tx.query<{ id: string }>(
+        `insert into posts (author_id, title, category, shot_year) values ('${ADMIN}', '사진 없음', 'cosplay', 2026) returning id`,
+      );
+      const id = post.rows[0]!.id;
+      await tx.query("savepoint s");
+      await expect(tx.query("select public.publish_my_post($1, '누군가', date '2026-09-14')", [id])).rejects.toThrow(
+        /사진이 없는/,
+      );
+      await tx.query("rollback to savepoint s");
+      return (await tx.query("select 1 from consent_records where post_id = $1", [id])).rows.length;
+    });
+    expect(leftovers).toBe(0);
+  });
+
+  it("남의 글은 게시할 수 없다", async () => {
+    await expect(asUser(db, MEMBER, (tx) => tx.query("select public.publish_my_post($1)", [DRAFT]))).rejects.toThrow(
+      /post_not_publishable/,
+    );
+  });
+
+  it("비로그인은 부를 수 없다", async () => {
+    await expect(asUser(db, null, (tx) => tx.query("select public.publish_my_post($1)", [DRAFT]))).rejects.toThrow(
+      /permission denied/,
+    );
   });
 });

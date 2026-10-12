@@ -52,3 +52,8 @@ next-env.d.ts
 # supabase
 /supabase/.temp/
 /supabase/.branches/
+
+# 빌드 때 node_modules에서 복사 (scripts/copy-wasm.mjs)
+/public/wasm
+# 로컬 개발용 사진 저장소 (R2 대신)
+/.data

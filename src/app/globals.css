@@ -55,6 +55,13 @@ body {
   user-select: none;
   -webkit-user-drag: none;
 }
+.photo-guard img {
+  transition: filter 120ms ease-out;
+}
+/* 창이 가려지거나 포커스를 잃으면 사진을 흐리게 (캡처 · 녹화 도구 억제) */
+.is-away .photo-guard img {
+  filter: blur(32px);
+}
 
 @media (prefers-reduced-motion: reduce) {
   *,

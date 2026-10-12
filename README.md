@@ -49,6 +49,7 @@ pnpm check                   # 린트 · 타입 · 테스트 (CI와 같음)
 ```
 
 - `pnpm test`는 Docker 없이 PGlite로 마이그레이션 · RLS를 검증합니다.
+- 로컬 개발(`pnpm dev`)에서는 R2 대신 `.data/r2` 폴더에 사진 변환본을 저장합니다.
 - Windows에서는 `opennextjs-cloudflare build`가 심볼릭 링크 권한 문제로 실패합니다. 배포 빌드는 CI(Linux)나 WSL에서 합니다.
 
 ## 처음 한 번 설정할 것
@@ -64,4 +65,5 @@ pnpm check                   # 린트 · 타입 · 테스트 (CI와 같음)
    - Supabase › Authentication › Sign In / Providers: Google 켜고 Client ID · Secret 입력, **Email은 끔** (API로 이메일 가입하는 길 차단)
    - URL Configuration: Site URL은 서비스 주소, Redirect URLs에 `http://localhost:3000/**`와 서비스 주소 `/**` 추가
 5. **DB 변경 반영**: Actions › **DB 마이그레이션** 실행 (먼저 확인만, 그다음 `apply` 체크)
-6. **운영자 계정**: 가입 후 DB 콘솔에서 `update profiles set role = 'admin', can_upload = true where handle = '...'`
+6. **이미지 게이트 서명 키**: 배포 전 `pnpm exec wrangler secret put IMAGE_URL_SECRET` (32자 이상 무작위 값). 로컬은 `.env.local`
+7. **운영자 계정**: 가입 후 DB 콘솔에서 `update profiles set role = 'admin', can_upload = true where handle = '...'`
