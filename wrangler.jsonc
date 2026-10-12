@@ -12,8 +12,8 @@
   "observability": { "enabled": true },
   // 공개해도 되는 값만 여기에. 비밀값은 `wrangler secret put`으로 넣는다.
   "vars": {
-    "NEXT_PUBLIC_SUPABASE_URL": "https://jbrgrflzpdwlwoyuysdb.supabase.co",
-    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_Wu8MXf2r21Gmxkimu1ooPg_Onaw3-nO"
+    "NEXT_PUBLIC_SUPABASE_URL": "https://icmzonndhmqdmqlrmhkn.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_m0R0KuHySG2IaYFopBjfug_SFXnCC2n"
   },
   "r2_buckets": [
     // 사진(AVIF 마스터 · 변환본). 공개 접근은 끈 상태로 만든다.
