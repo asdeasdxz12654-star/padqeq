@@ -23,6 +23,8 @@ const masterPhoto = z
     bytes: z.int().positive(),
     takenAt: z.iso.datetime({ offset: true }).nullable(),
     altText: z.string().trim().max(300).default(""),
+    /** 보이지 않는 워터마크 열쇠 (브라우저가 변환하며 만든 16바이트) */
+    watermarkSeed: z.string().regex(/^[0-9a-f]{32}$/),
   })
   .refine(({ width, height }) => {
     const master = variantSize(width, height, "4000");

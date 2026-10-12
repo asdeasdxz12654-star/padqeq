@@ -368,3 +368,61 @@ describe("게시 함수 (동의 기록 + 게시를 한 번에)", () => {
     );
   });
 });
+
+describe("워터마크 열쇠", () => {
+  const SEED_A = "00112233445566778899aabbccddeeff";
+
+  const draftWithPhoto = async (tx: Parameters<Parameters<typeof asUser>[2]>[0]) => {
+    const post = await tx.query<{ id: string }>(
+      `insert into posts (author_id, title, category, shot_year, has_people) values ('${ADMIN}', '워터마크', 'landscape', 2026, false) returning id`,
+    );
+    const postId = post.rows[0]!.id;
+    const photo = await tx.query<{ id: string }>(
+      `insert into photos (post_id, position, width, height, bytes) values ($1, 0, 3000, 2000, 2000000) returning id`,
+      [postId],
+    );
+    return { postId, photoId: photo.rows[0]!.id };
+  };
+
+  it("작성자가 초안에 넣고, 운영자만 꺼낸다", async () => {
+    const seeds = await asUser(db, ADMIN, async (tx) => {
+      const { postId, photoId } = await draftWithPhoto(tx);
+      await tx.query("select public.set_photo_watermarks($1, $2)", [postId, JSON.stringify([{ photo_id: photoId, seed: SEED_A }])]);
+      return (await tx.query<{ seed: string }>("select seed from public.photo_watermark_seeds($1)", [postId])).rows;
+    });
+    expect(seeds).toEqual([{ seed: SEED_A }]);
+  });
+
+  it("운영자가 아니면 열쇠를 꺼낼 수 없다 (빈 결과)", async () => {
+    const rows = await asUser(db, MEMBER, (tx) => tx.query("select * from public.photo_watermark_seeds($1)", [PUBLISHED]));
+    expect(rows.rows).toEqual([]);
+  });
+
+  it("남의 글 · 다른 글의 사진 · 잘못된 열쇠는 거부", async () => {
+    await expect(
+      asUser(db, MEMBER, (tx) => tx.query("select public.set_photo_watermarks($1, '[]')", [DRAFT])),
+    ).rejects.toThrow(/post_not_editable/);
+    await expect(
+      asUser(db, ADMIN, async (tx) => {
+        const { postId } = await draftWithPhoto(tx);
+        const other = await tx.query<{ id: string }>("select id from photos where post_id = $1", [PUBLISHED]);
+        await tx.query("select public.set_photo_watermarks($1, $2)", [
+          postId,
+          JSON.stringify([{ photo_id: other.rows[0]!.id, seed: SEED_A }]),
+        ]);
+      }),
+    ).rejects.toThrow(/photo_not_in_post/);
+    await expect(
+      asUser(db, ADMIN, async (tx) => {
+        const { postId, photoId } = await draftWithPhoto(tx);
+        await tx.query("select public.set_photo_watermarks($1, $2)", [postId, JSON.stringify([{ photo_id: photoId, seed: "zz" }])]);
+      }),
+    ).rejects.toThrow(/seed_invalid/);
+  });
+
+  it("열쇠 테이블은 API 역할로 직접 읽을 수 없다", async () => {
+    await expect(asUser(db, ADMIN, (tx) => tx.query("select * from private.photo_watermarks"))).rejects.toThrow(
+      /permission denied/,
+    );
+  });
+});

@@ -37,3 +37,23 @@ export async function hidePost(postId: string): Promise<{ ok: boolean; error?: s
   revalidatePath("/");
   return { ok: true };
 }
+
+/** 워터마크 판정용 열쇠 (운영자만). DB 함수도 운영자가 아니면 빈 결과를 돌려준다. */
+export async function getWatermarkSeeds(postId: string): Promise<{ position: number; seed: string; width: number; height: number }[] | null> {
+  const id = idSchema.safeParse(postId);
+  if (!id.success) return null;
+  const viewer = await getViewer();
+  if (viewer?.profile?.role !== "admin") return null;
+
+  const supabase = await createClient();
+  const [seeds, photos] = await Promise.all([
+    supabase.rpc("photo_watermark_seeds", { target_post: id.data }),
+    supabase.from("photos").select("id, width, height").eq("post_id", id.data),
+  ]);
+  if (seeds.error || photos.error) return null;
+  const size = new Map(photos.data.map((p) => [p.id, p]));
+  return seeds.data.flatMap((s) => {
+    const p = size.get(s.photo_id);
+    return p ? [{ position: s.position, seed: s.seed, width: p.width, height: p.height }] : [];
+  });
+}

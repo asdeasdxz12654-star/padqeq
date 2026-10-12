@@ -55,6 +55,16 @@ export async function createDraft(input: DraftInput): Promise<Result<{ postId: s
   }
 
   const photoIds = rows.toSorted((a, b) => a.position - b.position).map((r) => r.id);
+
+  // 워터마크 열쇠는 공개되지 않는 곳에 따로 보관한다
+  const { error: seedError } = await supabase.rpc("set_photo_watermarks", {
+    target_post: post.id,
+    entries: photoIds.map((photo_id, i) => ({ photo_id, seed: photos[i]!.watermarkSeed })),
+  });
+  if (seedError) {
+    await supabase.from("posts").delete().eq("id", post.id);
+    return { ok: false, error: "사진 정보를 저장하지 못했어요." };
+  }
   return { ok: true, data: { postId: post.id, photoIds } };
 }
 

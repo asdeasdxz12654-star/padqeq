@@ -29,7 +29,7 @@ type Item = {
   progress: number;
   error?: string;
   preview?: string;
-  result?: { width: number; height: number; files: Record<VariantName, Blob> };
+  result?: { width: number; height: number; seed: string; files: Record<VariantName, Blob> };
 };
 
 type Phase = { kind: "edit" } | { kind: "uploading"; sent: number; total: number } | { kind: "publishing" };
@@ -75,7 +75,7 @@ export function UploadStudio({ isAdmin, currentYear }: { isAdmin: boolean; curre
             status: "ready",
             progress: 1,
             preview: URL.createObjectURL(message.files["400"]),
-            result: { width: message.width, height: message.height, files: message.files },
+            result: { width: message.width, height: message.height, seed: message.seed, files: message.files },
           };
         }),
       );
@@ -201,6 +201,7 @@ export function UploadStudio({ isAdmin, currentYear }: { isAdmin: boolean; curre
             height: item.result!.height,
             bytes: item.result!.files["4000"].size,
             takenAt: item.takenAt,
+            watermarkSeed: item.result!.seed,
           })),
         });
         if (!created.ok) throw new Error(created.error);

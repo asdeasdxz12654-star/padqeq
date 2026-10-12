@@ -6,11 +6,12 @@
 import { encodeAvif, preloadAvif } from "./avif-encoder";
 import { decodeHeif, isHeif } from "./heif-decoder";
 import { VARIANT_NAMES, VARIANTS, type VariantName, variantSize } from "@/lib/photos/variants";
+import { embedWatermark, SEED_BYTES, seedToHex } from "@/lib/photos/watermark";
 
 export type ConvertRequest = { id: string; file: File };
 export type ConvertMessage =
   | { id: string; type: "progress"; done: number; total: number }
-  | { id: string; type: "done"; width: number; height: number; files: Record<VariantName, Blob> }
+  | { id: string; type: "done"; width: number; height: number; seed: string; files: Record<VariantName, Blob> }
   | { id: string; type: "error"; message: string };
 
 // DOM 타입과 WebWorker 타입을 함께 켜면 충돌하므로 필요한 부분만 적는다
@@ -63,28 +64,37 @@ async function convert({ id, file }: ConvertRequest) {
   const [bitmap] = await Promise.all([openImage(file), preloadAvif()]);
   const master = variantSize(bitmap.width, bitmap.height, "4000");
   const files = {} as Record<VariantName, Blob>;
+  // 사진마다 새 워터마크 열쇠. 마스터에 한 번 넣으면 줄인 변환본에도 따라간다.
+  const seed = crypto.getRandomValues(new Uint8Array(SEED_BYTES));
 
   // 큰 것부터 차례로 줄여 가며 만든다 (4000 → 2560 → 1200 → 400)
   let previous: OffscreenCanvas | ImageBitmap = bitmap;
+  let marked: OffscreenCanvas | null = null;
   let done = 0;
   for (const name of ["4000", "2560", "1200", "400"] as const) {
     const size = variantSize(master.width, master.height, name);
     const canvas = resize(previous, size.width, size.height);
-    const pixels = canvas.getContext("2d")!.getImageData(0, 0, size.width, size.height);
+    const ctx = canvas.getContext("2d")!;
+    const pixels = ctx.getImageData(0, 0, size.width, size.height);
+    if (name === "4000") {
+      embedWatermark(pixels, seed);
+      ctx.putImageData(pixels, 0, 0);
+    }
     const avif = await encodeAvif(pixels, { quality: VARIANTS[name].quality, speed: 7 });
     files[name] = new Blob([avif], { type: "image/avif" });
+    if (name === "4000") marked = canvas;
     previous = canvas;
     post({ id, type: "progress", done: ++done, total });
   }
 
   // 구형 기기용 JPEG: 투명 부분은 흰 바탕으로
   const jpegSize = variantSize(master.width, master.height, "1600");
-  const jpegCanvas = draw(resize(bitmap, jpegSize.width, jpegSize.height), jpegSize.width, jpegSize.height, "#fff");
+  const jpegCanvas = draw(resize(marked ?? bitmap, jpegSize.width, jpegSize.height), jpegSize.width, jpegSize.height, "#fff");
   files["1600"] = await jpegCanvas.convertToBlob({ type: "image/jpeg", quality: VARIANTS["1600"].quality });
   post({ id, type: "progress", done: ++done, total });
 
   bitmap.close();
-  post({ id, type: "done", width: master.width, height: master.height, files });
+  post({ id, type: "done", width: master.width, height: master.height, seed: seedToHex(seed), files });
 }
 
 // 한 번에 한 장씩 (메모리 · CPU 보호)

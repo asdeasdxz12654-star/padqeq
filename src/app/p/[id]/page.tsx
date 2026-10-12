@@ -5,6 +5,7 @@ import { CATEGORY_LABEL } from "@/lib/photos/post-input";
 import { getPost } from "@/lib/posts/get-post";
 import { HidePostButton } from "./hide-post-button";
 import { PhotoViewer } from "./photo-viewer";
+import { WatermarkCheck } from "./watermark-check";
 
 const ROLE_LABEL = {
   cosplayer: "코스어",
@@ -98,6 +99,7 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
           </p>
 
           {canHide && <HidePostButton postId={post.id} />}
+          {viewer?.profile?.role === "admin" && <WatermarkCheck postId={post.id} />}
         </div>
       </div>
     </article>

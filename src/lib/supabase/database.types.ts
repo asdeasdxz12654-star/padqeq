@@ -351,6 +351,11 @@ export type Database = {
         }
         Returns: undefined
       }
+      photo_watermark_seeds: {
+        Args: { target_post: string }
+        Returns: { photo_id: string; position: number; seed: string }[]
+      }
+      set_photo_watermarks: { Args: { entries: Json; target_post: string }; Returns: undefined }
       published_shot_years: {
         Args: never
         Returns: {
