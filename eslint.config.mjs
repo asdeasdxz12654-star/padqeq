@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // 빌드 때 node_modules에서 복사하는 WebAssembly 묶음 (scripts/copy-wasm.mjs)
+    "public/wasm/**",
   ]),
 ]);
 

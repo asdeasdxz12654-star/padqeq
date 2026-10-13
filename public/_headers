@@ -1,0 +1,11 @@
+# Cloudflare Workers 정적 파일(public · /_next/static)에 붙는 헤더.
+# HTML · API는 next.config.ts의 headers()와 worker.ts가 붙인다. 두 곳의 값을 같게 유지한다.
+# 교차 출처 격리(COOP + COEP): RAW 현상(LibRaw 멀티스레드 WebAssembly) 작업 스레드가 격리된 페이지에서 뜨려면
+# 작업 스레드 스크립트에도 COEP가 있어야 한다.
+/*
+  Cross-Origin-Embedder-Policy: require-corp
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Robots-Tag: noai, noimageai, noimageindex

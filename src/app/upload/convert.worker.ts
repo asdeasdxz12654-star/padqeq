@@ -8,7 +8,8 @@ import { decodeHeif, isHeif } from "./heif-decoder";
 import { VARIANT_NAMES, VARIANTS, type VariantName, variantSize } from "@/lib/photos/variants";
 import { embedWatermark, SEED_BYTES, seedToHex } from "@/lib/photos/watermark";
 
-export type ConvertRequest = { id: string; file: File };
+/** 보통은 파일을 그대로, RAW는 화면 쪽에서 현상한 그림(ImageBitmap)을 넘긴다 */
+export type ConvertRequest = { id: string; file: File } | { id: string; bitmap: ImageBitmap };
 export type ConvertMessage =
   | { id: string; type: "progress"; done: number; total: number }
   | { id: string; type: "done"; width: number; height: number; seed: string; files: Record<VariantName, Blob> }
@@ -57,11 +58,12 @@ async function openImage(file: File): Promise<ImageBitmap> {
   }
 }
 
-async function convert({ id, file }: ConvertRequest) {
+async function convert(request: ConvertRequest) {
+  const { id } = request;
   const post = (message: ConvertMessage) => scope.postMessage(message);
   const total = VARIANT_NAMES.length;
 
-  const [bitmap] = await Promise.all([openImage(file), preloadAvif()]);
+  const [bitmap] = await Promise.all(["bitmap" in request ? Promise.resolve(request.bitmap) : openImage(request.file), preloadAvif()]);
   const master = variantSize(bitmap.width, bitmap.height, "4000");
   const files = {} as Record<VariantName, Blob>;
   // 사진마다 새 워터마크 열쇠. 마스터에 한 번 넣으면 줄인 변환본에도 따라간다.

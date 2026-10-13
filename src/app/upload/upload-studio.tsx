@@ -15,7 +15,7 @@ import {
 import { discardDraft } from "./actions";
 import { TagPicker } from "./tag-picker";
 import { localDate, publishBundle } from "./publish-bundle";
-import { ACCEPT, MAX_SESSION_PHOTOS, type Photo, useConverter } from "./use-converter";
+import { ACCEPT_INPUT, MAX_SESSION_PHOTOS, type Photo, useConverter } from "./use-converter";
 
 // 업로드 (A-02 대량 업로드 · S-08).
 // 사진을 여러 장 넣으면 촬영 시각 30분 간격으로 묶음(= 게시물)을 나눈다.
@@ -33,6 +33,7 @@ const newBundle = (photoIds: string[], common: Common): Bundle => ({
   shotYear: null,
   consent: { ...common.consent },
   tags: [...common.tags],
+  rawConfirmed: false,
   draft: null,
   state: { kind: "edit" },
 });
@@ -226,14 +227,14 @@ export function UploadStudio({ isAdmin, currentYear }: { isAdmin: boolean; curre
       >
         <span className="font-semibold">사진을 끌어다 놓거나 눌러서 고르기</span>
         <span className="text-xs leading-relaxed text-quiet">
-          JPEG · HEIC(아이폰) · PNG · WebP · AVIF, 장당 50MB, 한 번에 {MAX_SESSION_PHOTOS}장까지
+          JPEG · HEIC(아이폰) · PNG · WebP · AVIF 장당 50MB · RAW(CR2 · CR3 · NEF · ARW · RAF · RW2 · ORF · DNG) PC 200MB · 휴대폰 100MB, 한 번에 {MAX_SESSION_PHOTOS}장까지
           <br />
           촬영 시각이 30분 넘게 떨어지면 다른 게시물로 자동으로 나눠요 (게시물 하나에 {MAX_PHOTOS_PER_POST}장까지)
         </span>
         <input
           type="file"
           multiple
-          accept={[...ACCEPT, ".heic", ".heif"].join(",")}
+          accept={ACCEPT_INPUT}
           className="sr-only"
           onChange={(e) => {
             void onFiles(e.target.files);

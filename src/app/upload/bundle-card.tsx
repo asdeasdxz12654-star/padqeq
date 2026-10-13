@@ -27,6 +27,8 @@ export type Bundle = {
   shotYear: number | null;
   consent: ConsentInput;
   tags: TagOption[];
+  /** RAW에서 만든 사진이 있으면 "보정 전 원본"임을 확인받는다 (P-01) */
+  rawConfirmed: boolean;
   draft: Draft | null;
   state: BundleState;
 };
@@ -45,6 +47,7 @@ export function bundleProblem(bundle: Bundle, photos: Photo[], isAdmin: boolean)
   if (photos.some((p) => p.status === "error")) return "변환에 실패한 사진을 빼 주세요";
   if (photos.some((p) => p.status !== "ready")) return "사진 변환 중";
   if (!bundle.title.trim()) return "제목을 입력해 주세요";
+  if (photos.some((p) => p.raw) && !bundle.rawConfirmed) return "RAW 사진(보정 전 원본)인지 확인해 주세요";
   if (bundle.hasPeople) {
     if (!isAdmin) return "지금은 운영자만 사람이 나오는 사진을 게시할 수 있어요";
     const c = bundle.consent;
@@ -61,6 +64,13 @@ export function effectiveYear(bundle: Bundle, photos: Photo[], currentYear: numb
   const valid = exifYear !== null && exifYear >= MIN_YEAR && exifYear <= currentYear ? exifYear : null;
   return { year: bundle.shotYear ?? valid ?? currentYear, exifYear: valid };
 }
+
+const RAW_LABEL = {
+  pending: "RAW 해석 중",
+  preview: "RAW · 내장 미리보기",
+  full: "RAW · 전체 현상",
+  "preview-small": "RAW · 작은 미리보기",
+} as const;
 
 const inputClass = "min-h-11 rounded-xl border border-line bg-surface px-3 text-base outline-none focus:border-accent";
 const timeFormat = new Intl.DateTimeFormat("ko-KR", { dateStyle: "medium", timeStyle: "short" });
@@ -160,6 +170,11 @@ export function BundleCard({
                   대표
                 </span>
               )}
+              {photo.raw && (
+                <span className="absolute right-1 bottom-1 rounded-full bg-bg/80 px-1.5 py-0.5 text-[10px] font-semibold">
+                  {RAW_LABEL[photo.raw.method]}
+                </span>
+              )}
               {photo.status === "converting" && (
                 <span className="absolute inset-x-0 bottom-0 h-1 bg-line">
                   <span className="block h-full bg-accent" style={{ width: `${Math.round(photo.progress * 100)}%` }} />
@@ -241,6 +256,26 @@ export function BundleCard({
           />
         </label>
       </div>
+
+      {photos.some((p) => p.raw) && (
+        <div className="flex flex-col gap-1.5 rounded-xl border border-line p-3 text-sm">
+          <p className="text-xs leading-relaxed text-quiet">
+            RAW 사진은 보정하지 않은 원본 그대로 올라가요. 색 · 밝기가 카메라 JPEG나 보정본과 다를 수 있어요.
+            {photos.some((p) => p.raw?.method === "preview-small") &&
+              " 휴대폰에서는 RAW 안의 작은 미리보기로 올라가니, 고화질은 PC에서 올려 주세요."}
+          </p>
+          <label className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              checked={bundle.rawConfirmed}
+              disabled={locked}
+              onChange={(e) => set({ rawConfirmed: e.target.checked })}
+              className="size-5 accent-[var(--accent)]"
+            />
+            보정 전 원본임을 확인했어요
+          </label>
+        </div>
+      )}
 
       <TagPicker value={bundle.tags} onChange={(tags) => set({ tags })} disabled={locked} isAdmin={isAdmin} />
 

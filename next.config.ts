@@ -10,6 +10,9 @@ const securityHeaders = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
+  // 교차 출처 격리: RAW 현상(LibRaw 멀티스레드 WebAssembly)에 필요한 SharedArrayBuffer를 쓰기 위해.
+  // 해담은 외부 이미지 · iframe을 쓰지 않으므로 같은 출처 리소스만으로 동작한다.
+  { key: "Cross-Origin-Embedder-Policy", value: "require-corp" },
   {
     key: "Permissions-Policy",
     value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()",
