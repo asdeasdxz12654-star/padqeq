@@ -4,13 +4,15 @@ import { withNext } from "@/lib/auth/next-path";
 import { getViewer } from "@/lib/auth/viewer";
 import { photoSources } from "@/lib/photos/server";
 import { createClient } from "@/lib/supabase/server";
+import { MAX_PHOTOS_PER_POST } from "@/lib/photos/post-input";
+import { AddPhotos } from "./add-photos";
 import { EditForm } from "./edit-form";
 
 export const metadata: Metadata = { title: "게시물 편집", robots: { index: false } };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
-// S-07 ⑨ 게시물 편집 (작성자만). 사진 추가 · 삭제 · 순서는 이후 단계.
+// S-07 ⑨ 게시물 편집 (작성자만). 사진 더하기는 게시된 글에서만 (초안은 업로드 화면에서).
 export default async function EditPostPage({ params }: PageProps<"/p/[id]/edit">) {
   const { id } = await params;
   if (!UUID.test(id)) notFound();
@@ -21,7 +23,7 @@ export default async function EditPostPage({ params }: PageProps<"/p/[id]/edit">
   const { data: post } = await supabase
     .from("posts")
     .select(
-      `id, author_id, title, body, category, shot_year, shot_on, photos(id, position, alt_text, width, height, storage_key), post_tags(tag_id),
+      `id, author_id, title, body, category, shot_year, shot_on, status, removed_at, has_people, photos(id, position, alt_text, width, height, storage_key, ready_at), post_tags(tag_id),
        credits(id, role, status, created_at, external_label, external_url, member:profiles!credits_member_id_fkey(handle))`,
     )
     .eq("id", id)
@@ -36,7 +38,8 @@ export default async function EditPostPage({ params }: PageProps<"/p/[id]/edit">
       ? supabase.from("tags").select("id, kind, name, slug, status, parent_id").in("id", tagIds)
       : Promise.resolve({ data: [] }),
     Promise.all(
-      post.photos.map(async (p) => ({
+      // 다 올라가지 않은 추가 사진은 빼고 보여 준다 (하루 뒤 정리)
+      post.photos.filter((p) => p.ready_at !== null).map(async (p) => ({
         id: p.id,
         altText: p.alt_text,
         width: p.width,
@@ -54,7 +57,14 @@ export default async function EditPostPage({ params }: PageProps<"/p/[id]/edit">
   return (
     <div className="mx-auto max-w-2xl px-4 pt-8 pb-16 md:px-6">
       <h1 className="mb-6 text-2xl font-bold">게시물 편집</h1>
+      {post.status !== "draft" && !post.removed_at && viewer.profile?.can_upload && (!post.has_people || viewer.profile.role === "admin") && photos.length < MAX_PHOTOS_PER_POST && (
+        <div className="mb-8">
+          <AddPhotos postId={post.id} room={MAX_PHOTOS_PER_POST - post.photos.length} />
+        </div>
+      )}
       <EditForm
+        // 사진을 더하면 새 목록으로 다시 그린다
+        key={photos.map((p) => p.id).join()}
         initial={{
           postId: post.id,
           title: post.title,

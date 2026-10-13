@@ -26,7 +26,7 @@ export const getPost = cache(async (id: string) => {
     .select(
       `id, title, body, category, status, held_at, removed_at, shot_year, shot_on, published_at, has_people, author_id,
        author:profiles!posts_author_id_fkey(handle, display_name),
-       photos(id, storage_key, width, height, alt_text, is_panorama, position),
+       photos(id, storage_key, width, height, alt_text, is_panorama, position, ready_at),
        credits(id, role, status, member_id, external_label, external_url, member:profiles!credits_member_id_fkey(handle, display_name)),
        post_tags(tag:tags(id, slug, name, kind))`,
     )
@@ -38,7 +38,8 @@ export const getPost = cache(async (id: string) => {
 
   const photos = (
     await Promise.all(
-      post.photos.map(async (p): Promise<ViewerPhoto | null> => {
+      // 파일이 다 올라가지 않은 추가 사진은 작성자에게도 보여 주지 않는다 (편집 화면에서만)
+      post.photos.filter((p) => p.ready_at !== null || post.status === "draft").map(async (p): Promise<ViewerPhoto | null> => {
         const sources = await viewerSources(p);
         return sources
           ? {

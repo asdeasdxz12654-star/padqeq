@@ -17,7 +17,7 @@ export const CATEGORY_LABEL: Record<(typeof CATEGORIES)[number], string> = {
 };
 
 /** 브라우저에서 만든 마스터의 정보. 마스터 규격(긴 변 4000 · 파노라마 예외)을 이미 지켜야 한다. */
-const masterPhoto = z
+export const masterPhoto = z
   .object({
     width: z.int().positive(),
     height: z.int().positive(),

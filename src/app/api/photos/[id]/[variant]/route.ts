@@ -42,12 +42,13 @@ export async function PUT(request: NextRequest, ctx: RouteContext<"/api/photos/[
   const supabase = await createClient();
   const { data: photo, error } = await supabase
     .from("photos")
-    .select("storage_key, width, height, bytes, post:posts!inner(author_id, status)")
+    .select("storage_key, width, height, bytes, ready_at, post:posts!inner(author_id, status)")
     .eq("id", id)
     .maybeSingle();
   if (error) return fail(500, "사진 정보를 읽지 못했어요");
   if (!photo || photo.post.author_id !== viewer.id) return fail(404, "사진을 찾을 수 없어요");
-  if (photo.post.status !== "draft") return fail(409, "게시된 사진은 바꿀 수 없어요");
+  // 초안의 사진이나, 게시된 글에 새로 붙여 아직 다 올라가지 않은 사진만
+  if (photo.post.status !== "draft" && photo.ready_at !== null) return fail(409, "게시된 사진은 바꿀 수 없어요");
 
   const token = storageToken(photo.storage_key);
   if (!token) return fail(500, "저장 위치가 올바르지 않아요");

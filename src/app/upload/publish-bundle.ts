@@ -55,11 +55,28 @@ export async function publishBundle(
     hooks.onDraft(current);
   }
 
+  await uploadPhotoFiles(current.photoIds, photos, hooks.onProgress);
+
+  hooks.onPublishing();
+  const published = await publishPost({ postId: current.postId }, meta.hasPeople ? meta.consent : null);
+  if (!published.ok) throw new Error(published.error);
+  return current.postId;
+}
+
+/**
+ * 변환본을 /api/photos 로 올린다 (동시에 3개, 일시 오류는 두 번 더 시도).
+ * photoIds[i]가 photos[i]의 사진 행이다. 업로드 화면 · 게시물 편집(사진 추가) 공용.
+ */
+export async function uploadPhotoFiles(
+  photoIds: string[],
+  photos: Photo[],
+  onProgress: (sent: number, total: number) => void,
+): Promise<void> {
   const jobs = photos.flatMap((photo, index) =>
-    VARIANT_NAMES.map((name) => ({ photoId: current.photoIds[index]!, name, blob: photo.result!.files[name] })),
+    VARIANT_NAMES.map((name) => ({ photoId: photoIds[index]!, name, blob: photo.result!.files[name] })),
   );
   let sent = 0;
-  hooks.onProgress(sent, jobs.length);
+  onProgress(sent, jobs.length);
 
   const put = async (job: (typeof jobs)[number]) => {
     for (let attempt = 0; ; attempt++) {
@@ -75,7 +92,7 @@ export async function publishBundle(
         throw new Error(detail?.error ?? "사진을 올리지 못했어요");
       }
     }
-    hooks.onProgress(++sent, jobs.length);
+    onProgress(++sent, jobs.length);
   };
 
   const queue = [...jobs];
@@ -84,11 +101,6 @@ export async function publishBundle(
       for (let job = queue.shift(); job; job = queue.shift()) await put(job);
     }),
   );
-
-  hooks.onPublishing();
-  const published = await publishPost({ postId: current.postId }, meta.hasPeople ? meta.consent : null);
-  if (!published.ok) throw new Error(published.error);
-  return current.postId;
 }
 
 /** EXIF 촬영 시각을 이 기기 시간대의 날짜로 (EXIF에는 시간대가 없다) */

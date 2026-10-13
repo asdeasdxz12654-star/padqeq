@@ -311,6 +311,7 @@ export type Database = {
           id: string
           is_panorama: boolean | null
           position: number
+          ready_at: string | null
           post_id: string
           storage_key: string
           taken_at: string | null
@@ -324,6 +325,7 @@ export type Database = {
           id?: string
           is_panorama?: boolean | null
           position: number
+          ready_at?: string | null
           post_id: string
           storage_key?: string
           taken_at?: string | null
@@ -337,6 +339,7 @@ export type Database = {
           id?: string
           is_panorama?: boolean | null
           position?: number
+          ready_at?: string | null
           post_id?: string
           storage_key?: string
           taken_at?: string | null
@@ -570,6 +573,8 @@ export type Database = {
       handle_status: { Args: { target: string }; Returns: string }
       request_account_deletion: { Args: never; Returns: string }
       cancel_account_deletion: { Args: never; Returns: undefined }
+      add_my_photos: { Args: { entries: Json; target: string }; Returns: string[] }
+      finish_my_photos: { Args: { ids: string[]; target: string }; Returns: number }
       arrange_my_photos: { Args: { keep: string[]; target: string }; Returns: undefined }
       moderate_post: { Args: { decision: string; note: string; target: string }; Returns: undefined }
       approve_tag: { Args: { target: string }; Returns: undefined }
