@@ -105,8 +105,16 @@ export default async function MePage() {
       </div>
 
       <Link
-        href="/me/year"
+        href="/me/saved"
         className="mt-8 flex min-h-14 items-center justify-between rounded-xl border border-line px-4 hover:border-quiet"
+      >
+        <span className="font-semibold">저장한 사진</span>
+        <span className="text-xs text-quiet">나만 보는 모음 ›</span>
+      </Link>
+
+      <Link
+        href="/me/year"
+        className="mt-2 flex min-h-14 items-center justify-between rounded-xl border border-line px-4 hover:border-quiet"
       >
         <span className="font-semibold">나의 {currentYearKst()}</span>
         <span className="text-xs text-quiet">한 해 동안 담은 사진 돌아보기 ›</span>

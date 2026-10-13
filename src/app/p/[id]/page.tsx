@@ -14,6 +14,7 @@ import { PhotoViewer } from "./photo-viewer";
 import { RemoveCreditButton } from "./remove-credit-button";
 import { RepublishButton } from "./republish-button";
 import { ReportButton } from "./report-button";
+import { SaveButton } from "./save-button";
 import { WatermarkCheck } from "./watermark-check";
 
 const ROLE_LABEL = {
@@ -58,6 +59,15 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
       .in("credit_id", externalIds);
     for (const row of data ?? []) claimed.add(row.credit_id);
   }
+  // 저장 여부 (게시된 글만 저장할 수 있다)
+  const canSave = Boolean(viewer?.profile) && post.status === "published";
+  const saved =
+    canSave && viewer
+      ? Boolean(
+          (await (await createClient()).from("bookmarks").select("post_id").eq("user_id", viewer.id).eq("post_id", post.id).maybeSingle())
+            .data,
+        )
+      : false;
   const credits = post.credits.filter(
     (c) => c.status === "approved" || c.status === "external" || isAuthor || (viewer !== null && c.member_id === viewer.id && c.status === "pending"),
   );
@@ -102,6 +112,19 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
               {CATEGORY_LABEL[post.category]} · 촬영 {post.shot_on ? dateFormat.format(new Date(post.shot_on)) : `${post.shot_year}년`}
               {post.published_at && ` · 게시 ${dateFormat.format(new Date(post.published_at))}`}
             </p>
+            {canSave ? (
+              <SaveButton postId={post.id} initial={saved} />
+            ) : (
+              !viewer &&
+              post.status === "published" && (
+                <Link
+                  href={`/login?next=${encodeURIComponent(`/p/${post.id}`)}`}
+                  className="inline-flex min-h-10 items-center self-start rounded-full bg-accent px-4 text-sm font-semibold text-on-accent"
+                >
+                  저장
+                </Link>
+              )
+            )}
           </header>
 
           {post.body && <p className="whitespace-pre-line text-sm leading-relaxed">{post.body}</p>}

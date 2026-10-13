@@ -184,3 +184,22 @@ export async function claimCredit(input: z.input<typeof claimSchema>): Promise<{
   }
   return { ok: true };
 }
+
+/** 저장 · 저장 취소 (본인만 보는 목록, 작성자에게 알리지 않음). 볼 수 있는 글인지 · 5000개 제한은 DB가 확인한다. */
+export async function setBookmark(postId: string, save: boolean): Promise<{ ok: boolean; error?: string }> {
+  const id = idSchema.safeParse(postId);
+  if (!id.success || typeof save !== "boolean") return { ok: false, error: "잘못된 요청이에요." };
+  const viewer = await getViewer();
+  if (!viewer?.profile) return { ok: false, error: "로그인이 필요해요." };
+
+  const supabase = await createClient();
+  const { error } = save
+    ? await supabase.from("bookmarks").upsert({ user_id: viewer.id, post_id: id.data }, { onConflict: "user_id,post_id", ignoreDuplicates: true })
+    : await supabase.from("bookmarks").delete().eq("user_id", viewer.id).eq("post_id", id.data);
+  if (error) {
+    if (error.message.includes("bookmark_limit")) return { ok: false, error: "5000개까지 저장할 수 있어요." };
+    return { ok: false, error: save ? "저장하지 못했어요." : "저장을 취소하지 못했어요." };
+  }
+  revalidatePath("/me/saved");
+  return { ok: true };
+}
