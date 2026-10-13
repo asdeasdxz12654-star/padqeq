@@ -23,7 +23,7 @@ export default async function MePage() {
 
   const supabase = await createClient();
   const [{ data: full }, openReports, creditRows] = await Promise.all([
-    supabase.from("profiles").select("bio").eq("id", viewer.id).single(),
+    supabase.from("profiles").select("bio, deletion_requested_at").eq("id", viewer.id).single(),
     profile.role === "admin"
       ? supabase.from("reports").select("id", { count: "exact", head: true }).eq("status", "open")
       : Promise.resolve({ count: null }),
@@ -44,6 +44,14 @@ export default async function MePage() {
 
   return (
     <div className="mx-auto max-w-xl px-4 pt-10 pb-16 md:px-6">
+      {full?.deletion_requested_at && (
+        <p className="mb-6 rounded-xl border border-red-400/40 bg-red-400/10 px-4 py-3 text-sm text-red-200">
+          계정 삭제가 예약돼 있어요. 다른 사람에게는 내 프로필과 게시물이 보이지 않아요.{" "}
+          <Link href="/settings" className="font-semibold underline underline-offset-2">
+            설정에서 취소
+          </Link>
+        </p>
+      )}
       <div className="flex items-center gap-4">
         <div aria-hidden="true" className="flex size-16 shrink-0 items-center justify-center rounded-full bg-slot text-xl font-bold text-quiet">
           {profile.display_name.slice(0, 1)}
@@ -84,7 +92,14 @@ export default async function MePage() {
         <p className="mt-3 text-xs text-quiet">핸들(@{profile.handle})은 크레딧 태그의 기준이라 바꿀 수 없어요.</p>
       </section>
 
-      <form action={signOut} className="mt-12 border-t border-line pt-6">
+      <Link
+        href="/settings"
+        className="mt-12 flex min-h-12 items-center justify-between rounded-xl border border-line px-4 text-sm font-semibold hover:border-quiet"
+      >
+        설정 <span className="text-xs font-normal text-quiet">계정 · 내 데이터 · 계정 삭제 ›</span>
+      </Link>
+
+      <form action={signOut} className="mt-6 border-t border-line pt-6">
         <button type="submit" className="min-h-12 w-full rounded-xl border border-line px-4 text-sm font-semibold">
           로그아웃
         </button>

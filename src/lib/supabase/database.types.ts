@@ -341,6 +341,7 @@ export type Database = {
           bio: string
           can_upload: boolean
           created_at: string
+          deletion_requested_at: string | null
           display_name: string
           handle: string
           id: string
@@ -350,6 +351,7 @@ export type Database = {
           bio?: string
           can_upload?: boolean
           created_at?: string
+          deletion_requested_at?: string | null
           display_name: string
           handle: string
           id: string
@@ -359,6 +361,7 @@ export type Database = {
           bio?: string
           can_upload?: boolean
           created_at?: string
+          deletion_requested_at?: string | null
           display_name?: string
           handle?: string
           id?: string
@@ -432,6 +435,8 @@ export type Database = {
         Returns: undefined
       }
       handle_status: { Args: { target: string }; Returns: string }
+      request_account_deletion: { Args: never; Returns: string }
+      cancel_account_deletion: { Args: never; Returns: undefined }
       moderate_post: { Args: { decision: string; note: string; target: string }; Returns: undefined }
       approve_tag: { Args: { target: string }; Returns: undefined }
       create_official_tag: {
