@@ -61,3 +61,13 @@ jobs:
           aws s3 cp "$file" "s3://haedam-backups/db/${day}/${file}" --endpoint-url "$R2_ENDPOINT"
           rm -f "$file"
           echo "백업 완료: db/${day}/${file}"
+
+      # 백업이 성공한 뒤에만: 탈퇴 유예(30일)가 끝난 계정 영구 삭제 (S-14 ⑤)
+      # 운영자 계정 · 촬영 동의 기록이 남은 계정은 건너뛰고 결과에 표시한다 (수동 검토)
+      - name: 탈퇴 유예가 끝난 계정 삭제
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          set -euo pipefail
+          /usr/lib/postgresql/18/bin/psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -X -q -A -F ' ' \
+            -c "select outcome, count(*) from private.purge_deleted_accounts() group by outcome;"
