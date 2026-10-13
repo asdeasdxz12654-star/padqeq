@@ -156,3 +156,31 @@ export async function republishPost(postId: string): Promise<{ ok: boolean; erro
   revalidatePath("/");
   return { ok: true };
 }
+
+const claimSchema = z.object({
+  creditId: z.uuid(),
+  note: z
+    .string()
+    .trim()
+    .max(300, "300자까지 적을 수 있어요.")
+    .refine((v) => !/\p{Cc}/u.test(v), "쓸 수 없는 문자가 있어요."),
+});
+
+/** 미가입 크레딧 연결 요청. 볼 수 있는 남의 글 · 하루 10건 · 중복은 DB가 다시 확인한다. */
+export async function claimCredit(input: z.input<typeof claimSchema>): Promise<{ ok: boolean; error?: string }> {
+  const parsed = claimSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "내용을 확인해 주세요." };
+  const viewer = await getViewer();
+  if (!viewer?.profile) return { ok: false, error: "로그인이 필요해요." };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("credit_claims")
+    .insert({ credit_id: parsed.data.creditId, claimant_id: viewer.id, note: parsed.data.note });
+  if (error) {
+    if (error.code === "23505") return { ok: false, error: "이미 요청했어요. 업로더의 확인을 기다려 주세요." };
+    if (error.message.includes("claim_rate_limited")) return { ok: false, error: "오늘은 더 요청할 수 없어요. 내일 다시 시도해 주세요." };
+    return { ok: false, error: "요청할 수 없는 크레딧이에요." };
+  }
+  return { ok: true };
+}

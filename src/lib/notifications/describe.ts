@@ -36,6 +36,12 @@ export function describeNotification({ kind, actorHandle, post }: NotificationIn
       return { text: "검토 결과 내 게시물이 다시 게시됐어요.", href: postHref };
     case "appeal_rejected":
       return { text: "소명을 검토했지만 조치를 유지하기로 했어요. 게시물 화면에서 자세히 볼 수 있어요.", href: postHref };
+    case "credit_claimed":
+      return { text: `${who}이 미가입자로 적힌 크레딧이 자기라고 연결을 요청했어요. 마이에서 확인해 주세요.`, href: "/me#credit-claims" };
+    case "credit_claim_approved":
+      return { text: `${who}이 크레딧 연결을 승인했어요. 이제 내 프로필에 보여요.`, href: postHref };
+    case "credit_claim_rejected":
+      return { text: `${who}이 크레딧 연결 요청을 거절했어요.`, href: postHref };
     case "report_reviewed":
       return { text: "신고하신 게시물을 검토했어요. 알려 주셔서 고마워요.", href: postHref };
   }

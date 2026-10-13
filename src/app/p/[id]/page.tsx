@@ -6,6 +6,8 @@ import Link from "next/link";
 import { getPost } from "@/lib/posts/get-post";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { TagChip } from "@/components/tag-chip";
+import { createClient } from "@/lib/supabase/server";
+import { ClaimCreditButton } from "./claim-credit-button";
 import { HidePostButton } from "./hide-post-button";
 import { ModerationNotice } from "./moderation-notice";
 import { PhotoViewer } from "./photo-viewer";
@@ -44,6 +46,18 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
   const isAuthor = viewer?.id === post.author_id;
   const canHide = post.status === "published" && (isAuthor || viewer?.profile?.role === "admin");
   // 승인됐거나 외부 표기인 크레딧만 공개. 승인 대기는 작성자에게만 흐리게.
+  // 미가입 크레딧 중 내가 이미 연결을 요청한 것
+  const externalIds = post.credits.filter((c) => c.status === "external").map((c) => c.id);
+  const claimed = new Set<string>();
+  if (viewer?.profile && !isAuthor && externalIds.length) {
+    const { data } = await (await createClient())
+      .from("credit_claims")
+      .select("credit_id")
+      .eq("claimant_id", viewer.id)
+      .eq("status", "open")
+      .in("credit_id", externalIds);
+    for (const row of data ?? []) claimed.add(row.credit_id);
+  }
   const credits = post.credits.filter(
     (c) => c.status === "approved" || c.status === "external" || isAuthor || (viewer !== null && c.member_id === viewer.id && c.status === "pending"),
   );
@@ -109,7 +123,7 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
               </h2>
               <ul className="flex flex-col gap-1.5 text-sm">
                 {credits.map((c) => (
-                  <li key={c.id} className={`flex gap-3 ${c.status === "pending" ? "opacity-50" : ""}`}>
+                  <li key={c.id} className={`flex flex-wrap items-baseline gap-x-3 gap-y-1 ${c.status === "pending" ? "opacity-50" : ""}`}>
                     <span className="w-12 shrink-0 text-quiet">{ROLE_LABEL[c.role]}</span>
                     {c.member ? (
                       <Link href={profileHref(c.member.handle)} className="hover:underline">
@@ -124,6 +138,9 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
                     )}
                     {c.status === "pending" && <span className="text-xs text-quiet">승인 대기</span>}
                     {viewer && c.member_id === viewer.id && !isAuthor && <RemoveCreditButton creditId={c.id} />}
+                    {viewer?.profile && !isAuthor && c.status === "external" && (
+                      <ClaimCreditButton creditId={c.id} label={c.external_label ?? ""} requested={claimed.has(c.id)} />
+                    )}
                   </li>
                 ))}
               </ul>

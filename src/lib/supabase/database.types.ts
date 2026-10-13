@@ -138,6 +138,51 @@ export type Database = {
           },
         ]
       }
+      credit_claims: {
+        Row: {
+          claimant_id: string
+          created_at: string
+          credit_id: string
+          id: string
+          note: string
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["claim_status"]
+        }
+        Insert: {
+          claimant_id: string
+          created_at?: string
+          credit_id: string
+          id?: string
+          note?: string
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["claim_status"]
+        }
+        Update: {
+          claimant_id?: string
+          created_at?: string
+          credit_id?: string
+          id?: string
+          note?: string
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["claim_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_claims_claimant_id_fkey"
+            columns: ["claimant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_claims_credit_id_fkey"
+            columns: ["credit_id"]
+            isOneToOne: false
+            referencedRelation: "credits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       credits: {
         Row: {
           created_at: string
@@ -575,6 +620,7 @@ export type Database = {
       cancel_account_deletion: { Args: never; Returns: undefined }
       add_my_photos: { Args: { entries: Json; target: string }; Returns: string[] }
       finish_my_photos: { Args: { ids: string[]; target: string }; Returns: number }
+      resolve_credit_claim: { Args: { accept: boolean; target: string }; Returns: undefined }
       arrange_my_photos: { Args: { keep: string[]; target: string }; Returns: undefined }
       moderate_post: { Args: { decision: string; note: string; target: string }; Returns: undefined }
       approve_tag: { Args: { target: string }; Returns: undefined }
@@ -626,6 +672,7 @@ export type Database = {
     }
     Enums: {
       appeal_status: "open" | "accepted" | "rejected"
+      claim_status: "open" | "approved" | "rejected"
       credit_role:
         | "cosplayer"
         | "model"
@@ -644,6 +691,9 @@ export type Database = {
         | "report_reviewed"
         | "post_restored"
         | "appeal_rejected"
+        | "credit_claimed"
+        | "credit_claim_approved"
+        | "credit_claim_rejected"
       post_category: "cosplay" | "model" | "landscape" | "other"
       post_status: "draft" | "published" | "hidden"
       report_reason:
@@ -789,6 +839,7 @@ export const Constants = {
   public: {
     Enums: {
       appeal_status: ["open", "accepted", "rejected"],
+      claim_status: ["open", "approved", "rejected"],
       credit_role: ["cosplayer", "model", "photographer", "retoucher", "other"],
       credit_status: ["pending", "approved", "rejected", "external"],
       member_role: ["member", "admin"],
@@ -802,6 +853,9 @@ export const Constants = {
         "report_reviewed",
         "post_restored",
         "appeal_rejected",
+        "credit_claimed",
+        "credit_claim_approved",
+        "credit_claim_rejected",
       ],
       post_category: ["cosplay", "model", "landscape", "other"],
       post_status: ["draft", "published", "hidden"],

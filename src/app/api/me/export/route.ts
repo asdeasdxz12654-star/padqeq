@@ -12,7 +12,7 @@ export async function GET(request: Request) {
   if (!viewer?.profile) return new Response("로그인이 필요해요.", { status: 401 });
 
   const supabase = await createClient();
-  const [{ data: claims }, profile, posts, credits, reports, appeals] = await Promise.all([
+  const [{ data: claims }, profile, posts, credits, reports, appeals, creditClaims] = await Promise.all([
     supabase.auth.getClaims(),
     supabase.from("profiles").select("handle, display_name, bio, created_at, deletion_requested_at").eq("id", viewer.id).single(),
     supabase
@@ -28,6 +28,7 @@ export async function GET(request: Request) {
     supabase.from("credits").select("role, status, created_at, post:posts!credits_post_id_fkey(id, title)").eq("member_id", viewer.id),
     supabase.from("reports").select("reason, detail, status, created_at, resolved_at, post_id").eq("reporter_id", viewer.id),
     supabase.from("appeals").select("post_id, statement, status, created_at, resolved_at").eq("author_id", viewer.id),
+    supabase.from("credit_claims").select("credit_id, note, status, created_at, resolved_at").eq("claimant_id", viewer.id),
   ]);
   if (profile.error || posts.error) return new Response("데이터를 모으지 못했어요.", { status: 500 });
 
@@ -46,6 +47,7 @@ export async function GET(request: Request) {
       credited_in: credits.data ?? [],
       reports_filed: reports.data ?? [],
       appeals_filed: appeals.data ?? [],
+      credit_claims_filed: creditClaims.data ?? [],
     },
     null,
     2,

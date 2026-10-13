@@ -9,6 +9,7 @@ import { getFollowedTags } from "@/lib/tags/follows";
 import { TagChip } from "@/components/tag-chip";
 import { currentYearKst } from "@/lib/year-chips";
 import { signOut } from "./actions";
+import { type CreditClaim, CreditClaims } from "./credit-claims";
 import { type CreditRequest, CreditRequests } from "./credit-requests";
 import { ProfileForm } from "./profile-form";
 
@@ -25,7 +26,7 @@ export default async function MePage() {
   const { profile } = viewer;
 
   const supabase = await createClient();
-  const [{ data: full }, openReports, creditRows, followedTags] = await Promise.all([
+  const [{ data: full }, openReports, creditRows, followedTags, claimRows] = await Promise.all([
     supabase.from("profiles").select("bio, deletion_requested_at").eq("id", viewer.id).single(),
     profile.role === "admin"
       ? supabase.from("reports").select("id", { count: "exact", head: true }).eq("status", "open")
@@ -39,7 +40,32 @@ export default async function MePage() {
       .order("created_at", { ascending: false })
       .limit(50),
     getFollowedTags(viewer.id),
+    // 내 글의 미가입 크레딧에 온 연결 요청 (RLS: 작성자 · 요청자만)
+    supabase
+      .from("credit_claims")
+      .select(
+        "id, note, claimant_id, claimant:profiles!credit_claims_claimant_id_fkey(handle), credit:credits!credit_claims_credit_id_fkey(role, external_label, post:posts!credits_post_id_fkey(id, title, author_id))",
+      )
+      .eq("status", "open")
+      .neq("claimant_id", viewer.id)
+      .order("created_at")
+      .limit(50),
   ]);
+  const creditClaims: CreditClaim[] = (claimRows.data ?? []).flatMap((c) =>
+    c.credit?.post && c.credit.post.author_id === viewer.id && c.claimant
+      ? [
+          {
+            id: c.id,
+            note: c.note,
+            claimant: c.claimant.handle,
+            label: c.credit.external_label ?? "",
+            role: c.credit.role,
+            postId: c.credit.post.id,
+            postTitle: c.credit.post.title,
+          },
+        ]
+      : [],
+  );
   const creditRequests: CreditRequest[] = (creditRows.data ?? []).flatMap((c) =>
     c.post && c.post.author_id !== viewer.id
       ? [{ id: c.id, role: c.role, postId: c.post.id, postTitle: c.post.title, uploader: c.post.author?.handle ?? "" }]
@@ -95,6 +121,7 @@ export default async function MePage() {
       )}
 
       {creditRequests.length > 0 && <CreditRequests requests={creditRequests} />}
+      {creditClaims.length > 0 && <CreditClaims claims={creditClaims} />}
 
       <section aria-labelledby="follows-heading" className="mt-10">
         <h2 id="follows-heading" className="mb-3 text-lg font-semibold">
