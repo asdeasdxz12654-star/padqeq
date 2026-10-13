@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { FollowButton } from "@/components/follow-button";
 import { PhotoFeed } from "@/components/photo-feed";
 import { YearChips } from "@/components/year-chips";
 import { getViewer } from "@/lib/auth/viewer";
+import { getFollowedMembers } from "@/lib/follows/follows";
 import { loadFeed } from "@/lib/posts/feed";
 import { getProfileByHandle } from "@/lib/profiles/get-profile";
 import { createClient } from "@/lib/supabase/server";
@@ -11,7 +13,7 @@ import { profileHref } from "@/lib/profiles/profile-href";
 import { parseYearParam, VISIBLE_CHIPS } from "@/lib/year-chips";
 
 // S-09 프로필 (1단계: 소개 · 작업물 · 촬영 연도). 주소는 /@handle (next.config.ts에서 연결)
-// 팔로우 · 메시지 · 섭외 문의 · 크레딧된 작업 · 컬렉션은 해당 기능과 함께.
+// 팔로우는 홈 '팔로우' 피드로 이어진다 (팔로워 수는 공개하지 않음). 메시지 · 섭외 문의 · 컬렉션은 해당 기능과 함께.
 
 const yearFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric" });
 
@@ -35,6 +37,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
   const tab = query.tab === "credits" ? "credits" : "works";
   const isMe = viewer?.id === profile.id;
   const base = profileHref(profile.handle);
+  const following = viewer?.profile && !isMe ? (await getFollowedMembers(viewer.id)).some((m) => m.id === profile.id) : false;
 
   const supabase = await createClient();
   const { data: credited } = await supabase
@@ -78,9 +81,18 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
           게시물 <strong className="text-text">{profile.postCount}</strong> · {yearFormat.format(new Date(profile.created_at))}부터
         </p>
 
-        {isMe && (
+        {isMe ? (
           <Link href="/me" className="self-start rounded-full border border-line px-4 py-1.5 text-sm hover:border-quiet">
             프로필 편집
+          </Link>
+        ) : viewer?.profile ? (
+          <FollowButton target={{ kind: "member", id: profile.id }} initial={following} />
+        ) : (
+          <Link
+            href={`/login?next=${encodeURIComponent(base)}`}
+            className="inline-flex min-h-10 items-center self-start rounded-full bg-accent px-4 text-sm font-semibold text-on-accent"
+          >
+            팔로우
           </Link>
         )}
       </header>

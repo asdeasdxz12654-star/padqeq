@@ -2,16 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
+import { FollowButton } from "@/components/follow-button";
 import { PhotoFeed } from "@/components/photo-feed";
 import { TagChip } from "@/components/tag-chip";
 import { YearChips } from "@/components/year-chips";
 import { getViewer } from "@/lib/auth/viewer";
 import { loadFeed } from "@/lib/posts/feed";
-import { getFollowedTags } from "@/lib/tags/follows";
+import { getFollowedTags } from "@/lib/follows/follows";
 import { createClient } from "@/lib/supabase/server";
 import { TAG_KIND_LABEL } from "@/lib/tags/tag-rules";
 import { buildYearChips, parseYearParam } from "@/lib/year-chips";
-import { FollowButton } from "./follow-button";
 
 // S-05 태그 허브 (1단계: 계층 · 별칭 · 캐릭터 목록 · 사진 · 촬영 연도).
 // 태그 팔로우는 홈 '팔로우' 피드로 이어진다. 인기/최신 탭 · 관련 태그는 반응 기능과 함께.
@@ -92,7 +92,7 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <h1 className="text-2xl font-bold">{tag.kind === "general" ? `#${tag.name}` : tag.name}</h1>
           {viewer?.profile ? (
-            <FollowButton tagId={tag.id} initial={following} />
+            <FollowButton target={{ kind: "tag", id: tag.id }} initial={following} />
           ) : (
             <Link
               href={`/login?next=${encodeURIComponent(base)}`}

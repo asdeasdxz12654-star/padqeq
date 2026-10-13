@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { setTagFollow } from "./actions";
+import { type FollowTarget, setFollow } from "@/lib/follows/actions";
 
-/** 태그 팔로우 버튼. 누르는 즉시 바뀌고, 실패하면 되돌린다. */
-export function FollowButton({ tagId, initial }: { tagId: string; initial: boolean }) {
+/** 태그 · 회원 팔로우 버튼. 누르는 즉시 바뀌고, 실패하면 되돌린다. */
+export function FollowButton({ target, initial }: { target: FollowTarget; initial: boolean }) {
   const [following, setFollowing] = useState(initial);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -20,7 +20,7 @@ export function FollowButton({ tagId, initial }: { tagId: string; initial: boole
           setFollowing(next);
           setError(null);
           startTransition(async () => {
-            const result = await setTagFollow({ tagId, follow: next });
+            const result = await setFollow({ ...target, follow: next });
             if (!result.ok) {
               setFollowing(!next);
               setError(result.error ?? "처리하지 못했어요.");

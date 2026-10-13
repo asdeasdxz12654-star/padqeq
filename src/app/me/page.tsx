@@ -5,7 +5,7 @@ import { withNext } from "@/lib/auth/next-path";
 import { getViewer } from "@/lib/auth/viewer";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { createClient } from "@/lib/supabase/server";
-import { getFollowedTags } from "@/lib/tags/follows";
+import { getFollowedMembers, getFollowedTags } from "@/lib/follows/follows";
 import { TagChip } from "@/components/tag-chip";
 import { currentYearKst } from "@/lib/year-chips";
 import { signOut } from "./actions";
@@ -26,7 +26,7 @@ export default async function MePage() {
   const { profile } = viewer;
 
   const supabase = await createClient();
-  const [{ data: full }, openReports, creditRows, followedTags, claimRows] = await Promise.all([
+  const [{ data: full }, openReports, creditRows, followedTags, claimRows, followedMembers] = await Promise.all([
     supabase.from("profiles").select("bio, deletion_requested_at").eq("id", viewer.id).single(),
     profile.role === "admin"
       ? supabase.from("reports").select("id", { count: "exact", head: true }).eq("status", "open")
@@ -50,6 +50,7 @@ export default async function MePage() {
       .neq("claimant_id", viewer.id)
       .order("created_at")
       .limit(50),
+    getFollowedMembers(viewer.id),
   ]);
   const creditClaims: CreditClaim[] = (claimRows.data ?? []).flatMap((c) =>
     c.credit?.post && c.credit.post.author_id === viewer.id && c.claimant
@@ -123,12 +124,13 @@ export default async function MePage() {
       {creditRequests.length > 0 && <CreditRequests requests={creditRequests} />}
       {creditClaims.length > 0 && <CreditClaims claims={creditClaims} />}
 
-      <section aria-labelledby="follows-heading" className="mt-10">
-        <h2 id="follows-heading" className="mb-3 text-lg font-semibold">
-          팔로우한 태그 <span className="text-sm font-normal text-quiet">{followedTags.length}</span>
+      <section aria-labelledby="follows-heading" className="mt-10 flex flex-col gap-4">
+        <h2 id="follows-heading" className="text-lg font-semibold">
+          팔로우 <span className="text-sm font-normal text-quiet">나만 볼 수 있어요</span>
         </h2>
-        {followedTags.length ? (
-          <>
+        <div>
+          <h3 className="mb-2 text-sm text-quiet">태그 {followedTags.length}</h3>
+          {followedTags.length ? (
             <ul className="flex flex-wrap gap-2">
               {followedTags.map((t) => (
                 <li key={t.id}>
@@ -136,12 +138,30 @@ export default async function MePage() {
                 </li>
               ))}
             </ul>
-            <Link href="/?feed=following" className="mt-3 inline-block text-sm text-quiet underline underline-offset-4 hover:text-text">
-              팔로우 피드 보기
-            </Link>
-          </>
-        ) : (
-          <p className="text-sm text-quiet">태그 페이지에서 팔로우하면 홈의 &lsquo;팔로우&rsquo;에 모여요.</p>
+          ) : (
+            <p className="text-sm text-quiet">태그 페이지에서 팔로우할 수 있어요.</p>
+          )}
+        </div>
+        <div>
+          <h3 className="mb-2 text-sm text-quiet">회원 {followedMembers.length}</h3>
+          {followedMembers.length ? (
+            <ul className="flex flex-wrap gap-2">
+              {followedMembers.map((m) => (
+                <li key={m.id}>
+                  <Link href={profileHref(m.handle)} className="inline-flex min-h-9 items-center rounded-full border border-line px-3 text-sm hover:border-quiet">
+                    @{m.handle}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-quiet">작가 · 모델의 프로필에서 팔로우할 수 있어요.</p>
+          )}
+        </div>
+        {(followedTags.length > 0 || followedMembers.length > 0) && (
+          <Link href="/?feed=following" className="self-start text-sm text-quiet underline underline-offset-4 hover:text-text">
+            팔로우 피드 보기
+          </Link>
         )}
       </section>
 

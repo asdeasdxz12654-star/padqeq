@@ -16,6 +16,8 @@ export type FeedFilter = {
   authorId?: string;
   /** 이 글들만 (프로필 크레딧된 작업) */
   postIds?: string[];
+  /** 팔로우 피드: 이 태그가 붙었거나 이 회원이 올린 글 */
+  following?: { tagIds: string[]; authorIds: string[] };
 };
 
 export type FeedItem = {
@@ -34,8 +36,27 @@ export type FeedItem = {
 };
 
 /** 게시된 글 목록 (홈 · 탐색). 대표 사진에는 이미지 게이트 서명 주소를 붙인다. */
-export async function loadFeed({ year, category, query, tagIds, authorId, postIds }: FeedFilter): Promise<FeedItem[]> {
+export async function loadFeed({ year, category, query, tagIds, authorId, postIds, following }: FeedFilter): Promise<FeedItem[]> {
   const supabase = await createClient();
+
+  // 팔로우: 태그로 모은 글 id 또는 팔로우한 회원의 글
+  let followFilter: string | null = null;
+  if (following) {
+    const { authorIds } = following;
+    let ids: string[] = [];
+    if (following.tagIds.length) {
+      const { data, error } = await supabase.from("post_tags").select("post_id").in("tag_id", following.tagIds).limit(200);
+      if (error) throw error;
+      ids = [...new Set(data.map((r) => r.post_id))];
+    }
+    const parts = [
+      ...(ids.length ? [`id.in.(${ids.join(",")})`] : []),
+      ...(authorIds.length ? [`author_id.in.(${authorIds.slice(0, 1000).join(",")})`] : []),
+    ];
+    if (!parts.length) return [];
+    // 값은 모두 DB에서 읽은 uuid라 필터 문법을 깨뜨릴 수 없다
+    followFilter = parts.join(",");
+  }
 
   // 태그로 좁힐 때는 먼저 글 id를 모은다 (볼 수 있는 연결만, RLS)
   let taggedPostIds: string[] | null = null;
@@ -63,6 +84,7 @@ export async function loadFeed({ year, category, query, tagIds, authorId, postId
   if (category !== null) feed = feed.eq("category", category);
   if (taggedPostIds) feed = feed.in("id", taggedPostIds);
   if (authorId) feed = feed.eq("author_id", authorId);
+  if (followFilter) feed = feed.or(followFilter);
   if (postIds) {
     if (!postIds.length) return [];
     feed = feed.in("id", postIds.slice(0, 200));
