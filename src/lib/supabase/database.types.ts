@@ -39,6 +39,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      appeals: {
+        Row: {
+          author_id: string
+          created_at: string
+          id: string
+          post_id: string
+          resolved_at: string | null
+          statement: string
+          status: Database["public"]["Enums"]["appeal_status"]
+        }
+        Insert: {
+          author_id: string
+          created_at?: string
+          id?: string
+          post_id: string
+          resolved_at?: string | null
+          statement: string
+          status?: Database["public"]["Enums"]["appeal_status"]
+        }
+        Update: {
+          author_id?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+          resolved_at?: string | null
+          statement?: string
+          status?: Database["public"]["Enums"]["appeal_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appeals_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appeals_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       consent_records: {
         Row: {
           consented_on: string
@@ -337,6 +382,7 @@ export type Database = {
           held_reason: string | null
           id: string
           published_at: string | null
+          removed_at: string | null
           sensitive: boolean
           shot_on: string | null
           shot_year: number
@@ -354,6 +400,7 @@ export type Database = {
           held_reason?: string | null
           id?: string
           published_at?: string | null
+          removed_at?: string | null
           sensitive?: boolean
           shot_on?: string | null
           shot_year: number
@@ -371,6 +418,7 @@ export type Database = {
           held_reason?: string | null
           id?: string
           published_at?: string | null
+          removed_at?: string | null
           sensitive?: boolean
           shot_on?: string | null
           shot_year?: number
@@ -530,6 +578,7 @@ export type Database = {
       }
     }
     Enums: {
+      appeal_status: "open" | "accepted" | "rejected"
       credit_role:
         | "cosplayer"
         | "model"
@@ -546,6 +595,8 @@ export type Database = {
         | "post_released"
         | "post_hidden"
         | "report_reviewed"
+        | "post_restored"
+        | "appeal_rejected"
       post_category: "cosplay" | "model" | "landscape" | "other"
       post_status: "draft" | "published" | "hidden"
       report_reason:
@@ -690,6 +741,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      appeal_status: ["open", "accepted", "rejected"],
       credit_role: ["cosplayer", "model", "photographer", "retoucher", "other"],
       credit_status: ["pending", "approved", "rejected", "external"],
       member_role: ["member", "admin"],
@@ -701,6 +753,8 @@ export const Constants = {
         "post_released",
         "post_hidden",
         "report_reviewed",
+        "post_restored",
+        "appeal_rejected",
       ],
       post_category: ["cosplay", "model", "landscape", "other"],
       post_status: ["draft", "published", "hidden"],

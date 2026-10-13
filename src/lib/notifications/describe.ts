@@ -27,11 +27,15 @@ export function describeNotification({ kind, actorHandle, post }: NotificationIn
     case "credit_rejected":
       return { text: `${who}이 크레딧을 거절했어요.`, href: postHref };
     case "post_held":
-      return { text: "신고 검토를 위해 내 게시물이 임시 비공개됐어요. 검토가 끝나면 알려 드릴게요.", href: postHref };
+      return { text: "신고 검토를 위해 내 게시물이 임시 비공개됐어요. 게시물 화면에서 소명할 수 있어요.", href: postHref };
     case "post_released":
       return { text: "임시 비공개가 풀려 내 게시물이 다시 공개됐어요.", href: postHref };
     case "post_hidden":
-      return { text: "운영 정책에 따라 내 게시물이 게시 중단됐어요.", href: postHref };
+      return { text: "운영 정책에 따라 내 게시물이 게시 중단됐어요. 게시물 화면에서 소명할 수 있어요.", href: postHref };
+    case "post_restored":
+      return { text: "검토 결과 내 게시물이 다시 게시됐어요.", href: postHref };
+    case "appeal_rejected":
+      return { text: "소명을 검토했지만 조치를 유지하기로 했어요. 게시물 화면에서 자세히 볼 수 있어요.", href: postHref };
     case "report_reviewed":
       return { text: "신고하신 게시물을 검토했어요. 알려 주셔서 고마워요.", href: postHref };
   }

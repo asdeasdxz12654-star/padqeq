@@ -54,7 +54,7 @@ export default async function SettingsPage() {
           내 데이터
         </h2>
         <p className="text-sm leading-relaxed text-quiet">
-          프로필 · 내 게시물 정보(제목 · 설명 · 촬영일 · 태그 · 크레딧) · 나를 태그한 크레딧 · 내가 한 신고 기록을 파일(JSON)로 받아요.
+          프로필 · 내 게시물 정보(제목 · 설명 · 촬영일 · 태그 · 크레딧) · 나를 태그한 크레딧 · 내가 한 신고 · 소명 기록을 파일(JSON)로 받아요.
         </p>
         <a
           href="/api/me/export"

@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 
 const schema = z.object({
   postId: z.uuid(),
-  decision: z.enum(["dismiss", "hold", "hide", "release"]),
+  decision: z.enum(["dismiss", "hold", "hide", "release", "restore"]),
   note: z.string().trim().min(1, "처리 사유를 적어 주세요.").max(500),
 });
 

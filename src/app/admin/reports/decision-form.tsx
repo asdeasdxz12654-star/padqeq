@@ -5,13 +5,21 @@ import { useState, useTransition } from "react";
 import { MODERATION_DECISIONS, type ModerationDecision } from "@/lib/moderation/reasons";
 import { moderate } from "./actions";
 
-export function DecisionForm({ postId, held }: { postId: string; held: boolean }) {
+/** 운영자 조치. options로 고를 수 있는 조치를 정한다 (신고 처리 · 소명 처리). */
+export function DecisionForm({
+  postId,
+  options,
+  backHref = "/admin/reports",
+}: {
+  postId: string;
+  options: ModerationDecision[];
+  backHref?: string;
+}) {
   const router = useRouter();
   const [decision, setDecision] = useState<ModerationDecision | null>(null);
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
-  const options = (Object.keys(MODERATION_DECISIONS) as ModerationDecision[]).filter((d) => d !== "release" || held);
 
   return (
     <form
@@ -28,7 +36,7 @@ export function DecisionForm({ postId, held }: { postId: string; held: boolean }
           }
           setDecision(null);
           setNote("");
-          router.push("/admin/reports");
+          router.push(backHref);
           router.refresh();
         });
       }}

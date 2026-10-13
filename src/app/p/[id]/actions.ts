@@ -103,3 +103,34 @@ export async function removeMyCredit(creditId: string): Promise<{ ok: boolean; e
   revalidatePath("/");
   return { ok: true };
 }
+
+const appealSchema = z.object({
+  postId: z.uuid(),
+  statement: z
+    .string()
+    .trim()
+    .min(10, "10자 이상 적어 주세요.")
+    .max(2000, "2000자까지 적을 수 있어요.")
+    .refine((v) => !/\p{Cc}/u.test(v.replace(/\r?\n/g, "")), "쓸 수 없는 문자가 있어요."),
+});
+
+/** 소명 (이의 제기). 조치된 내 글 · 한 번에 하나 · 게시물당 3번은 DB가 다시 확인한다. */
+export async function submitAppeal(input: z.input<typeof appealSchema>): Promise<{ ok: boolean; error?: string }> {
+  const parsed = appealSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "내용을 확인해 주세요." };
+  const viewer = await getViewer();
+  if (!viewer?.profile) return { ok: false, error: "로그인이 필요해요." };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("appeals")
+    .insert({ post_id: parsed.data.postId, author_id: viewer.id, statement: parsed.data.statement });
+  if (error) {
+    if (error.code === "23505") return { ok: false, error: "이미 검토 중인 소명이 있어요." };
+    if (error.message.includes("appeal_limit")) return { ok: false, error: "이 게시물은 소명을 모두 사용했어요." };
+    return { ok: false, error: "소명할 수 없는 게시물이에요." };
+  }
+  revalidatePath(`/p/${parsed.data.postId}`);
+  revalidatePath("/admin/reports");
+  return { ok: true };
+}

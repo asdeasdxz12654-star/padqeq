@@ -2,7 +2,7 @@ import { getViewer } from "@/lib/auth/viewer";
 import { createClient } from "@/lib/supabase/server";
 
 // 내 데이터 내려받기 (S-14 ⑤ · 개인정보 열람 · 이동 요구)
-// 원본 사진은 서버에 없다 (회원이 보관). 내 게시물 정보 · 크레딧 · 신고 기록을 JSON으로.
+// 원본 사진은 서버에 없다 (회원이 보관). 내 게시물 정보 · 크레딧 · 신고 · 소명 기록을 JSON으로.
 export async function GET(request: Request) {
   // 다른 사이트가 끼워 넣은 요청에는 응답하지 않는다 (같은 사이트에서 연 링크 · 주소 직접 입력만)
   const site = request.headers.get("sec-fetch-site");
@@ -12,7 +12,7 @@ export async function GET(request: Request) {
   if (!viewer?.profile) return new Response("로그인이 필요해요.", { status: 401 });
 
   const supabase = await createClient();
-  const [{ data: claims }, profile, posts, credits, reports] = await Promise.all([
+  const [{ data: claims }, profile, posts, credits, reports, appeals] = await Promise.all([
     supabase.auth.getClaims(),
     supabase.from("profiles").select("handle, display_name, bio, created_at, deletion_requested_at").eq("id", viewer.id).single(),
     supabase
@@ -27,6 +27,7 @@ export async function GET(request: Request) {
       .order("created_at"),
     supabase.from("credits").select("role, status, created_at, post:posts!credits_post_id_fkey(id, title)").eq("member_id", viewer.id),
     supabase.from("reports").select("reason, detail, status, created_at, resolved_at, post_id").eq("reporter_id", viewer.id),
+    supabase.from("appeals").select("post_id, statement, status, created_at, resolved_at").eq("author_id", viewer.id),
   ]);
   if (profile.error || posts.error) return new Response("데이터를 모으지 못했어요.", { status: 500 });
 
@@ -44,6 +45,7 @@ export async function GET(request: Request) {
       posts: posts.data,
       credited_in: credits.data ?? [],
       reports_filed: reports.data ?? [],
+      appeals_filed: appeals.data ?? [],
     },
     null,
     2,

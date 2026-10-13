@@ -47,5 +47,6 @@ export const MODERATION_DECISIONS = {
   hold: { label: "임시조치", help: "권리 침해 주장이 있어 숨기고 업로더의 소명을 기다려요. (최대 30일)" },
   hide: { label: "게시 중단", help: "게시물을 숨겨요. 업로더 화면에도 '게시를 중단한 글'로 보여요." },
   release: { label: "임시조치 해제", help: "숨김을 풀고 다시 공개해요. 신고 상태는 그대로 둬요." },
+  restore: { label: "게시 중단 해제", help: "운영자가 중단한 게시물을 다시 공개해요." },
 } as const;
 export type ModerationDecision = keyof typeof MODERATION_DECISIONS;
