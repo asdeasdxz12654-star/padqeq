@@ -71,3 +71,43 @@ jobs:
           set -euo pipefail
           /usr/lib/postgresql/18/bin/psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -X -q -A -F ' ' \
             -c "select outcome, count(*) from private.purge_deleted_accounts() group by outcome;"
+
+      # 지워진 사진의 R2 파일 정리. 사진 행이 지워지고 7일이 지난 것만 (최근 백업으로 되살릴 여유)
+      # R2 토큰에 haedam-photos 버킷의 Object Read & Write 권한이 있어야 한다
+      - name: 지워진 사진 파일 정리
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
+          AWS_DEFAULT_REGION: auto
+          AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+          AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+        run: |
+          set -euo pipefail
+          psql() { /usr/lib/postgresql/18/bin/psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -X -q -t -A "$@"; }
+
+          echo "오래된 초안 삭제: $(psql -c 'select private.purge_stale_drafts();')건"
+
+          # 한 번에 최대 200장(파일 1000개 = delete-objects 한도)씩, 최대 10번
+          total=0
+          for _ in $(seq 1 10); do
+            psql -c "select private.storage_trash_due(interval '7 days', 200);" > due.txt
+            [ -s due.txt ] || break
+            # DB가 돌려준 값이 정해진 형식이 아니면 아무것도 지우지 않고 멈춘다
+            if grep -qvxE 'p/[0-9a-f]{32}' due.txt; then echo "예상하지 못한 저장 키"; exit 1; fi
+
+            jq -R -s '{Quiet: true, Objects: [split("\n")[] | select(length > 0) | ltrimstr("p/") as $t
+              | ("4000.avif", "2560.avif", "1200.avif", "400.avif", "1600.jpg") | {Key: "display/\($t)/\(.)"}]}' \
+              due.txt > batch.json
+            aws s3api delete-objects --bucket haedam-photos --delete file://batch.json \
+              --endpoint-url "$R2_ENDPOINT" --output json > result.json
+            if [ "$(jq '.Errors // [] | length' result.json)" -ne 0 ]; then jq '.Errors' result.json; exit 1; fi
+
+            keys=$(paste -sd, due.txt)
+            # -c는 psql 변수를 치환하지 않으므로 표준 입력으로 넘긴다
+            echo "select private.storage_trash_done(string_to_array(:'keys', ','));" | psql -v keys="$keys" > /dev/null
+            total=$((total + $(wc -l < due.txt)))
+          done
+          rm -f due.txt batch.json result.json
+          echo "사진 파일 정리: ${total}장"
