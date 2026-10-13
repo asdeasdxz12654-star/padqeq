@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "게시물 편집", robots: { index: 
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
-// S-07 ⑨ 게시물 편집 (작성자만). 사진 추가 · 삭제 · 순서와 크레딧은 이후 단계.
+// S-07 ⑨ 게시물 편집 (작성자만). 사진 추가 · 삭제 · 순서는 이후 단계.
 export default async function EditPostPage({ params }: PageProps<"/p/[id]/edit">) {
   const { id } = await params;
   if (!UUID.test(id)) notFound();
@@ -21,7 +21,8 @@ export default async function EditPostPage({ params }: PageProps<"/p/[id]/edit">
   const { data: post } = await supabase
     .from("posts")
     .select(
-      "id, author_id, title, body, category, shot_year, shot_on, photos(id, position, alt_text, width, height, storage_key), post_tags(tag_id)",
+      `id, author_id, title, body, category, shot_year, shot_on, photos(id, position, alt_text, width, height, storage_key), post_tags(tag_id),
+       credits(id, role, status, created_at, external_label, external_url, member:profiles!credits_member_id_fkey(handle))`,
     )
     .eq("id", id)
     .order("position", { referencedTable: "photos" })
@@ -70,7 +71,22 @@ export default async function EditPostPage({ params }: PageProps<"/p/[id]/edit">
             pending: t.status === "pending",
           })),
           photos,
+          credits: post.credits
+            .toSorted((a, b) => a.created_at.localeCompare(b.created_at))
+            .map((c) =>
+              c.external_label !== null
+                ? { key: `id:${c.id}`, kind: "external" as const, role: c.role, label: c.external_label, url: c.external_url ?? "" }
+                : // 탈퇴 유예 중인 회원은 핸들이 보이지 않는다 (RLS)
+                  {
+                    key: `id:${c.id}`,
+                    kind: "member" as const,
+                    role: c.role,
+                    handle: c.member?.handle ?? "알 수 없음",
+                    status: c.status === "external" ? undefined : c.status,
+                  },
+            ),
         }}
+        viewerHandle={viewer.profile?.handle ?? null}
         isAdmin={viewer.profile?.role === "admin"}
       />
     </div>

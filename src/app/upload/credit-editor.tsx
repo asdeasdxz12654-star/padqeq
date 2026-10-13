@@ -12,7 +12,10 @@ import { type MemberOption, searchMembers } from "./tag-actions";
 
 // 크레딧 편집 (A-02 ⑤ · S-08). 회원은 @핸들로 골라 승인 요청, 미가입자는 이름 · 링크로 바로 표시.
 
-export type CreditDraft = CreditInput & { key: string; displayName?: string };
+/** status: 이미 저장된 크레딧의 상태 (편집 화면) */
+export type CreditDraft = CreditInput & { key: string; displayName?: string; status?: "pending" | "approved" | "rejected" };
+
+const STATUS_LABEL = { pending: "승인 대기", approved: "승인됨", rejected: "거절됨" } as const;
 
 /** 서버로 보낼 값 (화면용 key · displayName 제외) */
 export function toCreditInput(c: CreditDraft): CreditInput {
@@ -89,7 +92,7 @@ export function CreditEditor({
                 <span>
                   @{c.handle}
                   {c.displayName && <span className="text-quiet"> · {c.displayName}</span>}
-                  <span className="ml-2 text-xs text-quiet">{c.handle === viewerHandle ? "나" : "승인 요청"}</span>
+                  <span className="ml-2 text-xs text-quiet">{c.handle === viewerHandle ? "나" : c.status ? STATUS_LABEL[c.status] : "승인 요청"}</span>
                 </span>
               ) : (
                 <span className="truncate">

@@ -1,9 +1,11 @@
 import { z } from "zod";
+import { creditSchema, MAX_CREDITS_PER_POST } from "@/lib/photos/credit-input";
 import { CATEGORIES, MAX_PHOTOS_PER_POST } from "@/lib/photos/post-input";
 import { MAX_TAGS_PER_POST } from "@/lib/tags/tag-rules";
 import { currentYearKst, MIN_YEAR } from "@/lib/year-chips";
 
-// 게시물 편집 (S-07 ⑨). 사진 파일 · 사람 포함 여부 · 크레딧은 여기서 바꾸지 않는다.
+// 게시물 편집 (S-07 ⑨). 사진 파일 · 사람 포함 여부는 여기서 바꾸지 않는다.
+//  · 크레딧은 남길 것(keep: 기존 id)과 새로 붙일 것(add)으로 받는다. 역할을 바꾸려면 빼고 다시 붙인다
 //  · 사람 포함 여부는 촬영 동의 기록과 묶여 있어 바꾸지 않는다
 const noControl = (v: string) => !/\p{Cc}/u.test(v.replace(/\r?\n/g, ""));
 
@@ -22,6 +24,14 @@ export const editSchema = z
     alts: z
       .array(z.object({ photoId: z.uuid(), altText: z.string().trim().max(300, "사진 설명은 300자까지예요.").refine(noControl) }))
       .max(MAX_PHOTOS_PER_POST),
+    credits: z.object({
+      keep: z.array(z.uuid()).max(MAX_CREDITS_PER_POST),
+      add: z.array(creditSchema).max(MAX_CREDITS_PER_POST),
+    }),
+  })
+  .refine((v) => v.credits.keep.length + v.credits.add.length <= MAX_CREDITS_PER_POST, {
+    error: `크레딧은 ${MAX_CREDITS_PER_POST}개까지예요.`,
+    path: ["credits"],
   })
   .refine((v) => v.shotOn === null || Number(v.shotOn.slice(0, 4)) === v.shotYear, {
     error: "촬영 날짜와 촬영 연도가 달라요.",

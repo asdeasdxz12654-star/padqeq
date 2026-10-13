@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { type CreditDraft, CreditEditor, toCreditInput } from "@/app/upload/credit-editor";
 import type { TagOption } from "@/app/upload/tag-actions";
 import { TagPicker } from "@/app/upload/tag-picker";
 import { ProtectedPhoto } from "@/components/protected-photo";
@@ -19,11 +20,13 @@ type Initial = {
   shotOn: string | null;
   tags: TagOption[];
   photos: { id: string; altText: string; width: number; height: number; sources: PhotoSources | null }[];
+  /** 기존 크레딧은 key가 "id:<크레딧 id>" */
+  credits: CreditDraft[];
 };
 
 const field = "min-h-11 rounded-xl border border-line bg-surface px-3 text-base outline-none focus:border-accent";
 
-export function EditForm({ initial, isAdmin }: { initial: Initial; isAdmin: boolean }) {
+export function EditForm({ initial, isAdmin, viewerHandle }: { initial: Initial; isAdmin: boolean; viewerHandle: string | null }) {
   const router = useRouter();
   const [title, setTitle] = useState(initial.title);
   const [body, setBody] = useState(initial.body);
@@ -31,6 +34,7 @@ export function EditForm({ initial, isAdmin }: { initial: Initial; isAdmin: bool
   const [shotYear, setShotYear] = useState(initial.shotYear);
   const [shotOn, setShotOn] = useState(initial.shotOn ?? "");
   const [tags, setTags] = useState(initial.tags);
+  const [credits, setCredits] = useState(initial.credits);
   const [alts, setAlts] = useState<Record<string, string>>(() => Object.fromEntries(initial.photos.map((p) => [p.id, p.altText])));
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -54,6 +58,10 @@ export function EditForm({ initial, isAdmin }: { initial: Initial; isAdmin: bool
             shotOn: shotOn || null,
             tagIds: tags.map((t) => t.id),
             alts: initial.photos.map((p) => ({ photoId: p.id, altText: alts[p.id] ?? "" })),
+            credits: {
+              keep: credits.flatMap((c) => (c.key.startsWith("id:") ? [c.key.slice(3)] : [])),
+              add: credits.filter((c) => !c.key.startsWith("id:")).map(toCreditInput),
+            },
           });
           if (!result.ok) {
             setError(result.error ?? "저장하지 못했어요.");
@@ -135,6 +143,13 @@ export function EditForm({ initial, isAdmin }: { initial: Initial; isAdmin: bool
       <div className="flex flex-col gap-1.5 text-sm">
         <span>태그</span>
         <TagPicker value={tags} onChange={setTags} disabled={pending} isAdmin={isAdmin} />
+      </div>
+
+      <div className="flex flex-col gap-1.5 text-sm">
+        <span>
+          크레딧 <span className="text-xs text-quiet">(새로 태그한 회원에게는 승인 요청 알림이 가요)</span>
+        </span>
+        <CreditEditor value={credits} onChange={setCredits} disabled={pending} viewerHandle={viewerHandle} />
       </div>
 
       <fieldset className="flex flex-col gap-3">

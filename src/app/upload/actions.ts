@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getViewer } from "@/lib/auth/viewer";
 import { consentSchema, draftSchema, type ConsentInput, type DraftInput } from "@/lib/photos/post-input";
+import { insertCredits } from "@/lib/photos/credit-rows";
 import { photoStore } from "@/lib/photos/store";
 import { objectKey, storageToken, VARIANT_NAMES } from "@/lib/photos/variants";
 import { createClient } from "@/lib/supabase/server";
@@ -76,32 +77,11 @@ export async function createDraft(input: DraftInput): Promise<Result<{ postId: s
       return { ok: false, error: "태그를 붙이지 못했어요. 태그를 다시 골라 주세요." };
     }
   }
-  // 크레딧: 회원은 승인 요청(pending), 미가입자는 이름 · 링크로 바로 표시(external), 나 자신은 바로 승인
-  if (credits.length) {
-    const handles = [...new Set(credits.flatMap((c) => (c.kind === "member" ? [c.handle] : [])))];
-    const { data: members } = handles.length
-      ? await supabase.from("profiles").select("id, handle").in("handle", handles)
-      : { data: [] };
-    const idOf = new Map((members ?? []).map((m) => [String(m.handle).toLowerCase(), m.id]));
-    const missing = handles.find((h) => !idOf.has(h));
-    if (missing) {
-      await supabase.from("posts").delete().eq("id", post.id);
-      return { ok: false, error: `@${missing} 회원을 찾을 수 없어요.` };
-    }
-    const rows = credits.map((c) =>
-      c.kind === "member"
-        ? { post_id: post.id, role: c.role, member_id: idOf.get(c.handle)!, status: "pending" as const }
-        : { post_id: post.id, role: c.role, external_label: c.label, external_url: c.url, status: "external" as const },
-    );
-    const { error: creditError } = await supabase.from("credits").insert(rows);
-    if (creditError) {
-      await supabase.from("posts").delete().eq("id", post.id);
-      return { ok: false, error: "크레딧을 저장하지 못했어요." };
-    }
-    if (rows.some((r) => "member_id" in r && r.member_id === viewer.id)) {
-      // 당사자 승인 규칙(RLS)대로 내 크레딧은 내가 승인한다
-      await supabase.from("credits").update({ status: "approved" }).eq("post_id", post.id).eq("member_id", viewer.id);
-    }
+  // 크레딧 (회원은 승인 요청 · 미가입자는 바로 표시 · 나는 바로 승인)
+  const creditResult = await insertCredits(supabase, post.id, viewer.id, credits);
+  if (!creditResult.ok) {
+    await supabase.from("posts").delete().eq("id", post.id);
+    return { ok: false, error: creditResult.error };
   }
 
   return { ok: true, data: { postId: post.id, photoIds } };
