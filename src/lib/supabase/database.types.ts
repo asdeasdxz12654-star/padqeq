@@ -569,6 +569,13 @@ export type Database = {
         Returns: { photo_id: string; position: number; seed: string }[]
       }
       set_photo_watermarks: { Args: { entries: Json; target_post: string }; Returns: undefined }
+      on_this_day: {
+        Args: { max_rows?: number; span?: number; target: string }
+        Returns: {
+          post_id: string
+          years_ago: number
+        }[]
+      }
       published_shot_years: {
         Args: never
         Returns: {
