@@ -5,22 +5,33 @@ const chip = "inline-flex min-h-11 items-center rounded-full border px-4 text-sm
 const on = "border-text bg-text text-bg font-semibold";
 const off = "border-line text-text hover:border-quiet";
 
-/** 연도 칩. 선택은 ?year= 주소로 표현해 공유·뒤로 가기가 그대로 동작한다. */
-export function YearChips({ chips, selected }: { chips: Chips; selected: number | null }) {
+/**
+ * 연도 칩. 선택은 ?year= 주소로 표현해 공유·뒤로 가기가 그대로 동작한다.
+ * hrefFor: 다른 조건(검색어 · 카테고리)을 유지한 주소를 만든다 (기본: 홈)
+ */
+export function YearChips({
+  chips,
+  selected,
+  hrefFor = (year) => (year === null ? "/" : `/?year=${year}`),
+}: {
+  chips: Chips;
+  selected: number | null;
+  hrefFor?: (year: number | null) => string;
+}) {
   const olderSelected = selected !== null && chips.older.includes(selected);
 
   return (
     <nav aria-label="촬영 연도">
       <ul className="flex items-center gap-2 overflow-x-auto px-4 py-3 md:px-6 [scrollbar-width:none]">
         <li>
-          <Link href="/" aria-current={selected === null ? "page" : undefined} className={`${chip} ${selected === null ? on : off}`}>
+          <Link href={hrefFor(null)} aria-current={selected === null ? "page" : undefined} className={`${chip} ${selected === null ? on : off}`}>
             전체
           </Link>
         </li>
         {chips.visible.map((year) => (
           <li key={year}>
             <Link
-              href={`/?year=${year}`}
+              href={hrefFor(year)}
               aria-current={selected === year ? "page" : undefined}
               className={`${chip} ${selected === year ? on : off}`}
             >
@@ -38,7 +49,7 @@ export function YearChips({ chips, selected }: { chips: Chips; selected: number 
                 {chips.older.map((year) => (
                   <li key={year}>
                     <Link
-                      href={`/?year=${year}`}
+                      href={hrefFor(year)}
                       aria-current={selected === year ? "page" : undefined}
                       className="flex min-h-11 items-center rounded-lg px-3 text-sm hover:bg-slot"
                     >
