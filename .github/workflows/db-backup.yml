@@ -74,7 +74,7 @@ jobs:
 
       # 지워진 사진의 R2 파일 정리. 사진 행이 지워지고 7일이 지난 것만 (최근 백업으로 되살릴 여유)
       # R2 토큰에 haedam-photos 버킷의 Object Read & Write 권한이 있어야 한다
-      - name: 지워진 사진 파일 정리
+      - name: 지워진 사진 파일 · 오래된 알림 정리
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
@@ -88,6 +88,7 @@ jobs:
           psql() { /usr/lib/postgresql/18/bin/psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -X -q -t -A "$@"; }
 
           echo "오래된 초안 삭제: $(psql -c 'select private.purge_stale_drafts();')건"
+          echo "오래된 알림 삭제: $(psql -c 'select private.purge_old_notifications();')건"
 
           # 한 번에 최대 200장(파일 1000개 = delete-objects 한도)씩, 최대 10번
           total=0

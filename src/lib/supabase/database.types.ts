@@ -274,6 +274,58 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          id: number
+          kind: Database["public"]["Enums"]["notification_kind"]
+          post_id: string | null
+          read_at: string | null
+          recipient_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          id?: never
+          kind: Database["public"]["Enums"]["notification_kind"]
+          post_id?: string | null
+          read_at?: string | null
+          recipient_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          id?: never
+          kind?: Database["public"]["Enums"]["notification_kind"]
+          post_id?: string | null
+          read_at?: string | null
+          recipient_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       posts: {
         Row: {
           author_id: string
@@ -486,6 +538,14 @@ export type Database = {
         | "other"
       credit_status: "pending" | "approved" | "rejected" | "external"
       member_role: "member" | "admin"
+      notification_kind:
+        | "credit_requested"
+        | "credit_approved"
+        | "credit_rejected"
+        | "post_held"
+        | "post_released"
+        | "post_hidden"
+        | "report_reviewed"
       post_category: "cosplay" | "model" | "landscape" | "other"
       post_status: "draft" | "published" | "hidden"
       report_reason:
@@ -633,6 +693,15 @@ export const Constants = {
       credit_role: ["cosplayer", "model", "photographer", "retoucher", "other"],
       credit_status: ["pending", "approved", "rejected", "external"],
       member_role: ["member", "admin"],
+      notification_kind: [
+        "credit_requested",
+        "credit_approved",
+        "credit_rejected",
+        "post_held",
+        "post_released",
+        "post_hidden",
+        "report_reviewed",
+      ],
       post_category: ["cosplay", "model", "landscape", "other"],
       post_status: ["draft", "published", "hidden"],
       report_reason: [

@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { getViewer } from "@/lib/auth/viewer";
+import { getUnreadCount } from "@/lib/notifications/unread";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { NAV_ITEMS } from "./nav-items";
 
 /** 상단 바. 데스크톱(768px~)에서는 GNB + 업로드 버튼 + 계정, 모바일에서는 로고와 가입 안내만. */
 export async function SiteHeader() {
   const viewer = await getViewer();
+  const unread = await getUnreadCount(viewer?.profile ? viewer.id : null);
 
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-bg/95 pt-[env(safe-area-inset-top)] backdrop-blur">
@@ -38,6 +40,7 @@ export async function SiteHeader() {
               >
                 업로드
               </Link>
+              {viewer?.profile && <NotificationBell unread={unread} />}
               {viewer?.profile ? (
                 <Link href={profileHref(viewer.profile.handle)} className="hidden max-w-40 truncate text-quiet hover:text-text md:block">
                   @{viewer.profile.handle}
@@ -52,5 +55,26 @@ export async function SiteHeader() {
         </div>
       </div>
     </header>
+  );
+}
+
+/** 알림 (모바일 · 데스크톱 모두). 안 읽은 수는 99까지. */
+function NotificationBell({ unread }: { unread: number }) {
+  return (
+    <Link
+      href="/notifications"
+      aria-label={unread > 0 ? `알림, 안 읽은 알림 ${unread}개` : "알림"}
+      className="relative -mr-2 flex size-11 items-center justify-center text-quiet hover:text-text md:mr-0"
+    >
+      <svg aria-hidden="true" viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6 9a6 6 0 0 1 12 0c0 4.5 1.5 6.5 2.5 7.5h-17C4.5 15.5 6 13.5 6 9Z" />
+        <path d="M10 19.5a2 2 0 0 0 4 0" />
+      </svg>
+      {unread > 0 && (
+        <span className="absolute top-1.5 right-1 min-w-[18px] rounded-full bg-accent px-1 text-center text-[11px] leading-[18px] font-bold text-on-accent">
+          {unread > 99 ? "99+" : unread}
+        </span>
+      )}
+    </Link>
   );
 }

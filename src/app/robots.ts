@@ -31,7 +31,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       { userAgent: AI_CRAWLERS, disallow: "/" },
       // 일반 검색엔진은 공개 페이지만. 사진 파일과 개인 영역은 제외
-      { userAgent: "*", allow: "/", disallow: ["/img/", "/me", "/upload", "/api/", "/login", "/welcome", "/auth/", "/admin", "/settings"] },
+      { userAgent: "*", allow: "/", disallow: ["/img/", "/me", "/upload", "/api/", "/login", "/welcome", "/auth/", "/admin", "/settings", "/notifications"] },
     ],
   };
 }
