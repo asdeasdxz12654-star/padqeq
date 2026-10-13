@@ -25,7 +25,7 @@ export async function createDraft(input: DraftInput): Promise<Result<{ postId: s
   const viewer = await uploader();
   if (!viewer) return { ok: false, error: "업로드 권한이 없어요." };
 
-  const { title, body, category, shotYear, shotOn, hasPeople, photos } = parsed.data;
+  const { title, body, category, shotYear, shotOn, hasPeople, photos, tagIds } = parsed.data;
   const supabase = await createClient();
 
   const { data: post, error: postError } = await supabase
@@ -64,6 +64,17 @@ export async function createDraft(input: DraftInput): Promise<Result<{ postId: s
   if (seedError) {
     await supabase.from("posts").delete().eq("id", post.id);
     return { ok: false, error: "사진 정보를 저장하지 못했어요." };
+  }
+
+  // 태그 (쓸 수 있는 태그인지는 RLS가 확인)
+  if (tagIds.length) {
+    const { error: tagError } = await supabase
+      .from("post_tags")
+      .insert([...new Set(tagIds)].map((tag_id) => ({ post_id: post.id, tag_id })));
+    if (tagError) {
+      await supabase.from("posts").delete().eq("id", post.id);
+      return { ok: false, error: "태그를 붙이지 못했어요. 태그를 다시 골라 주세요." };
+    }
   }
   return { ok: true, data: { postId: post.id, photoIds } };
 }

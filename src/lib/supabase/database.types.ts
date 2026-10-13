@@ -141,6 +141,89 @@ export type Database = {
           },
         ]
       }
+      post_tags: {
+        Row: { created_at: string; post_id: string; tag_id: string }
+        Insert: { created_at?: string; post_id: string; tag_id: string }
+        Update: { created_at?: string; post_id?: string; tag_id?: string }
+        Relationships: [
+          {
+            foreignKeyName: "post_tags_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tag_aliases: {
+        Row: { alias: string; tag_id: string }
+        Insert: { alias: string; tag_id: string }
+        Update: { alias?: string; tag_id?: string }
+        Relationships: [
+          {
+            foreignKeyName: "tag_aliases_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tags: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          kind: Database["public"]["Enums"]["tag_kind"]
+          name: string
+          parent_id: string | null
+          slug: string
+          status: Database["public"]["Enums"]["tag_status"]
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["tag_kind"]
+          name: string
+          parent_id?: string | null
+          slug: string
+          status?: Database["public"]["Enums"]["tag_status"]
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["tag_kind"]
+          name?: string
+          parent_id?: string | null
+          slug?: string
+          status?: Database["public"]["Enums"]["tag_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tags_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tags_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       photos: {
         Row: {
           alt_text: string
@@ -340,6 +423,21 @@ export type Database = {
         Returns: undefined
       }
       handle_status: { Args: { target: string }; Returns: string }
+      approve_tag: { Args: { target: string }; Returns: undefined }
+      create_official_tag: {
+        Args: {
+          aliases?: string[]
+          parent?: string
+          tag_kind: Database["public"]["Enums"]["tag_kind"]
+          tag_name: string
+          tag_slug: string
+        }
+        Returns: string
+      }
+      trending_works: {
+        Args: { days?: number; max_rows?: number }
+        Returns: { id: string; name: string; recent_count: number; slug: string; total_count: number }[]
+      }
       publish_my_post: {
         Args: {
           consent_note?: string
@@ -383,6 +481,8 @@ export type Database = {
         | "spam"
         | "other"
       report_status: "open" | "actioned" | "dismissed"
+      tag_kind: "work" | "character" | "event" | "place" | "general"
+      tag_status: "official" | "pending"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -527,6 +627,8 @@ export const Constants = {
         "other",
       ],
       report_status: ["open", "actioned", "dismissed"],
+      tag_kind: ["work", "character", "event", "place", "general"],
+      tag_status: ["official", "pending"],
     },
   },
 } as const

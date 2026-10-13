@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getViewer } from "@/lib/auth/viewer";
 import { CATEGORY_LABEL } from "@/lib/photos/post-input";
 import { getPost } from "@/lib/posts/get-post";
+import { TagChip } from "@/components/tag-chip";
 import { HidePostButton } from "./hide-post-button";
 import { PhotoViewer } from "./photo-viewer";
 import { WatermarkCheck } from "./watermark-check";
@@ -68,6 +69,16 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
           </header>
 
           {post.body && <p className="whitespace-pre-line text-sm leading-relaxed">{post.body}</p>}
+
+          {post.tags.length > 0 && (
+            <ul aria-label="태그" className="flex flex-wrap gap-1.5">
+              {post.tags.map((tag) => (
+                <li key={tag.id}>
+                  <TagChip tag={tag} />
+                </li>
+              ))}
+            </ul>
+          )}
 
           {credits.length > 0 && (
             <section aria-labelledby="credits-heading" className="flex flex-col gap-2">

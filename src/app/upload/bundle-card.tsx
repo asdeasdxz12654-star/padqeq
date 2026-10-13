@@ -5,6 +5,8 @@ import { CATEGORIES, CATEGORY_LABEL, type ConsentInput } from "@/lib/photos/post
 import { timeRange } from "@/lib/photos/grouping";
 import { MIN_YEAR } from "@/lib/year-chips";
 import type { Draft } from "./publish-bundle";
+import type { TagOption } from "./tag-actions";
+import { TagPicker } from "./tag-picker";
 import type { Photo } from "./use-converter";
 
 export type BundleState =
@@ -24,6 +26,7 @@ export type Bundle = {
   /** 직접 고른 촬영 연도. null이면 사진 촬영일 → 올해 */
   shotYear: number | null;
   consent: ConsentInput;
+  tags: TagOption[];
   draft: Draft | null;
   state: BundleState;
 };
@@ -238,6 +241,8 @@ export function BundleCard({
           />
         </label>
       </div>
+
+      <TagPicker value={bundle.tags} onChange={(tags) => set({ tags })} disabled={locked} isAdmin={isAdmin} />
 
       <CategoryAndConsent
         category={bundle.category}

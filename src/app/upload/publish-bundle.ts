@@ -18,6 +18,7 @@ export type BundleMeta = {
   shotYear: number;
   shotOn: string | null;
   consent: ConsentInput;
+  tagIds: string[];
 };
 
 export type Draft = { postId: string; photoIds: string[] };
@@ -37,6 +38,7 @@ export async function publishBundle(
       shotYear: meta.shotYear,
       shotOn: meta.shotOn,
       hasPeople: meta.hasPeople,
+      tagIds: meta.tagIds,
       photos: photos.map((p) => ({
         width: p.result!.width,
         height: p.result!.height,

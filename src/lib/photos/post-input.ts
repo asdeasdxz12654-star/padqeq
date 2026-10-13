@@ -47,6 +47,7 @@ export const draftSchema = z.object({
   shotOn: z.iso.date().nullable(),
   hasPeople: z.boolean(),
   photos: z.array(masterPhoto).min(1, "사진을 1장 이상 넣어 주세요.").max(MAX_PHOTOS_PER_POST),
+  tagIds: z.array(z.uuid()).max(10, "태그는 10개까지예요.").default([]),
 });
 export type DraftInput = z.input<typeof draftSchema>;
 

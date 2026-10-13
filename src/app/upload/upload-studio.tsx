@@ -13,6 +13,7 @@ import {
   emptyConsent,
 } from "./bundle-card";
 import { discardDraft } from "./actions";
+import { TagPicker } from "./tag-picker";
 import { localDate, publishBundle } from "./publish-bundle";
 import { ACCEPT, MAX_SESSION_PHOTOS, type Photo, useConverter } from "./use-converter";
 
@@ -20,7 +21,7 @@ import { ACCEPT, MAX_SESSION_PHOTOS, type Photo, useConverter } from "./use-conv
 // 사진을 여러 장 넣으면 촬영 시각 30분 간격으로 묶음(= 게시물)을 나눈다.
 // 묶음마다 내용을 넣고, 공통 설정은 한 번에 적용한 뒤, 차례로 게시한다.
 
-type Common = { category: Bundle["category"]; hasPeople: boolean; consent: ConsentInput };
+type Common = { category: Bundle["category"]; hasPeople: boolean; consent: ConsentInput; tags: Bundle["tags"] };
 
 const newBundle = (photoIds: string[], common: Common): Bundle => ({
   id: crypto.randomUUID(),
@@ -31,6 +32,7 @@ const newBundle = (photoIds: string[], common: Common): Bundle => ({
   hasPeople: common.hasPeople,
   shotYear: null,
   consent: { ...common.consent },
+  tags: [...common.tags],
   draft: null,
   state: { kind: "edit" },
 });
@@ -40,7 +42,7 @@ export function UploadStudio({ isAdmin, currentYear }: { isAdmin: boolean; curre
   const { photos, addFiles, release } = useConverter();
   const [bundles, setBundles] = useState<Bundle[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
-  const [common, setCommon] = useState<Common>({ category: "cosplay", hasPeople: true, consent: emptyConsent() });
+  const [common, setCommon] = useState<Common>({ category: "cosplay", hasPeople: true, consent: emptyConsent(), tags: [] });
   const [running, setRunning] = useState(false);
 
   const photosOf = (bundle: Bundle) => bundle.photoIds.map((id) => photos[id]).filter((p): p is Photo => Boolean(p));
@@ -141,7 +143,14 @@ export function UploadStudio({ isAdmin, currentYear }: { isAdmin: boolean; curre
       list.map((b) =>
         b.draft || b.state.kind !== "edit"
           ? b
-          : { ...b, category: common.category, hasPeople: common.hasPeople, consent: { ...common.consent } },
+          : {
+              ...b,
+              category: common.category,
+              hasPeople: common.hasPeople,
+              consent: { ...common.consent },
+              // 공통 태그는 각 묶음 태그에 더한다 (10개까지)
+              tags: [...b.tags, ...common.tags.filter((t) => !b.tags.some((x) => x.id === t.id))].slice(0, 10),
+            },
       ),
     );
   }
@@ -160,6 +169,7 @@ export function UploadStudio({ isAdmin, currentYear }: { isAdmin: boolean; curre
           shotYear: effectiveYear(bundle, list, currentYear).year,
           shotOn: range ? localDate(range.start) : null,
           consent: bundle.consent,
+          tagIds: bundle.tags.map((t) => t.id),
         },
         list,
         bundle.draft,
@@ -237,6 +247,7 @@ export function UploadStudio({ isAdmin, currentYear }: { isAdmin: boolean; curre
         <details className="rounded-2xl border border-line p-4">
           <summary className="cursor-pointer text-sm font-semibold">공통 설정 · 모든 묶음에 한 번에 적용</summary>
           <div className="mt-4 flex flex-col gap-4">
+            <TagPicker value={common.tags} onChange={(tags) => setCommon((c) => ({ ...c, tags }))} disabled={false} isAdmin={isAdmin} />
             <CategoryAndConsent
               category={common.category}
               hasPeople={common.hasPeople}

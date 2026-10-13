@@ -27,7 +27,8 @@ export const getPost = cache(async (id: string) => {
       `id, title, body, category, status, shot_year, shot_on, published_at, has_people, author_id,
        author:profiles!posts_author_id_fkey(handle, display_name),
        photos(id, storage_key, width, height, alt_text, is_panorama, position),
-       credits(id, role, status, external_label, external_url, member:profiles!credits_member_id_fkey(handle, display_name))`,
+       credits(id, role, status, external_label, external_url, member:profiles!credits_member_id_fkey(handle, display_name)),
+       post_tags(tag:tags(id, slug, name, kind))`,
     )
     .eq("id", id)
     .order("position", { referencedTable: "photos" })
@@ -53,7 +54,13 @@ export const getPost = cache(async (id: string) => {
     )
   ).filter((p): p is ViewerPhoto => p !== null);
 
-  return { ...post, author: post.author, photos };
+  // 태그: 작품 → 캐릭터 → 행사 → 장소 → 일반 순서 (S-06 ⑦)
+  const order = ["work", "character", "event", "place", "general"];
+  const tags = post.post_tags
+    .flatMap((pt) => (pt.tag ? [pt.tag] : []))
+    .sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind) || a.name.localeCompare(b.name, "ko"));
+
+  return { ...post, author: post.author, photos, tags };
 });
 
 export type PostDetail = NonNullable<Awaited<ReturnType<typeof getPost>>>;

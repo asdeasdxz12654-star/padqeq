@@ -5,7 +5,13 @@ import { type Category, escapeLike, type SearchQuery } from "./feed-params";
 
 export const FEED_LIMIT = 40;
 
-export type FeedFilter = { year: number | null; category: Category | null; query: SearchQuery | null };
+export type FeedFilter = {
+  year: number | null;
+  category: Category | null;
+  query: SearchQuery | null;
+  /** 이 태그 중 하나라도 붙은 글 (태그 허브) */
+  tagIds?: string[];
+};
 
 export type FeedItem = {
   id: string;
@@ -23,8 +29,18 @@ export type FeedItem = {
 };
 
 /** 게시된 글 목록 (홈 · 탐색). 대표 사진에는 이미지 게이트 서명 주소를 붙인다. */
-export async function loadFeed({ year, category, query }: FeedFilter): Promise<FeedItem[]> {
+export async function loadFeed({ year, category, query, tagIds }: FeedFilter): Promise<FeedItem[]> {
   const supabase = await createClient();
+
+  // 태그로 좁힐 때는 먼저 글 id를 모은다 (볼 수 있는 연결만, RLS)
+  let taggedPostIds: string[] | null = null;
+  if (tagIds) {
+    if (!tagIds.length) return [];
+    const { data, error } = await supabase.from("post_tags").select("post_id").in("tag_id", tagIds).limit(200);
+    if (error) throw error;
+    taggedPostIds = [...new Set(data.map((r) => r.post_id))];
+    if (!taggedPostIds.length) return [];
+  }
 
   let feed = supabase
     .from("posts")
@@ -38,6 +54,7 @@ export async function loadFeed({ year, category, query }: FeedFilter): Promise<F
     .limit(FEED_LIMIT);
   if (year !== null) feed = feed.eq("shot_year", year);
   if (category !== null) feed = feed.eq("category", category);
+  if (taggedPostIds) feed = feed.in("id", taggedPostIds);
 
   if (query?.kind === "title") {
     // 값은 PostgREST가 인코딩한다. LIKE 특수 문자만 글자 그대로 찾도록 막는다.
