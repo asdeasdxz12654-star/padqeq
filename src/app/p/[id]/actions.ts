@@ -3,10 +3,43 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getViewer } from "@/lib/auth/viewer";
+import { REPORT_REASONS } from "@/lib/moderation/reasons";
 import { getPost, type ViewerPhoto } from "@/lib/posts/get-post";
 import { createClient } from "@/lib/supabase/server";
 
 const idSchema = z.uuid();
+
+const reportSchema = z.object({
+  postId: z.uuid(),
+  reason: z.enum(REPORT_REASONS),
+  detail: z.string().trim().max(1000).default(""),
+  photoPosition: z.int().min(0).max(19).nullable(),
+});
+
+/** 신고 (S-15). 같은 글 중복 · 하루 20건 · 내 글 · 볼 수 없는 글은 DB가 막는다. */
+export async function submitReport(input: z.input<typeof reportSchema>): Promise<{ ok: boolean; error?: string }> {
+  const parsed = reportSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "신고 내용을 확인해 주세요." };
+  const viewer = await getViewer();
+  if (!viewer?.profile) return { ok: false, error: "로그인이 필요해요." };
+
+  const { postId, reason, detail, photoPosition } = parsed.data;
+  const supabase = await createClient();
+  const { error } = await supabase.from("reports").insert({
+    reporter_id: viewer.id,
+    post_id: postId,
+    reason,
+    detail,
+    photo_position: photoPosition,
+  });
+  if (error) {
+    if (error.code === "23505") return { ok: false, error: "이미 신고한 게시물이에요. 처리 결과를 기다려 주세요." };
+    if (error.message.includes("report_rate_limited")) return { ok: false, error: "오늘은 더 신고할 수 없어요. 내일 다시 시도해 주세요." };
+    return { ok: false, error: "신고하지 못했어요. 잠시 뒤 다시 시도해 주세요." };
+  }
+  revalidatePath("/");
+  return { ok: true };
+}
 
 /** 화면을 오래 열어 두어 서명 주소가 만료됐을 때 새 주소를 받는다 (권한은 다시 확인) */
 export async function refreshPhotoSources(postId: string): Promise<ViewerPhoto[] | null> {

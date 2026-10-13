@@ -1,4 +1,5 @@
 import "server-only";
+import { getViewer } from "@/lib/auth/viewer";
 import { photoSources, type PhotoSources } from "@/lib/photos/server";
 import { createClient } from "@/lib/supabase/server";
 import { type Category, escapeLike, type SearchQuery } from "./feed-params";
@@ -50,6 +51,8 @@ export async function loadFeed({ year, category, query, tagIds, authorId }: Feed
       "id, title, category, shot_year, author:profiles!posts_author_id_fkey(handle), photos(storage_key, width, height, alt_text, is_panorama, position)",
     )
     .eq("status", "published")
+    // 신고로 임시 비공개된 글은 작성자 · 운영자에게도 피드에서는 뺀다 (상세에서만 안내)
+    .is("held_at", null)
     .order("published_at", { ascending: false })
     .order("position", { referencedTable: "photos" })
     .limit(1, { referencedTable: "photos" })
@@ -58,6 +61,19 @@ export async function loadFeed({ year, category, query, tagIds, authorId }: Feed
   if (category !== null) feed = feed.eq("category", category);
   if (taggedPostIds) feed = feed.in("id", taggedPostIds);
   if (authorId) feed = feed.eq("author_id", authorId);
+
+  // 내가 신고한 글은 내 피드에서 바로 숨긴다 (S-15 ⑧)
+  const viewer = await getViewer();
+  if (viewer) {
+    const { data: reported } = await supabase
+      .from("reports")
+      .select("post_id")
+      .eq("reporter_id", viewer.id)
+      .eq("status", "open")
+      .limit(200);
+    const ids = (reported ?? []).map((r) => r.post_id);
+    if (ids.length) feed = feed.not("id", "in", `(${ids.join(",")})`);
+  }
 
   if (query?.kind === "title") {
     // 값은 PostgREST가 인코딩한다. LIKE 특수 문자만 글자 그대로 찾도록 막는다.

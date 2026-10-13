@@ -21,7 +21,12 @@ export default async function MePage() {
   const { profile } = viewer;
 
   const supabase = await createClient();
-  const { data: full } = await supabase.from("profiles").select("bio").eq("id", viewer.id).single();
+  const [{ data: full }, openReports] = await Promise.all([
+    supabase.from("profiles").select("bio").eq("id", viewer.id).single(),
+    profile.role === "admin"
+      ? supabase.from("reports").select("id", { count: "exact", head: true }).eq("status", "open")
+      : Promise.resolve({ count: null }),
+  ]);
 
   return (
     <div className="mx-auto max-w-xl px-4 pt-10 pb-16 md:px-6">
@@ -45,6 +50,15 @@ export default async function MePage() {
           내 프로필 보기
         </Link>
       </div>
+
+      {profile.role === "admin" && (
+        <nav aria-label="운영" className="mt-8 flex flex-wrap gap-2">
+          <Link href="/admin/reports" className="rounded-xl border border-line px-4 py-2 text-sm hover:border-quiet">
+            신고 처리
+            {openReports.count ? <span className="ml-2 rounded-full bg-red-500/20 px-2 text-red-300">{openReports.count}</span> : null}
+          </Link>
+        </nav>
+      )}
 
       <section aria-labelledby="edit-heading" className="mt-10">
         <h2 id="edit-heading" className="mb-4 text-lg font-semibold">

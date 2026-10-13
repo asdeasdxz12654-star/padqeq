@@ -281,6 +281,8 @@ export type Database = {
           category: Database["public"]["Enums"]["post_category"]
           created_at: string
           has_people: boolean
+          held_at: string | null
+          held_reason: string | null
           id: string
           published_at: string | null
           sensitive: boolean
@@ -296,6 +298,8 @@ export type Database = {
           category: Database["public"]["Enums"]["post_category"]
           created_at?: string
           has_people?: boolean
+          held_at?: string | null
+          held_reason?: string | null
           id?: string
           published_at?: string | null
           sensitive?: boolean
@@ -311,6 +315,8 @@ export type Database = {
           category?: Database["public"]["Enums"]["post_category"]
           created_at?: string
           has_people?: boolean
+          held_at?: string | null
+          held_reason?: string | null
           id?: string
           published_at?: string | null
           sensitive?: boolean
@@ -365,6 +371,7 @@ export type Database = {
           created_at: string
           detail: string
           id: string
+          photo_position: number | null
           post_id: string
           reason: Database["public"]["Enums"]["report_reason"]
           reporter_id: string
@@ -375,6 +382,7 @@ export type Database = {
           created_at?: string
           detail?: string
           id?: string
+          photo_position?: number | null
           post_id: string
           reason: Database["public"]["Enums"]["report_reason"]
           reporter_id: string
@@ -385,6 +393,7 @@ export type Database = {
           created_at?: string
           detail?: string
           id?: string
+          photo_position?: number | null
           post_id?: string
           reason?: Database["public"]["Enums"]["report_reason"]
           reporter_id?: string
@@ -423,6 +432,7 @@ export type Database = {
         Returns: undefined
       }
       handle_status: { Args: { target: string }; Returns: string }
+      moderate_post: { Args: { decision: string; note: string; target: string }; Returns: undefined }
       approve_tag: { Args: { target: string }; Returns: undefined }
       create_official_tag: {
         Args: {
@@ -480,6 +490,8 @@ export type Database = {
         | "sexual"
         | "spam"
         | "other"
+        | "voyeurism"
+        | "deepfake"
       report_status: "open" | "actioned" | "dismissed"
       tag_kind: "work" | "character" | "event" | "place" | "general"
       tag_status: "official" | "pending"
@@ -625,6 +637,8 @@ export const Constants = {
         "sexual",
         "spam",
         "other",
+        "voyeurism",
+        "deepfake",
       ],
       report_status: ["open", "actioned", "dismissed"],
       tag_kind: ["work", "character", "event", "place", "general"],

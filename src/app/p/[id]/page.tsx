@@ -8,6 +8,7 @@ import { profileHref } from "@/lib/profiles/profile-href";
 import { TagChip } from "@/components/tag-chip";
 import { HidePostButton } from "./hide-post-button";
 import { PhotoViewer } from "./photo-viewer";
+import { ReportButton } from "./report-button";
 import { WatermarkCheck } from "./watermark-check";
 
 const ROLE_LABEL = {
@@ -44,6 +45,11 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
 
   return (
     <article className="mx-auto max-w-[1440px] px-0 pt-4 pb-16 md:px-6 md:pt-6">
+      {post.status === "published" && post.held_at && (
+        <p className="mx-4 mb-4 rounded-lg border border-amber-400/40 bg-amber-400/10 px-3 py-2 text-sm text-amber-200 md:mx-0">
+          신고로 임시 비공개 중이에요. 운영자가 확인할 때까지 다른 사람에게는 보이지 않아요.
+        </p>
+      )}
       {post.status !== "published" && (
         <p className="mx-4 mb-4 rounded-lg border border-line px-3 py-2 text-sm text-quiet md:mx-0">
           {post.status === "draft" ? "아직 게시하지 않은 초안이에요." : "게시를 중단한 글이에요. 다른 사람에게는 보이지 않아요."}
@@ -112,6 +118,19 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
           <p className="text-xs leading-relaxed text-quiet">
             © @{post.author.handle} · 무단 전재 및 AI 학습 이용 금지
           </p>
+
+          {/* 남의 글은 신고할 수 있다 (비로그인은 로그인 후) */}
+          {!isAuthor &&
+            (viewer?.profile ? (
+              <ReportButton postId={post.id} photoCount={post.photos.length} />
+            ) : (
+              <Link
+                href={`/login?next=${encodeURIComponent(`/p/${post.id}`)}`}
+                className="self-start text-sm text-quiet underline underline-offset-4"
+              >
+                신고
+              </Link>
+            ))}
 
           {canHide && <HidePostButton postId={post.id} />}
           {viewer?.profile?.role === "admin" && <WatermarkCheck postId={post.id} />}
