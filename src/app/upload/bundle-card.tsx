@@ -7,6 +7,7 @@ import { MIN_YEAR } from "@/lib/year-chips";
 import type { Draft } from "./publish-bundle";
 import type { TagOption } from "./tag-actions";
 import { TagPicker } from "./tag-picker";
+import { type CreditDraft, CreditEditor } from "./credit-editor";
 import type { Photo } from "./use-converter";
 
 export type BundleState =
@@ -27,6 +28,7 @@ export type Bundle = {
   shotYear: number | null;
   consent: ConsentInput;
   tags: TagOption[];
+  credits: CreditDraft[];
   /** RAW에서 만든 사진이 있으면 "보정 전 원본"임을 확인받는다 (P-01) */
   rawConfirmed: boolean;
   draft: Draft | null;
@@ -81,6 +83,7 @@ export function BundleCard({
   bundle,
   photos,
   isAdmin,
+  viewerHandle,
   currentYear,
   hasPrev,
   hasNext,
@@ -96,6 +99,7 @@ export function BundleCard({
   bundle: Bundle;
   photos: Photo[];
   isAdmin: boolean;
+  viewerHandle: string | null;
   currentYear: number;
   hasPrev: boolean;
   hasNext: boolean;
@@ -278,6 +282,7 @@ export function BundleCard({
       )}
 
       <TagPicker value={bundle.tags} onChange={(tags) => set({ tags })} disabled={locked} isAdmin={isAdmin} />
+      <CreditEditor value={bundle.credits} onChange={(credits) => set({ credits })} disabled={locked} viewerHandle={viewerHandle} />
 
       <CategoryAndConsent
         category={bundle.category}

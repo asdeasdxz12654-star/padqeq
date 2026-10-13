@@ -14,6 +14,7 @@ import {
 } from "./bundle-card";
 import { discardDraft } from "./actions";
 import { TagPicker } from "./tag-picker";
+import { CreditEditor, sameCredit, toCreditInput } from "./credit-editor";
 import { localDate, publishBundle } from "./publish-bundle";
 import { ACCEPT_INPUT, MAX_SESSION_PHOTOS, type Photo, useConverter } from "./use-converter";
 
@@ -21,7 +22,7 @@ import { ACCEPT_INPUT, MAX_SESSION_PHOTOS, type Photo, useConverter } from "./us
 // 사진을 여러 장 넣으면 촬영 시각 30분 간격으로 묶음(= 게시물)을 나눈다.
 // 묶음마다 내용을 넣고, 공통 설정은 한 번에 적용한 뒤, 차례로 게시한다.
 
-type Common = { category: Bundle["category"]; hasPeople: boolean; consent: ConsentInput; tags: Bundle["tags"] };
+type Common = { category: Bundle["category"]; hasPeople: boolean; consent: ConsentInput; tags: Bundle["tags"]; credits: Bundle["credits"] };
 
 const newBundle = (photoIds: string[], common: Common): Bundle => ({
   id: crypto.randomUUID(),
@@ -33,17 +34,26 @@ const newBundle = (photoIds: string[], common: Common): Bundle => ({
   shotYear: null,
   consent: { ...common.consent },
   tags: [...common.tags],
+  credits: common.credits.map((c) => ({ ...c, key: crypto.randomUUID() })),
   rawConfirmed: false,
   draft: null,
   state: { kind: "edit" },
 });
 
-export function UploadStudio({ isAdmin, currentYear }: { isAdmin: boolean; currentYear: number }) {
+export function UploadStudio({
+  isAdmin,
+  viewerHandle,
+  currentYear,
+}: {
+  isAdmin: boolean;
+  viewerHandle: string | null;
+  currentYear: number;
+}) {
   const router = useRouter();
   const { photos, addFiles, release } = useConverter();
   const [bundles, setBundles] = useState<Bundle[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
-  const [common, setCommon] = useState<Common>({ category: "cosplay", hasPeople: true, consent: emptyConsent(), tags: [] });
+  const [common, setCommon] = useState<Common>({ category: "cosplay", hasPeople: true, consent: emptyConsent(), tags: [], credits: [] });
   const [running, setRunning] = useState(false);
 
   const photosOf = (bundle: Bundle) => bundle.photoIds.map((id) => photos[id]).filter((p): p is Photo => Boolean(p));
@@ -151,6 +161,13 @@ export function UploadStudio({ isAdmin, currentYear }: { isAdmin: boolean; curre
               consent: { ...common.consent },
               // 공통 태그는 각 묶음 태그에 더한다 (10개까지)
               tags: [...b.tags, ...common.tags.filter((t) => !b.tags.some((x) => x.id === t.id))].slice(0, 10),
+              // 공통 크레딧도 더한다 (같은 역할 · 같은 사람은 한 번만)
+              credits: [
+                ...b.credits,
+                ...common.credits
+                  .filter((c) => !b.credits.some((x) => sameCredit(x, c)))
+                  .map((c) => ({ ...c, key: crypto.randomUUID() })),
+              ].slice(0, 10),
             },
       ),
     );
@@ -171,6 +188,7 @@ export function UploadStudio({ isAdmin, currentYear }: { isAdmin: boolean; curre
           shotOn: range ? localDate(range.start) : null,
           consent: bundle.consent,
           tagIds: bundle.tags.map((t) => t.id),
+          credits: bundle.credits.map(toCreditInput),
         },
         list,
         bundle.draft,
@@ -249,6 +267,12 @@ export function UploadStudio({ isAdmin, currentYear }: { isAdmin: boolean; curre
           <summary className="cursor-pointer text-sm font-semibold">공통 설정 · 모든 묶음에 한 번에 적용</summary>
           <div className="mt-4 flex flex-col gap-4">
             <TagPicker value={common.tags} onChange={(tags) => setCommon((c) => ({ ...c, tags }))} disabled={false} isAdmin={isAdmin} />
+            <CreditEditor
+              value={common.credits}
+              onChange={(credits) => setCommon((c) => ({ ...c, credits }))}
+              disabled={false}
+              viewerHandle={viewerHandle}
+            />
             <CategoryAndConsent
               category={common.category}
               hasPeople={common.hasPeople}
@@ -275,6 +299,7 @@ export function UploadStudio({ isAdmin, currentYear }: { isAdmin: boolean; curre
           bundle={bundle}
           photos={photosOf(bundle)}
           isAdmin={isAdmin}
+          viewerHandle={viewerHandle}
           currentYear={currentYear}
           hasPrev={index > 0}
           hasNext={index < bundles.length - 1}

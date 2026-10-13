@@ -8,6 +8,32 @@ import { createClient } from "@/lib/supabase/server";
 
 export type TagOption = { id: string; kind: TagKind; name: string; slug: string; parentName: string | null; pending: boolean };
 
+export type MemberOption = { handle: string; displayName: string };
+
+/** 크레딧용 회원 찾기: 핸들 앞부분 · 표시 이름 일부 (공개 프로필 정보만) */
+export async function searchMembers(rawQuery: string): Promise<MemberOption[]> {
+  const viewer = await getViewer();
+  if (!viewer?.profile?.can_upload) return [];
+  const query = String(rawQuery).trim().replace(/^@/, "").slice(0, 30);
+  if (!query) return [];
+  const supabase = await createClient();
+  const [byHandle, byName] = await Promise.all([
+    /^[a-z0-9_]+$/i.test(query)
+      ? supabase.from("profiles").select("handle, display_name").ilike("handle", `${escapeLike(query.toLowerCase())}%`).limit(6)
+      : Promise.resolve({ data: [] as { handle: string; display_name: string }[] }),
+    supabase.from("profiles").select("handle, display_name").ilike("display_name", `%${escapeLike(query)}%`).limit(6),
+  ]);
+  const seen = new Set<string>();
+  const out: MemberOption[] = [];
+  for (const m of [...(byHandle.data ?? []), ...(byName.data ?? [])]) {
+    const handle = String(m.handle);
+    if (seen.has(handle)) continue;
+    seen.add(handle);
+    out.push({ handle, displayName: m.display_name });
+  }
+  return out.slice(0, 6);
+}
+
 /** 업로드 화면 태그 검색: 이름 · 별칭에 검색어가 들어간 태그 (볼 수 있는 것만, RLS) */
 export async function searchTags(rawQuery: string): Promise<TagOption[]> {
   const viewer = await getViewer();

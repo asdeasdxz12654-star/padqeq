@@ -8,6 +8,7 @@ import { profileHref } from "@/lib/profiles/profile-href";
 import { TagChip } from "@/components/tag-chip";
 import { HidePostButton } from "./hide-post-button";
 import { PhotoViewer } from "./photo-viewer";
+import { RemoveCreditButton } from "./remove-credit-button";
 import { ReportButton } from "./report-button";
 import { WatermarkCheck } from "./watermark-check";
 
@@ -41,7 +42,9 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
   const isAuthor = viewer?.id === post.author_id;
   const canHide = post.status === "published" && (isAuthor || viewer?.profile?.role === "admin");
   // 승인됐거나 외부 표기인 크레딧만 공개. 승인 대기는 작성자에게만 흐리게.
-  const credits = post.credits.filter((c) => c.status === "approved" || c.status === "external" || isAuthor);
+  const credits = post.credits.filter(
+    (c) => c.status === "approved" || c.status === "external" || isAuthor || (viewer !== null && c.member_id === viewer.id && c.status === "pending"),
+  );
 
   return (
     <article className="mx-auto max-w-[1440px] px-0 pt-4 pb-16 md:px-6 md:pt-6">
@@ -100,7 +103,9 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
                   <li key={c.id} className={`flex gap-3 ${c.status === "pending" ? "opacity-50" : ""}`}>
                     <span className="w-12 shrink-0 text-quiet">{ROLE_LABEL[c.role]}</span>
                     {c.member ? (
-                      <span>@{c.member.handle}</span>
+                      <Link href={profileHref(c.member.handle)} className="hover:underline">
+                        @{c.member.handle}
+                      </Link>
                     ) : c.external_url ? (
                       <a href={c.external_url} rel="nofollow noopener noreferrer ugc" target="_blank" className="underline underline-offset-2">
                         {c.external_label}
@@ -109,6 +114,7 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
                       <span>{c.external_label}</span>
                     )}
                     {c.status === "pending" && <span className="text-xs text-quiet">승인 대기</span>}
+                    {viewer && c.member_id === viewer.id && !isAuthor && <RemoveCreditButton creditId={c.id} />}
                   </li>
                 ))}
               </ul>

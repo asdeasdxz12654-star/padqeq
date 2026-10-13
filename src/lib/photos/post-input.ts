@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { currentYearKst, MIN_YEAR } from "@/lib/year-chips";
+import { creditSchema, MAX_CREDITS_PER_POST } from "./credit-input";
 import { isPanorama, VARIANTS, variantSize } from "./variants";
 
 // 업로드 화면(A-02 / S-08) 입력 규칙. 최종 판단은 DB 제약 · RLS · 서버 검사가 한다.
@@ -48,6 +49,7 @@ export const draftSchema = z.object({
   hasPeople: z.boolean(),
   photos: z.array(masterPhoto).min(1, "사진을 1장 이상 넣어 주세요.").max(MAX_PHOTOS_PER_POST),
   tagIds: z.array(z.uuid()).max(10, "태그는 10개까지예요.").default([]),
+  credits: z.array(creditSchema).max(MAX_CREDITS_PER_POST, `크레딧은 ${MAX_CREDITS_PER_POST}개까지예요.`).default([]),
 });
 export type DraftInput = z.input<typeof draftSchema>;
 

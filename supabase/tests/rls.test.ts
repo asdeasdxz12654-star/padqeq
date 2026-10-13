@@ -427,3 +427,34 @@ describe("워터마크 열쇠", () => {
     );
   });
 });
+
+describe("크레딧 저장 흐름", () => {
+  it("작성자가 나 자신을 크레딧하면 요청 후 스스로 승인할 수 있다", async () => {
+    const status = await asUser(db, ADMIN, async (tx) => {
+      const c = await tx.query<{ id: string }>(
+        `insert into credits (post_id, role, member_id, status) values ('${DRAFT}', 'photographer', '${ADMIN}', 'pending') returning id`,
+      );
+      await tx.query("update credits set status = 'approved' where id = $1", [c.rows[0]!.id]);
+      return (await tx.query<{ status: string }>("select status::text from credits where id = $1", [c.rows[0]!.id])).rows[0]?.status;
+    });
+    expect(status).toBe("approved");
+  });
+
+  it("작성자는 남의 크레딧을 승인 상태로 바로 넣을 수 없다", async () => {
+    await expect(
+      asUser(db, ADMIN, (tx) =>
+        tx.query(`insert into credits (post_id, role, member_id, status) values ('${DRAFT}', 'model', '${MEMBER}', 'approved')`),
+      ),
+    ).rejects.toThrow(/row-level security/);
+  });
+
+  it("미가입자 링크는 https만", async () => {
+    await expect(
+      asUser(db, ADMIN, (tx) =>
+        tx.query(
+          `insert into credits (post_id, role, external_label, external_url, status) values ('${DRAFT}', 'cosplayer', '달빛', 'javascript:alert(1)', 'external')`,
+        ),
+      ),
+    ).rejects.toThrow(/credits_external_url_check/);
+  });
+});

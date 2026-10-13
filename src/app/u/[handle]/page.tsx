@@ -6,6 +6,7 @@ import { YearChips } from "@/components/year-chips";
 import { getViewer } from "@/lib/auth/viewer";
 import { loadFeed } from "@/lib/posts/feed";
 import { getProfileByHandle } from "@/lib/profiles/get-profile";
+import { createClient } from "@/lib/supabase/server";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { parseYearParam, VISIBLE_CHIPS } from "@/lib/year-chips";
 
@@ -30,9 +31,26 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
   if (!profile) notFound();
 
   const year = parseYearParam(query.year);
-  const items = await loadFeed({ year, category: null, query: null, authorId: profile.id });
+  // 탭: 작업물(직접 올린 글) · 크레딧된 작업(남이 올렸고 내가 승인한 글) (S-09 ⑤)
+  const tab = query.tab === "credits" ? "credits" : "works";
   const isMe = viewer?.id === profile.id;
   const base = profileHref(profile.handle);
+
+  const supabase = await createClient();
+  const { data: credited } = await supabase
+    .from("credits")
+    .select("post_id")
+    .eq("member_id", profile.id)
+    .eq("status", "approved")
+    .limit(200);
+  const creditedIds = [...new Set((credited ?? []).map((c) => c.post_id))];
+  const items =
+    tab === "works"
+      ? await loadFeed({ year, category: null, query: null, authorId: profile.id })
+      : // 내가 올린 글에 나를 크레딧한 경우는 작업물 탭에 이미 있으므로 뺀다
+        (await loadFeed({ year: null, category: null, query: null, postIds: creditedIds })).filter((p) => p.handle !== profile.handle);
+  const tabClass =
+    "inline-flex min-h-10 items-center border-b-2 border-transparent px-1 text-sm aria-[current=page]:border-text aria-[current=page]:font-semibold";
   // 이 회원이 사진을 올린 촬영 연도만 (S-09 ⑥)
   const years = profile.years.toSorted((a, b) => b - a);
 
@@ -67,8 +85,17 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
         )}
       </header>
 
-      <h2 className="sr-only">작업물</h2>
-      {years.length > 0 && (
+      <nav aria-label="프로필 탭" className="flex gap-6 border-b border-line px-4 md:px-6">
+        <Link href={base} aria-current={tab === "works" ? "page" : undefined} className={tabClass}>
+          작업물
+        </Link>
+        <Link href={`${base}?tab=credits`} aria-current={tab === "credits" ? "page" : undefined} className={tabClass}>
+          크레딧된 작업 {creditedIds.length > 0 && <span className="ml-1 text-quiet">{creditedIds.length}</span>}
+        </Link>
+      </nav>
+
+      <h2 className="sr-only">{tab === "works" ? "작업물" : "크레딧된 작업"}</h2>
+      {tab === "works" && years.length > 0 && (
         <YearChips
           chips={{ visible: years.slice(0, VISIBLE_CHIPS), older: years.slice(VISIBLE_CHIPS) }}
           selected={year}
@@ -77,7 +104,13 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
       )}
       <PhotoFeed
         items={items}
-        empty={isMe ? "아직 올린 사진이 없어요." : year ? `${year}년에 올린 사진이 없어요.` : "아직 올린 사진이 없어요."}
+        empty={
+          tab === "credits"
+            ? "크레딧된 작업이 아직 없어요."
+            : year
+              ? `${year}년에 올린 사진이 없어요.`
+              : "아직 올린 사진이 없어요."
+        }
       />
     </div>
   );

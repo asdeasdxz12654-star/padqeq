@@ -6,6 +6,7 @@ import { getViewer } from "@/lib/auth/viewer";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "./actions";
+import { type CreditRequest, CreditRequests } from "./credit-requests";
 import { ProfileForm } from "./profile-form";
 
 export const metadata: Metadata = {
@@ -21,12 +22,25 @@ export default async function MePage() {
   const { profile } = viewer;
 
   const supabase = await createClient();
-  const [{ data: full }, openReports] = await Promise.all([
+  const [{ data: full }, openReports, creditRows] = await Promise.all([
     supabase.from("profiles").select("bio").eq("id", viewer.id).single(),
     profile.role === "admin"
       ? supabase.from("reports").select("id", { count: "exact", head: true }).eq("status", "open")
       : Promise.resolve({ count: null }),
+    // 나를 태그했고 아직 답하지 않은 크레딧 (게시된 글만 보인다, RLS)
+    supabase
+      .from("credits")
+      .select("id, role, post:posts!credits_post_id_fkey(id, title, author_id, author:profiles!posts_author_id_fkey(handle))")
+      .eq("member_id", viewer.id)
+      .eq("status", "pending")
+      .order("created_at", { ascending: false })
+      .limit(50),
   ]);
+  const creditRequests: CreditRequest[] = (creditRows.data ?? []).flatMap((c) =>
+    c.post && c.post.author_id !== viewer.id
+      ? [{ id: c.id, role: c.role, postId: c.post.id, postTitle: c.post.title, uploader: c.post.author?.handle ?? "" }]
+      : [],
+  );
 
   return (
     <div className="mx-auto max-w-xl px-4 pt-10 pb-16 md:px-6">
@@ -59,6 +73,8 @@ export default async function MePage() {
           </Link>
         </nav>
       )}
+
+      {creditRequests.length > 0 && <CreditRequests requests={creditRequests} />}
 
       <section aria-labelledby="edit-heading" className="mt-10">
         <h2 id="edit-heading" className="mb-4 text-lg font-semibold">

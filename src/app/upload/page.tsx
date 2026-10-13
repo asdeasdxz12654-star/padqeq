@@ -33,7 +33,7 @@ export default async function UploadPage() {
       <p className="mt-2 text-sm leading-relaxed text-quiet">
         사진은 이 브라우저에서 고화질로 변환한 뒤 올라가요. 원본 파일은 서버에 저장하지 않으니 따로 보관해 주세요.
       </p>
-      <UploadStudio isAdmin={viewer.profile.role === "admin"} currentYear={currentYearKst()} />
+      <UploadStudio isAdmin={viewer.profile.role === "admin"} viewerHandle={viewer.profile.handle} currentYear={currentYearKst()} />
     </div>
   );
 }

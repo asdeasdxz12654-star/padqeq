@@ -14,6 +14,8 @@ export type FeedFilter = {
   tagIds?: string[];
   /** 이 회원이 올린 글 (프로필) */
   authorId?: string;
+  /** 이 글들만 (프로필 크레딧된 작업) */
+  postIds?: string[];
 };
 
 export type FeedItem = {
@@ -32,7 +34,7 @@ export type FeedItem = {
 };
 
 /** 게시된 글 목록 (홈 · 탐색). 대표 사진에는 이미지 게이트 서명 주소를 붙인다. */
-export async function loadFeed({ year, category, query, tagIds, authorId }: FeedFilter): Promise<FeedItem[]> {
+export async function loadFeed({ year, category, query, tagIds, authorId, postIds }: FeedFilter): Promise<FeedItem[]> {
   const supabase = await createClient();
 
   // 태그로 좁힐 때는 먼저 글 id를 모은다 (볼 수 있는 연결만, RLS)
@@ -61,6 +63,10 @@ export async function loadFeed({ year, category, query, tagIds, authorId }: Feed
   if (category !== null) feed = feed.eq("category", category);
   if (taggedPostIds) feed = feed.in("id", taggedPostIds);
   if (authorId) feed = feed.eq("author_id", authorId);
+  if (postIds) {
+    if (!postIds.length) return [];
+    feed = feed.in("id", postIds.slice(0, 200));
+  }
 
   // 내가 신고한 글은 내 피드에서 바로 숨긴다 (S-15 ⑧)
   const viewer = await getViewer();

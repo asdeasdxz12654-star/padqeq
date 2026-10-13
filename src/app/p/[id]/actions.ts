@@ -90,3 +90,16 @@ export async function getWatermarkSeeds(postId: string): Promise<{ position: num
     return p ? [{ position: s.position, seed: s.seed, width: p.width, height: p.height }] : [];
   });
 }
+
+/** 내가 태그된 크레딧 해제 (당사자 또는 작성자만 지울 수 있다, RLS) */
+export async function removeMyCredit(creditId: string): Promise<{ ok: boolean; error?: string }> {
+  const id = idSchema.safeParse(creditId);
+  if (!id.success) return { ok: false, error: "잘못된 요청이에요." };
+  const viewer = await getViewer();
+  if (!viewer?.profile) return { ok: false, error: "로그인이 필요해요." };
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("credits").delete().eq("id", id.data).eq("member_id", viewer.id).select("id");
+  if (error || !data?.length) return { ok: false, error: "해제하지 못했어요." };
+  revalidatePath("/");
+  return { ok: true };
+}

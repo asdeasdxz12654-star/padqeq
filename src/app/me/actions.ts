@@ -45,3 +45,26 @@ export async function updateProfile(input: { displayName: string; bio: string })
   revalidatePath(profileHref(viewer.profile.handle));
   return { ok: true };
 }
+
+const respondSchema = z.object({ creditId: z.uuid(), decision: z.enum(["approved", "rejected"]) });
+
+/** 나를 태그한 크레딧 승인 · 거절 (당사자만, RLS) */
+export async function respondCredit(input: z.input<typeof respondSchema>): Promise<{ ok: boolean; error?: string }> {
+  const parsed = respondSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "잘못된 요청이에요." };
+  const viewer = await getViewer();
+  if (!viewer?.profile) return { ok: false, error: "로그인이 필요해요." };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("credits")
+    .update({ status: parsed.data.decision })
+    .eq("id", parsed.data.creditId)
+    .eq("member_id", viewer.id)
+    .eq("status", "pending")
+    .select("id");
+  if (error || !data?.length) return { ok: false, error: "처리하지 못했어요." };
+  revalidatePath("/me");
+  revalidatePath(profileHref(viewer.profile.handle));
+  return { ok: true };
+}

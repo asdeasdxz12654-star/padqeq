@@ -1,5 +1,6 @@
 "use client";
 
+import type { CreditInput } from "@/lib/photos/credit-input";
 import type { ConsentInput } from "@/lib/photos/post-input";
 import { VARIANT_NAMES, VARIANTS } from "@/lib/photos/variants";
 import { createDraft, publishPost } from "./actions";
@@ -19,6 +20,7 @@ export type BundleMeta = {
   shotOn: string | null;
   consent: ConsentInput;
   tagIds: string[];
+  credits: CreditInput[];
 };
 
 export type Draft = { postId: string; photoIds: string[] };
@@ -39,6 +41,7 @@ export async function publishBundle(
       shotOn: meta.shotOn,
       hasPeople: meta.hasPeople,
       tagIds: meta.tagIds,
+      credits: meta.credits,
       photos: photos.map((p) => ({
         width: p.result!.width,
         height: p.result!.height,
