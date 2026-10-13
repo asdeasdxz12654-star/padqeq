@@ -5,6 +5,7 @@ import { withNext } from "@/lib/auth/next-path";
 import { getViewer } from "@/lib/auth/viewer";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { createClient } from "@/lib/supabase/server";
+import { currentYearKst } from "@/lib/year-chips";
 import { signOut } from "./actions";
 import { type CreditRequest, CreditRequests } from "./credit-requests";
 import { ProfileForm } from "./profile-form";
@@ -72,6 +73,14 @@ export default async function MePage() {
           내 프로필 보기
         </Link>
       </div>
+
+      <Link
+        href="/me/year"
+        className="mt-8 flex min-h-14 items-center justify-between rounded-xl border border-line px-4 hover:border-quiet"
+      >
+        <span className="font-semibold">나의 {currentYearKst()}</span>
+        <span className="text-xs text-quiet">한 해 동안 담은 사진 돌아보기 ›</span>
+      </Link>
 
       {profile.role === "admin" && (
         <nav aria-label="운영" className="mt-8 flex flex-wrap gap-2">
