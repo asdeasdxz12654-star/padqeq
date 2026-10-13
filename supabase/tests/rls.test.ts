@@ -165,10 +165,11 @@ describe("게시 규칙", () => {
     ).rejects.toThrow(/사진이 없는/);
   });
 
-  it("노출 주의(sensitive)는 봉인되어 있다", async () => {
+  it("노출 주의(sensitive)는 봉인되어 있다: 회원은 열 권한이 없고, DB 제약도 막는다", async () => {
     await expect(
       asUser(db, ADMIN, (tx) => tx.query(`update posts set sensitive = true where id = '${DRAFT}'`)),
-    ).rejects.toThrow(/sensitive_sealed/);
+    ).rejects.toThrow(/permission denied/);
+    await expect(db.query(`update posts set sensitive = true where id = '${DRAFT}'`)).rejects.toThrow(/sensitive_sealed/);
   });
 
   it("미성년자가 있으면 보호자 동의가 필수다", async () => {
