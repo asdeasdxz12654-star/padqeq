@@ -113,6 +113,14 @@ export default async function MePage() {
       </Link>
 
       <Link
+        href="/me/collections"
+        className="mt-2 flex min-h-14 items-center justify-between rounded-xl border border-line px-4 hover:border-quiet"
+      >
+        <span className="font-semibold">내 컬렉션</span>
+        <span className="text-xs text-quiet">이름 붙인 사진 묶음 ›</span>
+      </Link>
+
+      <Link
         href="/me/year"
         className="mt-2 flex min-h-14 items-center justify-between rounded-xl border border-line px-4 hover:border-quiet"
       >

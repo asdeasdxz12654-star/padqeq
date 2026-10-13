@@ -117,6 +117,77 @@ export type Database = {
           },
         ]
       }
+      collection_posts: {
+        Row: {
+          added_at: string
+          collection_id: string
+          post_id: string
+        }
+        Insert: {
+          added_at?: string
+          collection_id: string
+          post_id: string
+        }
+        Update: {
+          added_at?: string
+          collection_id?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_posts_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_posts_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collections: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          is_public: boolean
+          owner_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          is_public?: boolean
+          owner_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          is_public?: boolean
+          owner_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collections_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       consent_records: {
         Row: {
           consented_on: string

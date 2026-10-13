@@ -8,6 +8,7 @@ import { profileHref } from "@/lib/profiles/profile-href";
 import { TagChip } from "@/components/tag-chip";
 import { createClient } from "@/lib/supabase/server";
 import { ClaimCreditButton } from "./claim-credit-button";
+import { CollectPanel } from "./collect-panel";
 import { HidePostButton } from "./hide-post-button";
 import { ModerationNotice } from "./moderation-notice";
 import { PhotoViewer } from "./photo-viewer";
@@ -59,6 +60,20 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
       .in("credit_id", externalIds);
     for (const row of data ?? []) claimed.add(row.credit_id);
   }
+  // 컬렉션에 담기: 내 글 · 내가 크레딧으로 승인된 글
+  const canCollect =
+    Boolean(viewer?.profile) && (isAuthor || post.credits.some((c) => viewer !== null && c.member_id === viewer.id && c.status === "approved"));
+  let myCollections: { id: string; title: string; has: boolean }[] = [];
+  if (canCollect && viewer) {
+    const supabase = await createClient();
+    const [{ data: mine }, { data: holding }] = await Promise.all([
+      supabase.from("collections").select("id, title").eq("owner_id", viewer.id).order("updated_at", { ascending: false }).limit(100),
+      supabase.from("collection_posts").select("collection_id").eq("post_id", post.id),
+    ]);
+    const has = new Set((holding ?? []).map((h) => h.collection_id));
+    myCollections = (mine ?? []).map((c) => ({ id: c.id, title: c.title, has: has.has(c.id) }));
+  }
+
   // 저장 여부 (게시된 글만 저장할 수 있다)
   const canSave = Boolean(viewer?.profile) && post.status === "published";
   const saved =
@@ -187,6 +202,7 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
               </Link>
             ))}
 
+          {canCollect && <CollectPanel postId={post.id} collections={myCollections} />}
           {isAuthor && (
             <Link href={`/p/${post.id}/edit`} className="self-start rounded-full border border-line px-3 py-1.5 text-sm hover:border-quiet">
               편집

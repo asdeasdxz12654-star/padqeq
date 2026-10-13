@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CollectionCards } from "@/components/collection-cards";
 import { FollowButton } from "@/components/follow-button";
 import { PhotoFeed } from "@/components/photo-feed";
 import { YearChips } from "@/components/year-chips";
 import { getViewer } from "@/lib/auth/viewer";
+import { loadCollectionCards } from "@/lib/collections/load";
 import { getFollowedMembers } from "@/lib/follows/follows";
 import { loadFeed } from "@/lib/posts/feed";
 import { getProfileByHandle } from "@/lib/profiles/get-profile";
@@ -34,7 +36,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
 
   const year = parseYearParam(query.year);
   // 탭: 작업물(직접 올린 글) · 크레딧된 작업(남이 올렸고 내가 승인한 글) (S-09 ⑤)
-  const tab = query.tab === "credits" ? "credits" : "works";
+  const tab = query.tab === "credits" ? "credits" : query.tab === "collections" ? "collections" : "works";
   const isMe = viewer?.id === profile.id;
   const base = profileHref(profile.handle);
   const following = viewer?.profile && !isMe ? (await getFollowedMembers(viewer.id)).some((m) => m.id === profile.id) : false;
@@ -47,8 +49,11 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
     .eq("status", "approved")
     .limit(200);
   const creditedIds = [...new Set((credited ?? []).map((c) => c.post_id))];
+  const collections = await loadCollectionCards(profile.id);
   const items =
-    tab === "works"
+    tab === "collections"
+      ? []
+      : tab === "works"
       ? await loadFeed({ year, category: null, query: null, authorId: profile.id })
       : // 내가 올린 글에 나를 크레딧한 경우는 작업물 탭에 이미 있으므로 뺀다
         (await loadFeed({ year: null, category: null, query: null, postIds: creditedIds })).filter((p) => p.handle !== profile.handle);
@@ -104,9 +109,12 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
         <Link href={`${base}?tab=credits`} aria-current={tab === "credits" ? "page" : undefined} className={tabClass}>
           크레딧된 작업 {creditedIds.length > 0 && <span className="ml-1 text-quiet">{creditedIds.length}</span>}
         </Link>
+        <Link href={`${base}?tab=collections`} aria-current={tab === "collections" ? "page" : undefined} className={tabClass}>
+          컬렉션 {collections.length > 0 && <span className="ml-1 text-quiet">{collections.length}</span>}
+        </Link>
       </nav>
 
-      <h2 className="sr-only">{tab === "works" ? "작업물" : "크레딧된 작업"}</h2>
+      <h2 className="sr-only">{tab === "works" ? "작업물" : tab === "credits" ? "크레딧된 작업" : "컬렉션"}</h2>
       {tab === "works" && years.length > 0 && (
         <YearChips
           chips={{ visible: years.slice(0, VISIBLE_CHIPS), older: years.slice(VISIBLE_CHIPS) }}
@@ -114,6 +122,11 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
           hrefFor={(y) => (y === null ? base : `${base}?year=${y}`)}
         />
       )}
+      {tab === "collections" ? (
+        <div className="pt-4">
+          <CollectionCards items={collections} empty={isMe ? "아직 만든 컬렉션이 없어요. 마이 › 내 컬렉션에서 만들 수 있어요." : "공개한 컬렉션이 아직 없어요."} />
+        </div>
+      ) : (
       <PhotoFeed
         items={items}
         empty={
@@ -124,6 +137,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
               : "아직 올린 사진이 없어요."
         }
       />
+      )}
     </div>
   );
 }
