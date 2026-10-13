@@ -13,7 +13,7 @@ export async function updatePost(input: EditInput): Promise<{ ok: boolean; error
   const viewer = await getViewer();
   if (!viewer?.profile) return { ok: false, error: "로그인이 필요해요." };
 
-  const { postId, title, body, category, shotYear, shotOn, tagIds, alts, credits } = parsed.data;
+  const { postId, title, body, category, shotYear, shotOn, tagIds, alts, credits, photoOrder } = parsed.data;
   const supabase = await createClient();
 
   const { data: updated, error } = await supabase
@@ -35,9 +35,17 @@ export async function updatePost(input: EditInput): Promise<{ ok: boolean; error
     if (addError) return { ok: false, error: "태그를 붙이지 못했어요. 태그를 다시 골라 주세요." };
   }
 
-  // 사진 설명 (대체 텍스트)
+  // 사진 빼기 · 순서 (바뀐 경우만). 뺀 사진 파일은 7일 뒤 정리된다.
+  const { data: currentPhotos } = await supabase.from("photos").select("id").eq("post_id", postId).order("position");
+  if ((currentPhotos ?? []).map((p) => p.id).join() !== photoOrder.join()) {
+    const { error: arrangeError } = await supabase.rpc("arrange_my_photos", { target: postId, keep: photoOrder });
+    if (arrangeError) return { ok: false, error: "사진 순서를 저장하지 못했어요." };
+  }
+
+  // 사진 설명 (대체 텍스트, 남긴 사진만)
+  const kept = new Set(photoOrder);
   const results = await Promise.all(
-    alts.map(({ photoId, altText }) =>
+    alts.filter((a) => kept.has(a.photoId)).map(({ photoId, altText }) =>
       supabase.from("photos").update({ alt_text: altText }).eq("id", photoId).eq("post_id", postId),
     ),
   );

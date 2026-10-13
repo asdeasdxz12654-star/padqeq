@@ -36,6 +36,17 @@ export function EditForm({ initial, isAdmin, viewerHandle }: { initial: Initial;
   const [tags, setTags] = useState(initial.tags);
   const [credits, setCredits] = useState(initial.credits);
   const [alts, setAlts] = useState<Record<string, string>>(() => Object.fromEntries(initial.photos.map((p) => [p.id, p.altText])));
+  // 남길 사진 (보여 줄 순서대로)
+  const [order, setOrder] = useState(() => initial.photos.map((p) => p.id));
+  const photoById = new Map(initial.photos.map((p) => [p.id, p]));
+  const removed = initial.photos.filter((p) => !order.includes(p.id));
+  const move = (index: number, delta: number) =>
+    setOrder((o) => {
+      const next = [...o];
+      const [item] = next.splice(index, 1);
+      next.splice(index + delta, 0, item!);
+      return next;
+    });
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const thisYear = currentYearKst();
@@ -57,7 +68,8 @@ export function EditForm({ initial, isAdmin, viewerHandle }: { initial: Initial;
             shotYear,
             shotOn: shotOn || null,
             tagIds: tags.map((t) => t.id),
-            alts: initial.photos.map((p) => ({ photoId: p.id, altText: alts[p.id] ?? "" })),
+            alts: order.map((id) => ({ photoId: id, altText: alts[id] ?? "" })),
+            photoOrder: order,
             credits: {
               keep: credits.flatMap((c) => (c.key.startsWith("id:") ? [c.key.slice(3)] : [])),
               add: credits.filter((c) => !c.key.startsWith("id:")).map(toCreditInput),
@@ -154,9 +166,11 @@ export function EditForm({ initial, isAdmin, viewerHandle }: { initial: Initial;
 
       <fieldset className="flex flex-col gap-3">
         <legend className="mb-1.5 text-sm">
-          사진 설명 <span className="text-xs text-quiet">(화면 낭독기로 사진을 듣는 분들께 읽어 줘요)</span>
+          사진 <span className="text-xs text-quiet">(순서 · 빼기 · 설명. 설명은 화면 낭독기로 사진을 듣는 분들께 읽어 줘요)</span>
         </legend>
-        {initial.photos.map((p, i) => (
+        {order.map((id, i) => {
+          const p = photoById.get(id)!;
+          return (
           <div key={p.id} className="flex items-start gap-3">
             <div className="size-16 shrink-0 overflow-hidden rounded-lg bg-slot [&_picture]:h-full">
               {p.sources && (
@@ -173,8 +187,36 @@ export function EditForm({ initial, isAdmin, viewerHandle }: { initial: Initial;
                 className={`${field} text-text`}
               />
             </label>
+            <div className="flex shrink-0 flex-col gap-1 pt-4">
+              <div className="flex gap-1">
+                <button type="button" disabled={pending || i === 0} onClick={() => move(i, -1)} aria-label={`${i + 1}번째 사진을 앞으로`} className="size-9 rounded-lg border border-line disabled:opacity-30">
+                  ↑
+                </button>
+                <button type="button" disabled={pending || i === order.length - 1} onClick={() => move(i, 1)} aria-label={`${i + 1}번째 사진을 뒤로`} className="size-9 rounded-lg border border-line disabled:opacity-30">
+                  ↓
+                </button>
+              </div>
+              <button type="button" disabled={pending || order.length === 1} onClick={() => setOrder((o) => o.filter((x) => x !== id))} className="min-h-9 rounded-lg border border-line px-2 text-xs text-quiet hover:text-text disabled:opacity-30">
+                빼기
+              </button>
+            </div>
           </div>
-        ))}
+          );
+        })}
+        {removed.length > 0 && (
+          <div className="flex flex-col gap-2 rounded-xl border border-dashed border-line p-3 text-xs text-quiet">
+            <p>저장하면 뺀 사진 {removed.length}장이 게시물에서 지워져요. 되돌리려면 다시 넣기를 누르세요.</p>
+            <ul className="flex flex-wrap gap-2">
+              {removed.map((p) => (
+                <li key={p.id}>
+                  <button type="button" disabled={pending} onClick={() => setOrder((o) => [...o, p.id])} className="min-h-9 rounded-lg border border-line px-3 text-text">
+                    {initial.photos.indexOf(p) + 1}번 사진 다시 넣기
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </fieldset>
 
       {error && (

@@ -570,6 +570,7 @@ export type Database = {
       handle_status: { Args: { target: string }; Returns: string }
       request_account_deletion: { Args: never; Returns: string }
       cancel_account_deletion: { Args: never; Returns: undefined }
+      arrange_my_photos: { Args: { keep: string[]; target: string }; Returns: undefined }
       moderate_post: { Args: { decision: string; note: string; target: string }; Returns: undefined }
       approve_tag: { Args: { target: string }; Returns: undefined }
       create_official_tag: {

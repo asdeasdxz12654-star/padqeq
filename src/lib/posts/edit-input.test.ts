@@ -10,6 +10,7 @@ const base = {
   shotOn: "2025-04-05",
   tagIds: [],
   alts: [{ photoId: "60000000-0000-4000-8000-000000000002", altText: "벚꽃길" }],
+  photoOrder: ["60000000-0000-4000-8000-000000000002"],
   credits: { keep: [], add: [{ kind: "external", role: "model", label: "홍길동", url: "" }] },
 } as const;
 
@@ -28,6 +29,13 @@ describe("editSchema", () => {
   it("제어 문자 · 빈 제목은 막는다", () => {
     expect(editSchema.safeParse({ ...base, title: "a\u0007" }).success).toBe(false);
     expect(editSchema.safeParse({ ...base, title: "  " }).success).toBe(false);
+  });
+});
+
+describe("editSchema photos", () => {
+  it("사진을 모두 빼거나 중복하면 막는다", () => {
+    expect(editSchema.safeParse({ ...base, photoOrder: [] }).success).toBe(false);
+    expect(editSchema.safeParse({ ...base, photoOrder: [base.photoOrder[0], base.photoOrder[0]] }).success).toBe(false);
   });
 });
 
