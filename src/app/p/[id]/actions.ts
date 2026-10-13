@@ -134,3 +134,25 @@ export async function submitAppeal(input: z.input<typeof appealSchema>): Promise
   revalidatePath("/admin/reports");
   return { ok: true };
 }
+
+/** 내가 숨긴 글을 다시 게시한다. 운영자가 게시 중단한 글은 DB가 막는다 (소명으로만). */
+export async function republishPost(postId: string): Promise<{ ok: boolean; error?: string }> {
+  const id = idSchema.safeParse(postId);
+  if (!id.success) return { ok: false, error: "잘못된 요청이에요." };
+  const viewer = await getViewer();
+  if (!viewer?.profile) return { ok: false, error: "로그인이 필요해요." };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("posts")
+    .update({ status: "published" })
+    .eq("id", id.data)
+    .eq("author_id", viewer.id)
+    .eq("status", "hidden")
+    .is("removed_at", null)
+    .select("id");
+  if (error || !data?.length) return { ok: false, error: "다시 게시하지 못했어요." };
+
+  revalidatePath("/");
+  return { ok: true };
+}

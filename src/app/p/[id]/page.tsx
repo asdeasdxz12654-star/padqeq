@@ -10,6 +10,7 @@ import { HidePostButton } from "./hide-post-button";
 import { ModerationNotice } from "./moderation-notice";
 import { PhotoViewer } from "./photo-viewer";
 import { RemoveCreditButton } from "./remove-credit-button";
+import { RepublishButton } from "./republish-button";
 import { ReportButton } from "./report-button";
 import { WatermarkCheck } from "./watermark-check";
 
@@ -58,9 +59,13 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
         </p>
       ) : null}
       {post.status !== "published" && !(isAuthor && post.removed_at) && (
-        <p className="mx-4 mb-4 rounded-lg border border-line px-3 py-2 text-sm text-quiet md:mx-0">
-          {post.status === "draft" ? "아직 게시하지 않은 초안이에요." : post.removed_at ? "운영자가 게시를 중단한 글이에요." : "게시를 중단한 글이에요. 다른 사람에게는 보이지 않아요."}
-        </p>
+        <div className="mx-4 mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line px-3 py-2 text-sm text-quiet md:mx-0">
+          <p>
+            {post.status === "draft" ? "아직 게시하지 않은 초안이에요." : post.removed_at ? "운영자가 게시를 중단한 글이에요." : "게시를 중단한 글이에요. 다른 사람에게는 보이지 않아요."}
+          </p>
+          {/* 내가 숨긴 글은 다시 게시할 수 있다 (운영자가 중단한 글은 소명으로만) */}
+          {isAuthor && post.status === "hidden" && !post.removed_at && <RepublishButton postId={post.id} />}
+        </div>
       )}
 
       <div className="md:grid md:grid-cols-[minmax(0,1fr)_320px] md:gap-8">
@@ -142,6 +147,11 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
               </Link>
             ))}
 
+          {isAuthor && (
+            <Link href={`/p/${post.id}/edit`} className="self-start rounded-full border border-line px-3 py-1.5 text-sm hover:border-quiet">
+              편집
+            </Link>
+          )}
           {canHide && <HidePostButton postId={post.id} />}
           {viewer?.profile?.role === "admin" && <WatermarkCheck postId={post.id} />}
         </div>
