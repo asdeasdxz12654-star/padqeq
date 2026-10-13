@@ -31,6 +31,10 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  // 프로필 주소 /@handle → 실제 화면 /u/handle (폴더 이름의 @는 병렬 라우트용이라 쓸 수 없다)
+  async rewrites() {
+    return [{ source: "/@:handle", destination: "/u/:handle" }];
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

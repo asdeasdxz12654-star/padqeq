@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getViewer } from "@/lib/auth/viewer";
+import { profileHref } from "@/lib/profiles/profile-href";
 import { NAV_ITEMS } from "./nav-items";
 
 /** 상단 바. 데스크톱(768px~)에서는 GNB + 업로드 버튼 + 계정, 모바일에서는 로고와 가입 안내만. */
@@ -38,7 +39,7 @@ export async function SiteHeader() {
                 업로드
               </Link>
               {viewer?.profile ? (
-                <Link href="/me" className="hidden max-w-40 truncate text-quiet hover:text-text md:block">
+                <Link href={profileHref(viewer.profile.handle)} className="hidden max-w-40 truncate text-quiet hover:text-text md:block">
                   @{viewer.profile.handle}
                 </Link>
               ) : (

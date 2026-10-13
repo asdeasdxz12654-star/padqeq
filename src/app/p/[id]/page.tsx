@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getViewer } from "@/lib/auth/viewer";
 import { CATEGORY_LABEL } from "@/lib/photos/post-input";
+import Link from "next/link";
 import { getPost } from "@/lib/posts/get-post";
+import { profileHref } from "@/lib/profiles/profile-href";
 import { TagChip } from "@/components/tag-chip";
 import { HidePostButton } from "./hide-post-button";
 import { PhotoViewer } from "./photo-viewer";
@@ -59,7 +61,9 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
           <header className="flex flex-col gap-2">
             <h1 className="text-xl font-bold leading-snug">{post.title}</h1>
             <p className="text-sm">
-              <span className="font-semibold">@{post.author.handle}</span>
+              <Link href={profileHref(post.author.handle)} className="font-semibold hover:underline">
+                @{post.author.handle}
+              </Link>
               <span className="text-quiet"> · {post.author.display_name}</span>
             </p>
             <p className="text-xs text-quiet">

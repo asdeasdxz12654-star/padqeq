@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { FeedItem } from "@/lib/posts/feed";
+import { profileHref } from "@/lib/profiles/profile-href";
 import { ProtectedPhoto } from "./protected-photo";
 
 const CATEGORY_LABEL = { cosplay: "코스프레", model: "모델", landscape: "풍경", other: "기타" } as const;
@@ -36,7 +37,10 @@ export function PhotoFeed({ items, empty }: { items: FeedItem[]; empty: string }
                 </Link>
               </h2>
               <p className="text-xs text-quiet">
-                @{post.handle} · {CATEGORY_LABEL[post.category]} · {post.shotYear}
+                <Link href={profileHref(post.handle)} className="relative z-10 hover:text-text">
+                  @{post.handle}
+                </Link>{" "}
+                · {CATEGORY_LABEL[post.category]} · {post.shotYear}
               </p>
             </div>
           </article>

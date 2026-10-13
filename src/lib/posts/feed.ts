@@ -11,6 +11,8 @@ export type FeedFilter = {
   query: SearchQuery | null;
   /** 이 태그 중 하나라도 붙은 글 (태그 허브) */
   tagIds?: string[];
+  /** 이 회원이 올린 글 (프로필) */
+  authorId?: string;
 };
 
 export type FeedItem = {
@@ -29,7 +31,7 @@ export type FeedItem = {
 };
 
 /** 게시된 글 목록 (홈 · 탐색). 대표 사진에는 이미지 게이트 서명 주소를 붙인다. */
-export async function loadFeed({ year, category, query, tagIds }: FeedFilter): Promise<FeedItem[]> {
+export async function loadFeed({ year, category, query, tagIds, authorId }: FeedFilter): Promise<FeedItem[]> {
   const supabase = await createClient();
 
   // 태그로 좁힐 때는 먼저 글 id를 모은다 (볼 수 있는 연결만, RLS)
@@ -55,6 +57,7 @@ export async function loadFeed({ year, category, query, tagIds }: FeedFilter): P
   if (year !== null) feed = feed.eq("shot_year", year);
   if (category !== null) feed = feed.eq("category", category);
   if (taggedPostIds) feed = feed.in("id", taggedPostIds);
+  if (authorId) feed = feed.eq("author_id", authorId);
 
   if (query?.kind === "title") {
     // 값은 PostgREST가 인코딩한다. LIKE 특수 문자만 글자 그대로 찾도록 막는다.

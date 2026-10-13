@@ -1,0 +1,55 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { updateProfile } from "./actions";
+
+const inputClass = "min-h-11 rounded-xl border border-line bg-surface px-3 text-base outline-none focus:border-accent";
+
+export function ProfileForm({ displayName, bio }: { displayName: string; bio: string }) {
+  const [name, setName] = useState(displayName);
+  const [about, setAbout] = useState(bio);
+  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
+  const [pending, startTransition] = useTransition();
+  const changed = name !== displayName || about !== bio;
+
+  return (
+    <form
+      className="flex flex-col gap-4"
+      onSubmit={(e) => {
+        e.preventDefault();
+        setMessage(null);
+        startTransition(async () => {
+          const result = await updateProfile({ displayName: name, bio: about });
+          setMessage(result.ok ? { ok: true, text: "저장했어요." } : { ok: false, text: result.error ?? "저장하지 못했어요." });
+        });
+      }}
+    >
+      <label className="flex flex-col gap-1.5 text-sm font-medium">
+        표시 이름
+        <input value={name} maxLength={40} required onChange={(e) => setName(e.target.value)} className={inputClass} />
+      </label>
+      <label className="flex flex-col gap-1.5 text-sm font-medium">
+        소개 <span className="text-xs font-normal text-quiet">(주로 하는 작품 · 활동 등, 300자까지)</span>
+        <textarea
+          value={about}
+          maxLength={300}
+          rows={4}
+          onChange={(e) => setAbout(e.target.value)}
+          className={`${inputClass} py-2`}
+        />
+      </label>
+      {message && (
+        <p role="status" className={`text-sm ${message.ok ? "text-emerald-400" : "text-red-300"}`}>
+          {message.text}
+        </p>
+      )}
+      <button
+        type="submit"
+        disabled={pending || !changed}
+        className="min-h-11 self-start rounded-xl bg-accent px-5 text-sm font-semibold text-on-accent disabled:opacity-50"
+      >
+        {pending ? "저장 중…" : "저장"}
+      </button>
+    </form>
+  );
+}
