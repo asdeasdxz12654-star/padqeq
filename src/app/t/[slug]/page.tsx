@@ -5,13 +5,16 @@ import { cache } from "react";
 import { PhotoFeed } from "@/components/photo-feed";
 import { TagChip } from "@/components/tag-chip";
 import { YearChips } from "@/components/year-chips";
+import { getViewer } from "@/lib/auth/viewer";
 import { loadFeed } from "@/lib/posts/feed";
+import { getFollowedTags } from "@/lib/tags/follows";
 import { createClient } from "@/lib/supabase/server";
 import { TAG_KIND_LABEL } from "@/lib/tags/tag-rules";
 import { buildYearChips, parseYearParam } from "@/lib/year-chips";
+import { FollowButton } from "./follow-button";
 
 // S-05 태그 허브 (1단계: 계층 · 별칭 · 캐릭터 목록 · 사진 · 촬영 연도).
-// 태그 팔로우 · 인기/최신 탭 · 관련 태그는 반응 · 팔로우 기능과 함께.
+// 태그 팔로우는 홈 '팔로우' 피드로 이어진다. 인기/최신 탭 · 관련 태그는 반응 기능과 함께.
 
 const getTag = cache(async (rawSlug: string) => {
   let slug: string;
@@ -60,10 +63,12 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
   const supabase = await createClient();
   // 작품 허브에는 그 작품 캐릭터 사진도 함께
   const tagIds = [tag.id, ...tag.children.map((c) => c.id)];
-  const [years, items] = await Promise.all([
+  const [years, items, viewer] = await Promise.all([
     supabase.rpc("published_shot_years"),
     loadFeed({ year, category: null, query: null, tagIds }),
+    getViewer(),
   ]);
+  const following = viewer?.profile ? (await getFollowedTags(viewer.id)).some((t) => t.id === tag.id) : false;
   if (years.error) throw years.error;
 
   return (
@@ -84,7 +89,19 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
           {" › "}
           <span>{TAG_KIND_LABEL[tag.kind]}</span>
         </nav>
-        <h1 className="text-2xl font-bold">{tag.kind === "general" ? `#${tag.name}` : tag.name}</h1>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <h1 className="text-2xl font-bold">{tag.kind === "general" ? `#${tag.name}` : tag.name}</h1>
+          {viewer?.profile ? (
+            <FollowButton tagId={tag.id} initial={following} />
+          ) : (
+            <Link
+              href={`/login?next=${encodeURIComponent(base)}`}
+              className="inline-flex min-h-10 items-center rounded-full bg-accent px-4 text-sm font-semibold text-on-accent"
+            >
+              팔로우
+            </Link>
+          )}
+        </div>
         {tag.tag_aliases.length > 0 && (
           <p className="text-sm text-quiet">다른 표기: {tag.tag_aliases.map((a) => a.alias).join(" · ")}</p>
         )}

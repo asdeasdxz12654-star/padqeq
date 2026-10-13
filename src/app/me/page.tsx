@@ -5,6 +5,8 @@ import { withNext } from "@/lib/auth/next-path";
 import { getViewer } from "@/lib/auth/viewer";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { createClient } from "@/lib/supabase/server";
+import { getFollowedTags } from "@/lib/tags/follows";
+import { TagChip } from "@/components/tag-chip";
 import { currentYearKst } from "@/lib/year-chips";
 import { signOut } from "./actions";
 import { type CreditRequest, CreditRequests } from "./credit-requests";
@@ -23,7 +25,7 @@ export default async function MePage() {
   const { profile } = viewer;
 
   const supabase = await createClient();
-  const [{ data: full }, openReports, creditRows] = await Promise.all([
+  const [{ data: full }, openReports, creditRows, followedTags] = await Promise.all([
     supabase.from("profiles").select("bio, deletion_requested_at").eq("id", viewer.id).single(),
     profile.role === "admin"
       ? supabase.from("reports").select("id", { count: "exact", head: true }).eq("status", "open")
@@ -36,6 +38,7 @@ export default async function MePage() {
       .eq("status", "pending")
       .order("created_at", { ascending: false })
       .limit(50),
+    getFollowedTags(viewer.id),
   ]);
   const creditRequests: CreditRequest[] = (creditRows.data ?? []).flatMap((c) =>
     c.post && c.post.author_id !== viewer.id
@@ -92,6 +95,28 @@ export default async function MePage() {
       )}
 
       {creditRequests.length > 0 && <CreditRequests requests={creditRequests} />}
+
+      <section aria-labelledby="follows-heading" className="mt-10">
+        <h2 id="follows-heading" className="mb-3 text-lg font-semibold">
+          팔로우한 태그 <span className="text-sm font-normal text-quiet">{followedTags.length}</span>
+        </h2>
+        {followedTags.length ? (
+          <>
+            <ul className="flex flex-wrap gap-2">
+              {followedTags.map((t) => (
+                <li key={t.id}>
+                  <TagChip tag={t} showKind={t.kind !== "general"} />
+                </li>
+              ))}
+            </ul>
+            <Link href="/?feed=following" className="mt-3 inline-block text-sm text-quiet underline underline-offset-4 hover:text-text">
+              팔로우 피드 보기
+            </Link>
+          </>
+        ) : (
+          <p className="text-sm text-quiet">태그 페이지에서 팔로우하면 홈의 &lsquo;팔로우&rsquo;에 모여요.</p>
+        )}
+      </section>
 
       <section aria-labelledby="edit-heading" className="mt-10">
         <h2 id="edit-heading" className="mb-4 text-lg font-semibold">
