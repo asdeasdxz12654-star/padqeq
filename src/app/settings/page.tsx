@@ -71,6 +71,15 @@ export default async function SettingsPage() {
         </h2>
         <DeletionPanel handle={viewer.profile.handle} requestedAt={profile?.deletion_requested_at ?? null} />
       </section>
+
+      <nav aria-label="정책" className="flex gap-4 border-t border-line pt-6 text-sm text-quiet">
+        <Link href="/terms" className="hover:text-text">
+          이용약관
+        </Link>
+        <Link href="/privacy" className="font-semibold hover:text-text">
+          개인정보처리방침
+        </Link>
+      </nav>
     </div>
   );
 }
