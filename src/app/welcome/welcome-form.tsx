@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { HANDLE_PATTERN, MIN_AGE } from "@/lib/auth/signup-input";
 import { createClient } from "@/lib/supabase/client";
+import { Turnstile } from "@/components/turnstile";
 import { completeSignup, type SignupErrors } from "./actions";
 
 type HandleCheck = "idle" | "checking" | "ok" | "invalid" | "reserved" | "taken" | "error";
@@ -23,7 +24,18 @@ const TONE = { quiet: "text-quiet", ok: "text-emerald-400", bad: "text-red-300" 
 const inputClass =
   "min-h-12 rounded-xl border border-line bg-surface px-3 text-base outline-none focus:border-accent aria-[invalid=true]:border-red-400";
 
-export function WelcomeForm({ next, suggestedName, today }: { next: string; suggestedName: string; today: string }) {
+export function WelcomeForm({
+  next,
+  suggestedName,
+  today,
+  turnstileSiteKey,
+}: {
+  next: string;
+  suggestedName: string;
+  today: string;
+  turnstileSiteKey: string | null;
+}) {
+  const [attempt, setAttempt] = useState(0);
   const [handle, setHandle] = useState("");
   const [checked, setChecked] = useState<{ handle: string; status: HandleCheck } | null>(null);
   const [agreeTerms, setAgreeTerms] = useState(false);
@@ -62,6 +74,8 @@ export function WelcomeForm({ next, suggestedName, today }: { next: string; sugg
         startTransition(async () => {
           // 성공하면 서버가 다음 화면으로 보낸다. 돌아온 값은 오류뿐이다.
           setErrors(await completeSignup(formData));
+          // 실패했으면 Turnstile 확인 값을 새로 받는다 (한 번만 쓸 수 있음)
+          setAttempt((n) => n + 1);
         });
       }}
     >
@@ -193,6 +207,8 @@ export function WelcomeForm({ next, suggestedName, today }: { next: string; sugg
         </div>
         {errors.agree && <p className="text-xs text-red-300">{errors.agree}</p>}
       </fieldset>
+
+      {turnstileSiteKey && <Turnstile siteKey={turnstileSiteKey} resetKey={attempt} />}
 
       {errors.form && (
         <p role="alert" className="rounded-lg border border-red-400/40 bg-red-400/10 px-3 py-2 text-sm text-red-300">

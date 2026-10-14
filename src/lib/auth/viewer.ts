@@ -3,6 +3,7 @@ import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/lib/supabase/database.types";
 import { isActiveRestriction } from "@/lib/moderation/sanctions";
+import { getSiteSwitches } from "@/lib/support/switches";
 
 export type Viewer = {
   id: string;
@@ -31,7 +32,9 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
   const { sub, user_metadata: meta, aal } = data.claims;
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("handle, display_name, role, can_upload, restriction:member_restrictions!member_restrictions_member_id_fkey(suspended_until, reason)")
+    .select(
+      "handle, display_name, role, can_upload, upload_revoked_at, restriction:member_restrictions!member_restrictions_member_id_fkey(suspended_until, reason)",
+    )
     .eq("id", sub)
     .maybeSingle();
   if (profileError) throw profileError;
@@ -47,6 +50,9 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
   const restriction = restricted ? { until: restricted.suspended_until, reason: restricted.reason } : null;
 
   const mfaRequired = profile?.role === "admin" && aal !== "aal2";
+  // 업로드 권한: 받은 권한, 또는 개방 단계(회수당하지 않은 회원). 정지 중이면 없음. (DB의 private.can_upload()와 같은 규칙)
+  const stage = profile ? (await getSiteSwitches()).uploadStage : "solo";
+  const canUpload = Boolean(profile) && (profile!.can_upload || (stage === "open" && !profile!.upload_revoked_at)) && !restriction;
 
   return {
     id: sub,
@@ -55,7 +61,7 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
       handle: profile.handle,
       display_name: profile.display_name,
       role: mfaRequired ? "member" : profile.role,
-      can_upload: profile.can_upload && !restriction,
+      can_upload: canUpload,
     },
     restriction,
     mfaRequired,

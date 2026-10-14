@@ -35,9 +35,9 @@ export function buildCsp({
     // 사진은 같은 출처의 이미지 게이트(/img)만. 외부 이미지 금지.
     "img-src": ["'self'", "blob:", "data:"],
     "font-src": ["'self'"],
-    "connect-src": ["'self'", supabase.origin, supabaseWs],
-    // 해담 안에 다른 사이트를 넣지 않는다 (Google 로그인은 iframe이 아닌 화면 이동)
-    "frame-src": ["'none'"],
+    "connect-src": ["'self'", supabase.origin, supabaseWs, "https://challenges.cloudflare.com"],
+    // 해담 안에 다른 사이트를 넣지 않는다 (Google 로그인은 iframe이 아닌 화면 이동). 가입 봇 방지(Turnstile) 확인 창만 예외.
+    "frame-src": ["https://challenges.cloudflare.com"],
     "worker-src": ["'self'", "blob:"],
     "media-src": ["'self'", "blob:"],
     "object-src": ["'none'"],

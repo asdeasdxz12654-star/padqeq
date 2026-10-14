@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BlockButton } from "@/components/block-button";
 import { CollectionCards } from "@/components/collection-cards";
 import { FollowButton } from "@/components/follow-button";
 import { PhotoFeed } from "@/components/photo-feed";
@@ -50,10 +51,14 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
     .eq("status", "approved")
     .limit(200);
   const creditedIds = [...new Set((credited ?? []).map((c) => c.post_id))];
-  const [collections, { data: creator }] = await Promise.all([
+  const [collections, { data: creator }, { data: blockRow }] = await Promise.all([
     loadCollectionCards(profile.id),
     supabase.from("creator_profiles").select("roles, region, active_since, works, casting_open, listed").eq("user_id", profile.id).maybeSingle(),
+    viewer?.profile && !isMe
+      ? supabase.from("blocks").select("blocked_id").eq("blocker_id", viewer.id).eq("blocked_id", profile.id).maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
+  const iBlocked = Boolean(blockRow);
   const items =
     tab === "collections"
       ? []
@@ -111,12 +116,15 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
         ) : viewer?.profile ? (
           <div className="flex flex-wrap gap-2">
             <FollowButton target={{ kind: "member", id: profile.id }} initial={following} />
-            <Link
-              href={`/me/messages/new?to=${encodeURIComponent(profile.handle)}`}
-              className="inline-flex min-h-10 items-center rounded-full border border-line px-4 text-sm hover:border-quiet"
-            >
-              메시지
-            </Link>
+            {!iBlocked && (
+              <Link
+                href={`/me/messages/new?to=${encodeURIComponent(profile.handle)}`}
+                className="inline-flex min-h-10 items-center rounded-full border border-line px-4 text-sm hover:border-quiet"
+              >
+                메시지
+              </Link>
+            )}
+            {profile.role !== "admin" && <BlockButton userId={profile.id} handle={profile.handle} initial={iBlocked} />}
           </div>
         ) : (
           <Link

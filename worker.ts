@@ -56,6 +56,8 @@ export default {
     const upstream: Response = await nextHandler.fetch(new Request(request, { headers }), env, ctx);
     const response = new Response(upstream.body, upstream);
     response.headers.set("Content-Security-Policy", csp);
+    // 가입 화면은 Turnstile(다른 출처 iframe)을 띄우므로 교차 출처 격리를 풀어 둔다
+    if (pathname === "/welcome") response.headers.delete("Cross-Origin-Embedder-Policy");
     // 이 주소는 앞으로 1년 동안 HTTPS로만 (하위 주소 포함)
     response.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
     if (setCookies.length > 0) {

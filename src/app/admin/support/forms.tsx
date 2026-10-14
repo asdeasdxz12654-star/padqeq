@@ -190,7 +190,7 @@ export function SwitchesForm({ current }: { current: SiteSwitches }) {
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
-  const changed = (Object.keys(current) as (keyof SiteSwitches)[]).some((k) => current[k] !== state[k]);
+  const changed = (["readOnly", "signupClosed", "uploadsClosed", "message"] as const).some((k) => current[k] !== state[k]);
 
   return (
     <form

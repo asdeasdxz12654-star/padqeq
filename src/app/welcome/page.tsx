@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { safeNextPath, withNext } from "@/lib/auth/next-path";
 import { todayKst } from "@/lib/auth/signup-input";
 import { getViewer } from "@/lib/auth/viewer";
+import { turnstileSiteKey } from "@/lib/security/turnstile";
 import { getSiteSwitches } from "@/lib/support/switches";
 import { WelcomeForm } from "./welcome-form";
 
@@ -32,7 +33,7 @@ export default async function WelcomePage({ searchParams }: PageProps<"/welcome"
     <div className="mx-auto max-w-sm px-4 pt-10 pb-16 md:pt-16">
       <h1 className="text-2xl font-bold">거의 다 됐어요</h1>
       <p className="mt-2 text-sm text-quiet">해담에서 쓸 이름을 정해 주세요.</p>
-      <WelcomeForm next={next} suggestedName={viewer.suggestedName} today={todayKst()} />
+      <WelcomeForm next={next} suggestedName={viewer.suggestedName} today={todayKst()} turnstileSiteKey={turnstileSiteKey()} />
     </div>
   );
 }

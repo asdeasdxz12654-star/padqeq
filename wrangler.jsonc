@@ -18,7 +18,9 @@
     "NEXT_PUBLIC_SUPABASE_URL": "https://icmzonndhmqdmqlrmhkn.supabase.co",
     "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_m0R0KuHySG2IaYFopBjfug_SFXnCC2n",
     // 대표 주소 (다른 주소로 들어오면 여기로 영구 이동)
-    "SITE_HOST": "www.memories.haedam.app"
+    "SITE_HOST": "www.memories.haedam.app",
+    // 가입 봇 방지(Turnstile) 공개 키. 비밀 키 TURNSTILE_SECRET_KEY는 대시보드 비밀값으로만.
+    "TURNSTILE_SITE_KEY": "0x4AAAAAAFWUeA-1XmoY_KEP"
   },
   "r2_buckets": [
     // 사진(AVIF 마스터 · 변환본). 공개 접근은 끈 상태로 만든다.

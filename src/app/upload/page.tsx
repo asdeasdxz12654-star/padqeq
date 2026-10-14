@@ -5,6 +5,7 @@ import { getViewer } from "@/lib/auth/viewer";
 import { InAppBrowserNotice } from "@/components/in-app-browser-notice";
 import { getSiteSwitches } from "@/lib/support/switches";
 import { currentYearKst } from "@/lib/year-chips";
+import { InviteForm } from "./invite-form";
 import { UploadStudio } from "./upload-studio";
 
 export const metadata: Metadata = {
@@ -40,10 +41,25 @@ export default async function UploadPage() {
   if (!viewer.profile.can_upload) {
     return (
       <div className="mx-auto max-w-md px-4 py-24 text-center">
-        <h1 className="text-xl font-bold">업로드는 아직 열리지 않았어요</h1>
-        <p className="mt-2 text-sm leading-relaxed text-quiet">
-          지금은 운영자만 사진을 올릴 수 있어요. 회원 업로드는 초대 방식으로 차례대로 열 예정이에요.
-        </p>
+        {switches.uploadStage === "invite" ? (
+          <>
+            <h1 className="text-xl font-bold">초대 코드로 업로드를 열어요</h1>
+            <p className="mt-2 text-sm leading-relaxed text-quiet">지금은 초대받은 회원만 사진을 올릴 수 있어요. 받은 초대 코드 8자리를 넣어 주세요.</p>
+            <InviteForm />
+          </>
+        ) : switches.uploadStage === "open" ? (
+          <>
+            <h1 className="text-xl font-bold">사진을 올릴 수 없는 계정이에요</h1>
+            <p className="mt-2 text-sm leading-relaxed text-quiet">운영 정책에 따라 업로드 권한이 회수됐어요. 이의가 있으면 1:1 문의로 알려 주세요.</p>
+          </>
+        ) : (
+          <>
+            <h1 className="text-xl font-bold">업로드는 아직 열리지 않았어요</h1>
+            <p className="mt-2 text-sm leading-relaxed text-quiet">
+              지금은 운영자만 사진을 올릴 수 있어요. 회원 업로드는 초대 방식으로 차례대로 열 예정이에요.
+            </p>
+          </>
+        )}
       </div>
     );
   }

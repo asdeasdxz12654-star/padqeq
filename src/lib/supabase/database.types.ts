@@ -226,6 +226,32 @@ export type Database = {
           },
         ]
       }
+      banned_words: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          word: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          word: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          word?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "banned_words_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blocks: {
         Row: {
           blocked_id: string
@@ -741,6 +767,7 @@ export type Database = {
           signup_closed: boolean
           updated_at: string
           updated_by: string | null
+          upload_stage: Database["public"]["Enums"]["upload_stage"]
           uploads_closed: boolean
         }
         Insert: {
@@ -750,6 +777,7 @@ export type Database = {
           signup_closed?: boolean
           updated_at?: string
           updated_by?: string | null
+          upload_stage?: Database["public"]["Enums"]["upload_stage"]
           uploads_closed?: boolean
         }
         Update: {
@@ -759,6 +787,7 @@ export type Database = {
           signup_closed?: boolean
           updated_at?: string
           updated_by?: string | null
+          upload_stage?: Database["public"]["Enums"]["upload_stage"]
           uploads_closed?: boolean
         }
         Relationships: []
@@ -1105,6 +1134,80 @@ export type Database = {
           {
             foreignKeyName: "inquiries_author_id_fkey"
             columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invite_codes: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          max_uses: number
+          note: string
+          revoked_at: string | null
+          used_count: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          expires_at: string
+          max_uses: number
+          note?: string
+          revoked_at?: string | null
+          used_count?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          max_uses?: number
+          note?: string
+          revoked_at?: string | null
+          used_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invite_codes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invite_redemptions: {
+        Row: {
+          code: string
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invite_redemptions_code_fkey"
+            columns: ["code"]
+            isOneToOne: false
+            referencedRelation: "invite_codes"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "invite_redemptions_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1544,6 +1647,7 @@ export type Database = {
           handle: string
           id: string
           role: Database["public"]["Enums"]["member_role"]
+          upload_revoked_at: string | null
         }
         Insert: {
           bio?: string
@@ -1554,6 +1658,7 @@ export type Database = {
           handle: string
           id: string
           role?: Database["public"]["Enums"]["member_role"]
+          upload_revoked_at?: string | null
         }
         Update: {
           bio?: string
@@ -1564,6 +1669,7 @@ export type Database = {
           handle?: string
           id?: string
           role?: Database["public"]["Enums"]["member_role"]
+          upload_revoked_at?: string | null
         }
         Relationships: []
       }
@@ -1683,6 +1789,11 @@ export type Database = {
       resolve_credit_claim: { Args: { accept: boolean; target: string }; Returns: undefined }
       arrange_my_photos: { Args: { keep: string[]; target: string }; Returns: undefined }
       moderate_post: { Args: { decision: string; note: string; target: string }; Returns: undefined }
+      can_i_upload: { Args: never; Returns: boolean }
+      set_upload_stage: { Args: { note: string; stage: Database["public"]["Enums"]["upload_stage"] }; Returns: undefined }
+      create_invite_code: { Args: { days: number; max_uses: number; note: string }; Returns: string }
+      revoke_invite_code: { Args: { target: string }; Returns: undefined }
+      redeem_invite_code: { Args: { input: string }; Returns: string }
       add_appeal_evidence: {
         Args: { bytes: number; content_type: string; target: string }
         Returns: { id: string; storage_key: string }[]
@@ -1837,6 +1948,7 @@ export type Database = {
       casting_terms: "paid" | "tfp" | "any"
       message_receive: "everyone" | "following" | "none"
       thread_kind: "direct" | "casting"
+      upload_stage: "solo" | "invite" | "open"
       thread_member_status: "active" | "request" | "declined"
       event_status: "official" | "proposed" | "rejected"
       inquiry_category: "account" | "upload" | "credit" | "report" | "other"
@@ -2030,6 +2142,7 @@ export const Constants = {
       casting_terms: ["paid", "tfp", "any"],
       message_receive: ["everyone", "following", "none"],
       thread_kind: ["direct", "casting"],
+      upload_stage: ["solo", "invite", "open"],
       thread_member_status: ["active", "request", "declined"],
       event_status: ["official", "proposed", "rejected"],
       inquiry_category: ["account", "upload", "credit", "report", "other"],

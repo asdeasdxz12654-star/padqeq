@@ -23,7 +23,7 @@ describe("inquirySchema", () => {
 });
 
 describe("switchBannerText", () => {
-  const off = { readOnly: false, signupClosed: false, uploadsClosed: false, message: "" };
+  const off = { readOnly: false, signupClosed: false, uploadsClosed: false, message: "", uploadStage: "solo" as const };
   it("켜진 스위치가 있을 때만 문구를 보여 준다", () => {
     expect(switchBannerText(off)).toBeNull();
     expect(switchBannerText({ ...off, message: "남은 문구" })).toBeNull();

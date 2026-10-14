@@ -86,6 +86,8 @@ export const CASTING_FORM_FIELDS: { key: keyof CastingForm; label: string; place
 ];
 
 export function boardErrorMessage(message: string | undefined): string {
+  if (message?.includes("banned_word")) return "쓸 수 없는 말이 들어 있어요.";
+  if (message?.includes("links_not_allowed")) return "가입하고 7일 동안은 링크를 쓸 수 없어요.";
   if (message?.includes("adult_required")) return "만 19세 이상 확인을 한 회원만 쓸 수 있어요.";
   if (message?.includes("account_too_new")) return "가입하고 7일이 지나야 섭외 글을 쓸 수 있어요.";
   if (message?.includes("board_rate_limited")) return "오늘은 글을 더 쓸 수 없어요. 내일 다시 시도해 주세요.";
@@ -97,6 +99,7 @@ export function boardErrorMessage(message: string | undefined): string {
 }
 
 export function messageErrorMessage(message: string | undefined): string {
+  if (message?.includes("banned_word")) return "쓸 수 없는 말이 들어 있어요.";
   if (message?.includes("messages_closed")) return "상대가 메시지를 받지 않도록 설정했어요.";
   if (message?.includes("blocked")) return "메시지를 보낼 수 없는 상대예요.";
   if (message?.includes("thread_closed")) return "더 이상 메시지를 보낼 수 없는 대화예요.";

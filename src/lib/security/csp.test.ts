@@ -16,8 +16,8 @@ describe("buildCsp", () => {
     expect(buildCsp({ nonce: "x", supabaseUrl })).toContain("frame-ancestors 'none'");
   });
 
-  it("해담 안에 다른 사이트를 iframe으로 넣지 않는다", () => {
-    expect(buildCsp({ nonce: "x", supabaseUrl })).toContain("frame-src 'none'");
+  it("해담 안에는 가입 봇 방지(Turnstile) 확인 창만 iframe으로 넣는다", () => {
+    expect(buildCsp({ nonce: "x", supabaseUrl })).toContain("frame-src https://challenges.cloudflare.com;");
   });
 
   it("외부 이미지를 허용하지 않는다", () => {

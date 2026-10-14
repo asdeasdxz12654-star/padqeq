@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { INQUIRY_CATEGORY_LABEL, NOTICE_CATEGORY_LABEL } from "@/lib/support/labels";
 import { getSiteSwitches } from "@/lib/support/switches";
 import { AnswerForm, type NoticeDraft, NoticeForm, SwitchesForm } from "./forms";
+import { BannedWords, InviteCodes, StageForm } from "./opening-forms";
 
 export const metadata: Metadata = { title: "고객센터 운영" };
 
@@ -11,7 +12,7 @@ export const metadata: Metadata = { title: "고객센터 운영" };
 
 const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "medium", timeStyle: "short" });
 
-const TABS = { open: "답변 대기", answered: "답변 완료", notices: "공지", system: "긴급 스위치" } as const;
+const TABS = { open: "답변 대기", answered: "답변 완료", notices: "공지", system: "시스템" } as const;
 type Tab = keyof typeof TABS;
 
 type InquiryRow = {
@@ -55,12 +56,7 @@ export default async function AdminSupportPage({ searchParams }: PageProps<"/adm
       ) : tab === "notices" ? (
         <Notices edit={typeof params.edit === "string" ? params.edit : null} />
       ) : (
-        <section className="max-w-xl">
-          <p className="mb-4 text-sm leading-relaxed text-quiet">
-            공격 · 장애가 생기면 바로 멈출 수 있어요. 운영자 계정은 막히지 않아요. 켜면 모든 화면 위에 안내가 떠요.
-          </p>
-          <SwitchesForm current={await getSiteSwitches()} />
-        </section>
+        <System />
       )}
     </div>
   );
@@ -157,6 +153,45 @@ async function Notices({ edit }: { edit: string | null }) {
       </section>
       <section aria-label="공지 편집">
         {draft ? <NoticeForm key={draft.id ?? "new"} notice={draft} /> : <p className="text-sm text-quiet">왼쪽에서 공지를 고르거나 새 공지를 쓰세요.</p>}
+      </section>
+    </div>
+  );
+}
+
+async function System() {
+  const supabase = await createClient();
+  const [switches, { data: invites }, { data: words }] = await Promise.all([
+    getSiteSwitches(),
+    supabase.from("invite_codes").select("code, note, max_uses, used_count, expires_at, revoked_at").order("created_at", { ascending: false }).limit(50),
+    supabase.from("banned_words").select("word").order("word").limit(500),
+  ]);
+  return (
+    <div className="grid max-w-5xl gap-8 lg:grid-cols-2">
+      <section aria-labelledby="switch-heading" className="flex flex-col gap-3">
+        <h2 id="switch-heading" className="text-lg font-semibold">
+          긴급 스위치
+        </h2>
+        <p className="text-sm leading-relaxed text-quiet">공격 · 장애가 생기면 바로 멈출 수 있어요. 운영자 계정은 막히지 않아요. 켜면 모든 화면 위에 안내가 떠요.</p>
+        <SwitchesForm current={switches} />
+      </section>
+      <section aria-labelledby="stage-heading" className="flex flex-col gap-3">
+        <h2 id="stage-heading" className="text-lg font-semibold">
+          운영 단계
+        </h2>
+        <StageForm current={switches.uploadStage} />
+      </section>
+      <section aria-labelledby="invite-heading" className="flex flex-col gap-3">
+        <h2 id="invite-heading" className="text-lg font-semibold">
+          초대 코드
+        </h2>
+        <InviteCodes invites={invites ?? []} stage={switches.uploadStage} />
+      </section>
+      <section aria-labelledby="words-heading" className="flex flex-col gap-3">
+        <h2 id="words-heading" className="text-lg font-semibold">
+          금칙어
+        </h2>
+        <p className="text-sm text-quiet">댓글 · 게시판 글 · 답글 · 메시지에 들어 있으면 올라가지 않아요.</p>
+        <BannedWords words={(words ?? []).map((w) => w.word)} />
       </section>
     </div>
   );

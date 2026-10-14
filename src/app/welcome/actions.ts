@@ -3,6 +3,8 @@
 import { redirect } from "next/navigation";
 import { safeNextPath, withNext } from "@/lib/auth/next-path";
 import { POLICY_VERSION, type SignupField, signupErrorFromDb, signupSchema } from "@/lib/auth/signup-input";
+import { headers } from "next/headers";
+import { verifyTurnstile } from "@/lib/security/turnstile";
 import { createClient, getUserId } from "@/lib/supabase/server";
 
 export type SignupErrors = Partial<Record<SignupField, string>>;
@@ -27,6 +29,12 @@ export async function completeSignup(formData: FormData): Promise<SignupErrors> 
       errors[field] ??= issue.message;
     }
     return errors;
+  }
+
+  // 가입 봇 방지 (Turnstile). 비밀값이 없으면 건너뛴다.
+  const ip = (await headers()).get("cf-connecting-ip");
+  if (!(await verifyTurnstile(formData.get("cf-turnstile-response"), ip))) {
+    return { form: "사람인지 확인하지 못했어요. 확인 상자를 다시 눌러 주세요." };
   }
 
   const { handle, displayName, birthDate } = parsed.data;

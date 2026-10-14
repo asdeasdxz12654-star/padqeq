@@ -126,7 +126,7 @@ export default function PrivacyPage() {
           </tr>
           <tr>
             <td>Cloudflare, Inc. (미국)</td>
-            <td>웹사이트 호스팅 · 사진 파일과 암호화 백업 저장: 사진 변환본, 신고 증거 사진, 접속 기록, 백업</td>
+            <td>웹사이트 호스팅 · 사진 파일과 암호화 백업 저장 · 가입 봇 확인(Turnstile): 사진 변환본, 신고 증거 사진, 접속 기록, 백업, 가입할 때의 브라우저 정보</td>
             <td>Cloudflare 전 세계 데이터센터 · 2항의 기간</td>
           </tr>
           <tr>

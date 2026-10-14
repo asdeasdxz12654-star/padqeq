@@ -20,7 +20,14 @@ export const INQUIRY_CATEGORY_LABEL: Record<InquiryCategory, string> = {
 /** 답변 목표 (화면에 안내) */
 export const INQUIRY_ANSWER_DAYS = 3;
 
-export type SiteSwitches = { readOnly: boolean; signupClosed: boolean; uploadsClosed: boolean; message: string };
+export type UploadStage = "solo" | "invite" | "open";
+export type SiteSwitches = { readOnly: boolean; signupClosed: boolean; uploadsClosed: boolean; message: string; uploadStage: UploadStage };
+
+export const UPLOAD_STAGE_LABEL: Record<UploadStage, { title: string; help: string }> = {
+  solo: { title: "1인 운영", help: "운영자만 사진을 올려요. 초대 코드는 쓸 수 없어요." },
+  invite: { title: "초대 회원", help: "운영자가 만든 초대 코드를 넣은 회원만 올려요." },
+  open: { title: "일반 개방", help: "가입한 회원은 누구나 올려요 (업로드 권한을 회수당한 회원 · 정지 회원 제외)." },
+};
 
 /** 모든 화면 위 안내 문구. 켜진 스위치가 없으면 null */
 export function switchBannerText(s: SiteSwitches): string | null {
