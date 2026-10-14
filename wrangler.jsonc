@@ -10,13 +10,15 @@
     "binding": "ASSETS"
   },
   "observability": { "enabled": true },
-  // 도메인을 사기 전까지는 haedam.<계정>.workers.dev 주소로 연다. 버전별 미리보기 주소는 끈다.
+  // 대표 주소는 SITE_HOST. workers.dev 주소는 남겨 두되 worker.ts가 대표 주소로 넘긴다. 버전별 미리보기 주소는 끈다.
   "workers_dev": true,
   "preview_urls": false,
   // 공개해도 되는 값만 여기에. 비밀값은 `wrangler secret put`으로 넣는다.
   "vars": {
     "NEXT_PUBLIC_SUPABASE_URL": "https://icmzonndhmqdmqlrmhkn.supabase.co",
-    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_m0R0KuHySG2IaYFopBjfug_SFXnCC2n"
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_m0R0KuHySG2IaYFopBjfug_SFXnCC2n",
+    // 대표 주소 (다른 주소로 들어오면 여기로 영구 이동)
+    "SITE_HOST": "www.memories.haedam.app"
   },
   "r2_buckets": [
     // 사진(AVIF 마스터 · 변환본). 공개 접근은 끈 상태로 만든다.

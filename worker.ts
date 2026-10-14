@@ -3,6 +3,7 @@
 //  1. CSP nonce 발급 (Next가 요청 헤더의 nonce를 자기 스크립트에 붙임)
 //  2. Supabase 세션 갱신 (만료된 토큰을 새로 받아 쿠키로 돌려줌)
 //  3. 예약 작업: DB 일시정지 방지, 백업 확인
+//  4. 대표 주소가 아닌 주소(workers.dev 등)로 들어오면 대표 주소로 영구 이동
 // Next 16의 proxy.ts는 Workers에서 아직 실험 기능이라 이곳에서 처리한다.
 
 import { createServerClient, parseCookieHeader, serializeCookieHeader } from "@supabase/ssr";
@@ -15,6 +16,16 @@ const SESSIONLESS_PREFIXES = ["/img/", "/_next/static/", "/wasm/"];
 
 export default {
   async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    if (env.SITE_HOST && url.hostname !== env.SITE_HOST) {
+      url.hostname = env.SITE_HOST;
+      url.protocol = "https:";
+      url.port = "";
+      // GET은 301, 그 밖(폼 · 업로드)은 메서드를 지키는 308
+      const status = request.method === "GET" || request.method === "HEAD" ? 301 : 308;
+      return new Response(null, { status, headers: { Location: url.toString(), "Cache-Control": "public, max-age=3600" } });
+    }
+
     const nonce = createNonce();
     const csp = buildCsp({ nonce, supabaseUrl: env.NEXT_PUBLIC_SUPABASE_URL });
 
@@ -24,7 +35,7 @@ export default {
     headers.set("x-nonce", nonce);
 
     // 사진 · 정적 파일 요청에는 세션이 필요 없다 (이미지 게이트는 서명으로 판단)
-    const { pathname } = new URL(request.url);
+    const { pathname } = url;
     const needsSession = !SESSIONLESS_PREFIXES.some((prefix) => pathname.startsWith(prefix));
     const setCookies = needsSession ? await refreshSession(request, headers, env) : [];
 
