@@ -48,6 +48,8 @@ describe("게시된 글에 사진 추가", () => {
     expect(await visibleTo(null)).toBe(1);
     expect(await visibleTo(AUTHOR)).toBe(2);
     expect(await visibleTo(ADMIN)).toBe(2);
+    await expect(as(AUTHOR, "select public.finish_my_photos($1, $2::uuid[])", [POST, [id]])).rejects.toThrow(/photo_hash_missing/);
+    await as(AUTHOR, "select public.set_photo_hashes($1, $2::jsonb)", [POST, JSON.stringify([{ photo_id: id, hash: "00000000000000aa" }])]);
     await as(AUTHOR, "select public.finish_my_photos($1, $2::uuid[])", [POST, [id]]);
     expect(await visibleTo(null)).toBe(2);
   });

@@ -121,6 +121,8 @@ describe("게시 규칙", () => {
       `insert into photos (post_id, position, width, height, bytes) values ($1, 0, 3000, 2000, 2000000)`,
       [id],
     );
+    // 게시하려면 사진 지문이 있어야 한다 (사진 지문 마이그레이션)
+    await tx.query("select set_photo_hashes($1, (select jsonb_agg(jsonb_build_object('photo_id', id, 'hash', '00000000000000aa')) from photos where post_id = $1))", [id]);
     return id;
   }
 
@@ -326,6 +328,8 @@ describe("게시 함수 (동의 기록 + 게시를 한 번에)", () => {
     );
     const id = post.rows[0]!.id;
     await tx.query(`insert into photos (post_id, position, width, height, bytes) values ($1, 0, 3000, 2000, 2000000)`, [id]);
+    // 게시하려면 사진 지문이 있어야 한다 (사진 지문 마이그레이션)
+    await tx.query("select set_photo_hashes($1, (select jsonb_agg(jsonb_build_object('photo_id', id, 'hash', '00000000000000aa')) from photos where post_id = $1))", [id]);
     return id;
   };
 

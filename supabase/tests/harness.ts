@@ -18,6 +18,12 @@ const SUPABASE_STUB = `
   create function auth.uid() returns uuid language sql stable as $$
     select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid
   $$;
+  -- Supabase의 auth.jwt()는 요청 토큰의 클레임. 테스트 기본값은 2단계 인증을 마친 세션(aal2),
+  -- 1단계 세션은 set_config('request.jwt.claims', '{"aal":"aal1"}', true)로 흉내 낸다.
+  create function auth.jwt() returns jsonb language sql stable as $$
+    select coalesce(nullif(current_setting('request.jwt.claims', true), '')::jsonb, '{"aal":"aal2"}'::jsonb)
+  $$;
+  grant execute on function auth.jwt() to anon, authenticated;
   grant usage on schema auth, public, extensions to anon, authenticated;
   grant execute on function auth.uid() to anon, authenticated;
   -- Supabase는 public의 새 테이블에 anon · authenticated 전체 권한을 기본으로 준다.

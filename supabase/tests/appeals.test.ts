@@ -59,8 +59,8 @@ describe("소명", () => {
   it("임시조치 소명을 받아들이면(해제) 다시 공개된다", async () => {
     await moderate("hold");
     await appeal();
-    // 처리 전에는 하나만
-    await expect(appeal()).rejects.toThrow(/duplicate key/);
+    // 조치 1건당 한 번
+    await expect(appeal()).rejects.toThrow(/appeal_limit/);
     await moderate("release");
     expect(await appealStatuses()).toEqual(["accepted"]);
     expect((await post()).held_at).toBeNull();
@@ -75,13 +75,32 @@ describe("소명", () => {
     expect(await kinds()).toEqual(["post_held", "appeal_rejected"]);
   });
 
-  it("게시물당 3번까지", async () => {
+  it("조치 1건당 한 번, 새 조치가 걸리면 다시 소명할 수 있다", async () => {
     await moderate("hold");
-    for (let i = 0; i < 3; i++) {
-      await appeal();
-      await moderate("hold");
-    }
+    await appeal();
+    await moderate("hold");
     await expect(appeal()).rejects.toThrow(/appeal_limit/);
+    // 게시 중단으로 바뀌면 새 조치
+    await moderate("hide");
+    await appeal();
+  });
+
+  it("조치 30일이 지나면 소명할 수 없다", async () => {
+    await moderate("hold");
+    await db.exec(`update posts set held_at = now() - interval '31 days' where id = '${POST}'`);
+    await expect(appeal()).rejects.toThrow(/appeal_expired/);
+  });
+
+  it("증빙은 내 열린 소명에 5개까지, 본인과 운영자만 본다", async () => {
+    await moderate("hold");
+    await appeal();
+    const appealId = (await db.query<{ id: string }>("select id from appeals")).rows[0]!.id;
+    const add = (user: string) => as(user, "select * from add_appeal_evidence($1, 'image/png', 100)", [appealId]);
+    await expect(add(OTHER)).rejects.toThrow(/appeal_not_found/);
+    for (let i = 0; i < 5; i++) await add(AUTHOR);
+    await expect(add(AUTHOR)).rejects.toThrow(/evidence_limit/);
+    const seen = async (user: string) => (await asUser(db, user, (tx) => tx.query("select 1 from appeal_evidence"))).rows.length;
+    expect([await seen(AUTHOR), await seen(ADMIN), await seen(OTHER)]).toEqual([5, 5, 0]);
   });
 
   it("운영자가 게시 중단한 글은 작성자가 다시 게시할 수 없고, 소명이 받아들여지면 복구된다", async () => {

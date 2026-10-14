@@ -21,7 +21,7 @@ beforeEach(async () => {
       ('${REPORTER}', 'reporter1', '신고', 'member', false);
     insert into public.posts (id, author_id, title, category, shot_year, has_people) values
       ('${POST}', '${AUTHOR}', '대상', 'landscape', 2026, false);
-    insert into public.photos (post_id, position, width, height, bytes) values ('${POST}', 0, 100, 100, 1000);
+    insert into public.photos (post_id, position, width, height, bytes, phash) values ('${POST}', 0, 100, 100, 1000, 170);
     insert into public.credits (post_id, role, member_id, status) values ('${POST}', 'model', '${MODEL}', 'pending');
   `);
 });
