@@ -6,6 +6,8 @@ import { getViewer } from "@/lib/auth/viewer";
 import { createClient } from "@/lib/supabase/server";
 import { DeletionPanel } from "./deletion-panel";
 import { MessageSettings } from "./message-settings";
+import { type ThemeChoice, ThemeForm } from "./theme-form";
+import { cookies } from "next/headers";
 
 export const metadata: Metadata = { title: "설정", robots: { index: false } };
 
@@ -26,6 +28,8 @@ export default async function SettingsPage() {
     supabase.from("blocks").select("blocked:profiles!blocks_blocked_id_fkey(id, handle)").eq("blocker_id", viewer.id).limit(1000),
   ]);
   const blocked = (blocks ?? []).flatMap((b) => (b.blocked ? [b.blocked] : []));
+  const savedTheme = (await cookies()).get("theme")?.value;
+  const themeChoice: ThemeChoice = savedTheme === "light" || savedTheme === "system" ? savedTheme : "dark";
   const email = typeof claims?.claims.email === "string" ? claims.claims.email : null;
 
   return (
@@ -51,6 +55,13 @@ export default async function SettingsPage() {
           <dt className="text-quiet">가입일</dt>
           <dd>{profile ? dayFormat.format(new Date(profile.created_at)) : "-"}</dd>
         </dl>
+      </section>
+
+      <section aria-labelledby="theme-heading" className="flex flex-col gap-3">
+        <h2 id="theme-heading" className="text-lg font-semibold">
+          화면
+        </h2>
+        <ThemeForm current={themeChoice} />
       </section>
 
       <section id="messages" aria-labelledby="messages-heading" className="flex scroll-mt-20 flex-col gap-3">

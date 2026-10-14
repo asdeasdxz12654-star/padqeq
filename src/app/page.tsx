@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { DailyPicks } from "@/components/daily-picks";
 import { OnThisDay } from "@/components/on-this-day";
+import { loadDailyPicks } from "@/lib/posts/daily-picks";
 import { PhotoFeed } from "@/components/photo-feed";
 import { YearChips } from "@/components/year-chips";
 import { getViewer } from "@/lib/auth/viewer";
@@ -20,11 +22,13 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
   const supabase = await createClient();
 
   const follows = following && viewer ? await followedFeed(viewer.id) : undefined;
-  const [years, items, memories] = await Promise.all([
+  const [years, items, memories, picks] = await Promise.all([
     supabase.rpc("published_shot_years"),
     loadFeed({ year, category: null, query: null, following: follows }),
     // N년 전 이맘때는 전체 보기에서만
     year === null && !following ? loadOnThisDay() : Promise.resolve([]),
+    // 오늘의 픽도 전체 보기에서만 (운영자 큐레이션)
+    year === null && !following ? loadDailyPicks() : Promise.resolve(null),
   ]);
   if (years.error) throw years.error;
 
@@ -64,6 +68,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         selected={year}
         hrefFor={(y) => href({ year: y, following })}
       />
+      <DailyPicks picks={picks} />
       <OnThisDay items={memories} />
       {following && follows?.tagIds.length === 0 && follows.authorIds.length === 0 ? (
         <p className="px-4 py-24 text-center text-sm leading-relaxed text-quiet md:px-6">

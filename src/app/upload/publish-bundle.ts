@@ -2,6 +2,7 @@
 
 import type { CreditInput } from "@/lib/photos/credit-input";
 import type { ConsentInput } from "@/lib/photos/post-input";
+import type { CommentPolicy, Visibility } from "@/lib/posts/audience";
 import { VARIANT_NAMES, VARIANTS } from "@/lib/photos/variants";
 import { createDraft, publishPost } from "./actions";
 import type { Photo } from "./use-converter";
@@ -21,6 +22,10 @@ export type BundleMeta = {
   consent: ConsentInput;
   tagIds: string[];
   credits: CreditInput[];
+  visibility: Visibility;
+  commentPolicy: CommentPolicy;
+  /** 예약 시각 (한국 시간 datetime-local 값, 비었으면 바로) */
+  scheduledAt: string;
 };
 
 export type Draft = { postId: string; photoIds: string[] };
@@ -42,6 +47,9 @@ export async function publishBundle(
       hasPeople: meta.hasPeople,
       tagIds: meta.tagIds,
       credits: meta.credits,
+      visibility: meta.visibility,
+      commentPolicy: meta.commentPolicy,
+      scheduledAt: meta.scheduledAt || null,
       photos: photos.map((p) => ({
         width: p.result!.width,
         height: p.result!.height,

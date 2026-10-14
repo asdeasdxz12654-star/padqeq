@@ -1,5 +1,6 @@
 "use client";
 
+import { COMMENT_POLICIES, COMMENT_POLICY_LABEL, type CommentPolicy, VISIBILITIES, VISIBILITY_LABEL, type Visibility } from "@/lib/posts/audience";
 import Link from "next/link";
 import { CATEGORIES, CATEGORY_LABEL, type ConsentInput } from "@/lib/photos/post-input";
 import { timeRange } from "@/lib/photos/grouping";
@@ -31,6 +32,10 @@ export type Bundle = {
   credits: CreditDraft[];
   /** RAW에서 만든 사진이 있으면 "보정 전 원본"임을 확인받는다 (P-01) */
   rawConfirmed: boolean;
+  visibility: Visibility;
+  commentPolicy: CommentPolicy;
+  /** 예약 (한국 시간 datetime-local, 비었으면 바로 게시) */
+  scheduledAt: string;
   draft: Draft | null;
   state: BundleState;
 };
@@ -304,6 +309,8 @@ export function BundleCard({
         onChange={(patch) => set(patch)}
       />
 
+      <AudienceFields bundle={bundle} disabled={locked} onChange={set} />
+
       <footer className="flex flex-wrap items-center gap-3">
         <button
           type="button"
@@ -455,5 +462,48 @@ function IconButton({
     >
       {children}
     </button>
+  );
+}
+
+/** 공개 범위 · 댓글 · 예약 (S-08 ⑪ · A-02 ⑧) */
+function AudienceFields({
+  bundle,
+  disabled,
+  onChange,
+}: {
+  bundle: Bundle;
+  disabled: boolean;
+  onChange(patch: Partial<Pick<Bundle, "visibility" | "commentPolicy" | "scheduledAt">>): void;
+}) {
+  const field = "min-h-11 rounded-xl border border-line bg-bg px-3 text-base";
+  return (
+    <fieldset className="grid gap-3 sm:grid-cols-3" disabled={disabled}>
+      <legend className="mb-2 text-sm font-semibold">공개 설정</legend>
+      <label className="flex flex-col gap-1.5 text-sm">
+        공개 범위
+        <select value={bundle.visibility} onChange={(e) => onChange({ visibility: e.target.value as Visibility })} className={field}>
+          {VISIBILITIES.map((v) => (
+            <option key={v} value={v}>
+              {VISIBILITY_LABEL[v].title}
+            </option>
+          ))}
+        </select>
+        <span className="text-xs text-quiet">{VISIBILITY_LABEL[bundle.visibility].help}</span>
+      </label>
+      <label className="flex flex-col gap-1.5 text-sm">
+        댓글
+        <select value={bundle.commentPolicy} onChange={(e) => onChange({ commentPolicy: e.target.value as CommentPolicy })} className={field}>
+          {COMMENT_POLICIES.map((c) => (
+            <option key={c} value={c}>
+              {COMMENT_POLICY_LABEL[c]}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="flex flex-col gap-1.5 text-sm">
+        예약 게시 <span className="text-xs text-quiet">(선택 · 한국 시간 · 90일 안)</span>
+        <input type="datetime-local" value={bundle.scheduledAt} onChange={(e) => onChange({ scheduledAt: e.target.value })} className={field} />
+      </label>
+    </fieldset>
   );
 }

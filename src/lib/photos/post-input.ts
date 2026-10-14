@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { COMMENT_POLICIES, VISIBILITIES, scheduleInput } from "@/lib/posts/audience";
 import { currentYearKst, MIN_YEAR } from "@/lib/year-chips";
 import { creditSchema, MAX_CREDITS_PER_POST } from "./credit-input";
 import { isPanorama, VARIANTS, variantSize } from "./variants";
@@ -52,6 +53,9 @@ export const draftSchema = z.object({
   photos: z.array(masterPhoto).min(1, "사진을 1장 이상 넣어 주세요.").max(MAX_PHOTOS_PER_POST),
   tagIds: z.array(z.uuid()).max(10, "태그는 10개까지예요.").default([]),
   credits: z.array(creditSchema).max(MAX_CREDITS_PER_POST, `크레딧은 ${MAX_CREDITS_PER_POST}개까지예요.`).default([]),
+  visibility: z.enum(VISIBILITIES).default("public"),
+  commentPolicy: z.enum(COMMENT_POLICIES).default("everyone"),
+  scheduledAt: scheduleInput.default(null),
 });
 export type DraftInput = z.input<typeof draftSchema>;
 

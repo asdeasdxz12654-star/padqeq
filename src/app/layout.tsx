@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans_KR } from "next/font/google";
+import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { PhotoGuard } from "@/components/photo-guard";
 import { RestrictionBanner } from "@/components/restriction-banner";
@@ -48,9 +49,11 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   // CSP nonce는 요청마다 새로 붙어야 하므로 모든 페이지를 요청 시점에 렌더링한다.
   // (정적 페이지에는 nonce가 없어 스크립트가 차단됨)
   await connection();
+  const saved = (await cookies()).get("theme")?.value;
+  const theme = saved === "light" || saved === "system" ? saved : "dark";
 
   return (
-    <html lang="ko" data-theme="dark" className={`${plexKr.variable} h-full antialiased`}>
+    <html lang="ko" data-theme={theme} className={`${plexKr.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
         <a
           href="#main"

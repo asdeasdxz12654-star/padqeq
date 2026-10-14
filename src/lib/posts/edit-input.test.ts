@@ -11,6 +11,8 @@ const base = {
   tagIds: [],
   alts: [{ photoId: "60000000-0000-4000-8000-000000000002", altText: "벚꽃길" }],
   photoOrder: ["60000000-0000-4000-8000-000000000002"],
+  visibility: "public" as const,
+  commentPolicy: "everyone" as const,
   credits: { keep: [], add: [{ kind: "external", role: "model", label: "홍길동", url: "" }] },
 } as const;
 

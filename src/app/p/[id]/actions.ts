@@ -285,3 +285,38 @@ export async function setLike(postId: string, like: boolean): Promise<{ ok: true
   }
   return { ok: true };
 }
+
+/** 작성자: 이 글을 프로필 커버로 · 고정 (S-09). 내 글인지 · 3개 제한은 DB가 확인한다. */
+export async function setProfileFeature(postId: string, kind: "cover" | "pin", on: boolean): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!idSchema.safeParse(postId).success) return { ok: false, error: "잘못된 요청이에요." };
+  const viewer = await getViewer();
+  if (!viewer?.profile) return { ok: false, error: "로그인이 필요해요." };
+  const supabase = await createClient();
+  let error;
+  if (kind === "cover") {
+    ({ error } = await supabase.from("profiles").update({ cover_post_id: on ? postId : null }).eq("id", viewer.id));
+  } else {
+    const { data } = await supabase.from("profiles").select("pinned_post_ids").eq("id", viewer.id).single();
+    const current = (data?.pinned_post_ids ?? []).filter((id) => id !== postId);
+    if (on && current.length >= 3) return { ok: false, error: "프로필에는 3개까지 고정할 수 있어요." };
+    ({ error } = await supabase.from("profiles").update({ pinned_post_ids: on ? [postId, ...current] : current }).eq("id", viewer.id));
+  }
+  if (error) return { ok: false, error: error.message.includes("cover_not_mine") ? "게시된 내 글만 커버로 쓸 수 있어요." : "바꾸지 못했어요." };
+  revalidatePath(`/u/${viewer.profile.handle}`);
+  return { ok: true };
+}
+
+/** 운영자: 오늘(한국 날짜)의 픽 넣기 · 빼기. 하루 10개 제한은 DB가 확인한다. */
+export async function setDailyPick(postId: string, on: boolean): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!idSchema.safeParse(postId).success) return { ok: false, error: "잘못된 요청이에요." };
+  const viewer = await getViewer();
+  if (viewer?.profile?.role !== "admin") return { ok: false, error: "운영자만 할 수 있어요." };
+  const supabase = await createClient();
+  const today = new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Seoul" }).format(new Date());
+  const { error } = on
+    ? await supabase.from("daily_picks").insert({ pick_date: today, post_id: postId, created_by: viewer.id })
+    : await supabase.from("daily_picks").delete().eq("pick_date", today).eq("post_id", postId);
+  if (error && error.code !== "23505") return { ok: false, error: error.message.includes("pick_limit") ? "오늘의 픽은 하루 10개까지예요." : "바꾸지 못했어요." };
+  revalidatePath("/");
+  return { ok: true };
+}

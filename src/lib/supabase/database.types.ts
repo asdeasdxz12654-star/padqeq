@@ -1027,6 +1027,38 @@ export type Database = {
           },
         ]
       }
+      daily_picks: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          pick_date: string
+          position: number
+          post_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          pick_date: string
+          position?: number
+          post_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          pick_date?: string
+          position?: number
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_picks_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           created_at: string
@@ -1607,6 +1639,9 @@ export type Database = {
       }
       posts: {
         Row: {
+          visibility: Database["public"]["Enums"]["post_visibility"]
+          scheduled_at: string | null
+          comment_policy: Database["public"]["Enums"]["comment_policy"]
           author_id: string
           body: string
           category: Database["public"]["Enums"]["post_category"]
@@ -1625,6 +1660,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          visibility?: Database["public"]["Enums"]["post_visibility"]
+          scheduled_at?: string | null
+          comment_policy?: Database["public"]["Enums"]["comment_policy"]
           author_id: string
           body?: string
           category: Database["public"]["Enums"]["post_category"]
@@ -1643,6 +1681,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          visibility?: Database["public"]["Enums"]["post_visibility"]
+          scheduled_at?: string | null
+          comment_policy?: Database["public"]["Enums"]["comment_policy"]
           author_id?: string
           body?: string
           category?: Database["public"]["Enums"]["post_category"]
@@ -1672,6 +1713,9 @@ export type Database = {
       }
       profiles: {
         Row: {
+          cover_post_id: string | null
+          links: string[]
+          pinned_post_ids: string[]
           bio: string
           can_upload: boolean
           created_at: string
@@ -1683,6 +1727,9 @@ export type Database = {
           upload_revoked_at: string | null
         }
         Insert: {
+          cover_post_id?: string | null
+          links?: string[]
+          pinned_post_ids?: string[]
           bio?: string
           can_upload?: boolean
           created_at?: string
@@ -1694,6 +1741,9 @@ export type Database = {
           upload_revoked_at?: string | null
         }
         Update: {
+          cover_post_id?: string | null
+          links?: string[]
+          pinned_post_ids?: string[]
           bio?: string
           can_upload?: boolean
           created_at?: string
@@ -1704,7 +1754,15 @@ export type Database = {
           role?: Database["public"]["Enums"]["member_role"]
           upload_revoked_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_cover_post_id_fkey"
+            columns: ["cover_post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       report_evidence: {
         Row: {
@@ -1982,6 +2040,8 @@ export type Database = {
       casting_terms: "paid" | "tfp" | "any"
       message_receive: "everyone" | "following" | "none"
       thread_kind: "direct" | "casting"
+      post_visibility: "public" | "followers" | "private"
+      comment_policy: "everyone" | "followers" | "off"
       upload_stage: "solo" | "invite" | "open"
       thread_member_status: "active" | "request" | "declined"
       event_status: "official" | "proposed" | "rejected"
@@ -2177,6 +2237,8 @@ export const Constants = {
       casting_terms: ["paid", "tfp", "any"],
       message_receive: ["everyone", "following", "none"],
       thread_kind: ["direct", "casting"],
+      post_visibility: ["public", "followers", "private"],
+      comment_policy: ["everyone", "followers", "off"],
       upload_stage: ["solo", "invite", "open"],
       thread_member_status: ["active", "request", "declined"],
       event_status: ["official", "proposed", "rejected"],

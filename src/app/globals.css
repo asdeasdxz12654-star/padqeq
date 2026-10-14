@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* 다크 모드가 기본. data-theme="light"일 때 라이트 (설정에서 전환) */
+/* 다크 모드가 기본. data-theme="light"면 라이트, "system"이면 기기 설정을 따른다 (설정 › 화면에서 전환, 쿠키 theme) */
 @custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
 
 :root {
@@ -26,6 +26,21 @@
   --accent: #1d4ed8;
   --on-accent: #ffffff;
   color-scheme: light;
+}
+
+/* 기기 설정 따르기: 기기가 라이트면 라이트 */
+@media (prefers-color-scheme: light) {
+  :root[data-theme="system"] {
+    --bg: #f5f5f3;
+    --surface: #ffffff;
+    --line: #e0e0da;
+    --text: #1c1c1a;
+    --text-quiet: #5f5f5a;
+    --slot: #dcdcd7;
+    --accent: #1d4ed8;
+    --on-accent: #ffffff;
+    color-scheme: light;
+  }
 }
 
 @theme inline {
@@ -70,5 +85,27 @@ body {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* 라이트 모드: 어두운 배경용으로 고른 밝은 안내 글자색을 진하게 (대비 4.5:1 이상) */
+:root[data-theme="light"] :is(.text-amber-100, [class~="text-amber-100/90"],.text-amber-200, [class~="text-amber-200/80"],.text-amber-300) {
+  color: #92400e;
+}
+:root[data-theme="light"] :is(.text-red-100, [class~="text-red-100/90"],.text-red-200, [class~="text-red-200/80"],.text-red-300) {
+  color: #b91c1c;
+}
+:root[data-theme="light"] .text-emerald-400 {
+  color: #047857;
+}
+@media (prefers-color-scheme: light) {
+  :root[data-theme="system"] :is(.text-amber-100, [class~="text-amber-100/90"],.text-amber-200, [class~="text-amber-200/80"],.text-amber-300) {
+    color: #92400e;
+  }
+  :root[data-theme="system"] :is(.text-red-100, [class~="text-red-100/90"],.text-red-200, [class~="text-red-200/80"],.text-red-300) {
+    color: #b91c1c;
+  }
+  :root[data-theme="system"] .text-emerald-400 {
+    color: #047857;
   }
 }

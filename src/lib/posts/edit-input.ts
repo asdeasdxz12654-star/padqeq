@@ -3,6 +3,7 @@ import { creditSchema, MAX_CREDITS_PER_POST } from "@/lib/photos/credit-input";
 import { CATEGORIES, MAX_PHOTOS_PER_POST } from "@/lib/photos/post-input";
 import { MAX_TAGS_PER_POST } from "@/lib/tags/tag-rules";
 import { currentYearKst, MIN_YEAR } from "@/lib/year-chips";
+import { COMMENT_POLICIES, VISIBILITIES, scheduleInput } from "./audience";
 
 // 게시물 편집 (S-07 ⑨). 사진 추가 · 사람 포함 여부는 여기서 바꾸지 않는다.
 //  · photoOrder: 남길 사진 id를 보여 줄 순서대로 (빠진 사진은 지운다, 1장 이상)
@@ -30,6 +31,10 @@ export const editSchema = z
       keep: z.array(z.uuid()).max(MAX_CREDITS_PER_POST),
       add: z.array(creditSchema).max(MAX_CREDITS_PER_POST),
     }),
+    visibility: z.enum(VISIBILITIES),
+    commentPolicy: z.enum(COMMENT_POLICIES),
+    /** 예약 중인 글만 바꿀 수 있다 (undefined면 그대로) */
+    scheduledAt: scheduleInput.optional(),
   })
   .refine((v) => v.credits.keep.length + v.credits.add.length <= MAX_CREDITS_PER_POST, {
     error: `크레딧은 ${MAX_CREDITS_PER_POST}개까지예요.`,

@@ -4,6 +4,8 @@ import { getViewer } from "@/lib/auth/viewer";
 import { CATEGORY_LABEL } from "@/lib/photos/post-input";
 import Link from "next/link";
 import { getComments } from "@/lib/comments/load";
+import { getFollowedMembers } from "@/lib/follows/follows";
+import { COMMENT_POLICY_LABEL, VISIBILITY_LABEL } from "@/lib/posts/audience";
 import { OG_IMAGES } from "@/lib/og";
 import { getPost } from "@/lib/posts/get-post";
 import { getSiteSwitches } from "@/lib/support/switches";
@@ -15,6 +17,7 @@ import { ShareButton } from "@/components/share-button";
 import { CollectPanel } from "./collect-panel";
 import { Comments } from "./comments";
 import { LikeButton } from "./like-button";
+import { PickButton, ProfileFeatureButtons } from "./owner-tools";
 import { HidePostButton } from "./hide-post-button";
 import { ModerationNotice } from "./moderation-notice";
 import { PhotoViewer } from "./photo-viewer";
@@ -33,6 +36,7 @@ const ROLE_LABEL = {
 } as const;
 
 const dateFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "medium" });
+const dateTimeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
 
 export async function generateMetadata({ params }: PageProps<"/p/[id]">): Promise<Metadata> {
   const post = await getPost((await params).id);
@@ -102,14 +106,38 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
   // 댓글: 게시된 글 · 정지 · 읽기 전용이 아닐 때 쓸 수 있다 (DB가 다시 막는다)
   const [{ comments, count: commentCount }, switches] = await Promise.all([getComments(post.id), getSiteSwitches()]);
   const isAdmin = viewer?.profile?.role === "admin";
+  // 댓글 설정 (업로더가 끄거나 팔로워만으로 했으면). 작성자 · 운영자는 그대로 단다.
+  const followsAuthor =
+    post.comment_policy === "followers" && viewer?.profile && !isAuthor
+      ? (await getFollowedMembers(viewer.id)).some((m) => m.id === post.author_id)
+      : true;
   const commentsClosed =
     post.status !== "published" || post.held_at
       ? "게시된 글에만 댓글을 달 수 있어요."
+      : !isAuthor && !isAdmin && post.comment_policy === "off"
+        ? "업로더가 댓글을 껐어요."
+        : !isAuthor && !isAdmin && !followsAuthor
+          ? "업로더를 팔로우한 회원만 댓글을 달 수 있어요."
       : viewer?.restriction
         ? "이용이 제한된 기간이라 댓글을 달 수 없어요."
         : switches.readOnly && !isAdmin
           ? "지금은 보기만 할 수 있어요."
           : null;
+
+  const [{ data: authorDecor }, { data: pickRow }] = await Promise.all([
+    isAuthor
+      ? (await createClient()).from("profiles").select("cover_post_id, pinned_post_ids").eq("id", post.author_id).maybeSingle()
+      : Promise.resolve({ data: null }),
+    isAdmin
+      ? (await createClient())
+          .from("daily_picks")
+          .select("post_id")
+          .eq("post_id", post.id)
+          .eq("pick_date", new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Seoul" }).format(new Date()))
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
+  const pickedToday = Boolean(pickRow);
 
   const credits = post.credits.filter(
     (c) => c.status === "approved" || c.status === "external" || isAuthor || (viewer !== null && c.member_id === viewer.id && c.status === "pending"),
@@ -151,6 +179,21 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
               </Link>
               <span className="text-quiet"> · {post.author.display_name}</span>
             </p>
+            {isAuthor && (post.visibility !== "public" || post.scheduled_at || post.comment_policy !== "everyone") && (
+              <p className="flex flex-wrap gap-1.5 text-[11px]">
+                {post.visibility !== "public" && (
+                  <span className="rounded-full border border-line px-2 py-0.5">{VISIBILITY_LABEL[post.visibility].title} 공개</span>
+                )}
+                {post.scheduled_at && Date.parse(post.scheduled_at) > Date.parse(new Date().toISOString()) && (
+                  <span className="rounded-full border border-amber-400/60 px-2 py-0.5 text-amber-200">
+                    예약 {dateTimeFormat.format(new Date(post.scheduled_at))}
+                  </span>
+                )}
+                {post.comment_policy !== "everyone" && (
+                  <span className="rounded-full border border-line px-2 py-0.5">{COMMENT_POLICY_LABEL[post.comment_policy]}</span>
+                )}
+              </p>
+            )}
             <p className="text-xs text-quiet">
               {CATEGORY_LABEL[post.category]} · 촬영 {post.shot_on ? dateFormat.format(new Date(post.shot_on)) : `${post.shot_year}년`}
               {post.published_at && ` · 게시 ${dateFormat.format(new Date(post.published_at))}`}
@@ -247,6 +290,10 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
             </Link>
           )}
           {canHide && <HidePostButton postId={post.id} />}
+          {isAuthor && post.status === "published" && (
+            <ProfileFeatureButtons postId={post.id} isCover={authorDecor?.cover_post_id === post.id} isPinned={(authorDecor?.pinned_post_ids ?? []).includes(post.id)} />
+          )}
+          {isAdmin && post.status === "published" && post.visibility === "public" && <PickButton postId={post.id} picked={pickedToday} />}
           {viewer?.profile?.role === "admin" && <WatermarkCheck postId={post.id} />}
 
           <Comments

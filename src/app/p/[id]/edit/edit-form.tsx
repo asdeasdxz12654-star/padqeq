@@ -9,6 +9,7 @@ import { ProtectedPhoto } from "@/components/protected-photo";
 import { CATEGORIES, CATEGORY_LABEL } from "@/lib/photos/post-input";
 import type { PhotoSources } from "@/lib/photos/server";
 import { currentYearKst, MIN_YEAR } from "@/lib/year-chips";
+import { COMMENT_POLICIES, COMMENT_POLICY_LABEL, type CommentPolicy, VISIBILITIES, VISIBILITY_LABEL, type Visibility, toKstLocal } from "@/lib/posts/audience";
 import { updatePost } from "./actions";
 
 type Initial = {
@@ -22,6 +23,10 @@ type Initial = {
   photos: { id: string; altText: string; width: number; height: number; sources: PhotoSources | null }[];
   /** 기존 크레딧은 key가 "id:<크레딧 id>" */
   credits: CreditDraft[];
+  visibility: Visibility;
+  commentPolicy: CommentPolicy;
+  /** 예약 중이면 예약 시각, 아니면 null */
+  scheduledAt: string | null;
 };
 
 const field = "min-h-11 rounded-xl border border-line bg-surface px-3 text-base outline-none focus:border-accent";
@@ -35,6 +40,9 @@ export function EditForm({ initial, isAdmin, viewerHandle }: { initial: Initial;
   const [shotOn, setShotOn] = useState(initial.shotOn ?? "");
   const [tags, setTags] = useState(initial.tags);
   const [credits, setCredits] = useState(initial.credits);
+  const [visibility, setVisibility] = useState(initial.visibility);
+  const [commentPolicy, setCommentPolicy] = useState(initial.commentPolicy);
+  const [scheduledAt, setScheduledAt] = useState(toKstLocal(initial.scheduledAt));
   const [alts, setAlts] = useState<Record<string, string>>(() => Object.fromEntries(initial.photos.map((p) => [p.id, p.altText])));
   // 남길 사진 (보여 줄 순서대로)
   const [order, setOrder] = useState(() => initial.photos.map((p) => p.id));
@@ -74,6 +82,9 @@ export function EditForm({ initial, isAdmin, viewerHandle }: { initial: Initial;
               keep: credits.flatMap((c) => (c.key.startsWith("id:") ? [c.key.slice(3)] : [])),
               add: credits.filter((c) => !c.key.startsWith("id:")).map(toCreditInput),
             },
+            visibility,
+            commentPolicy,
+            ...(initial.scheduledAt && { scheduledAt: scheduledAt || null }),
           });
           if (!result.ok) {
             setError(result.error ?? "저장하지 못했어요.");
@@ -163,6 +174,38 @@ export function EditForm({ initial, isAdmin, viewerHandle }: { initial: Initial;
         </span>
         <CreditEditor value={credits} onChange={setCredits} disabled={pending} viewerHandle={viewerHandle} />
       </div>
+
+      <fieldset className="grid gap-3 sm:grid-cols-3">
+        <legend className="mb-1.5 text-sm">공개 설정</legend>
+        <label className="flex flex-col gap-1.5 text-sm">
+          공개 범위
+          <select value={visibility} onChange={(e) => setVisibility(e.target.value as Visibility)} disabled={pending} className={field}>
+            {VISIBILITIES.map((v) => (
+              <option key={v} value={v}>
+                {VISIBILITY_LABEL[v].title}
+              </option>
+            ))}
+          </select>
+          <span className="text-xs text-quiet">{VISIBILITY_LABEL[visibility].help}</span>
+        </label>
+        <label className="flex flex-col gap-1.5 text-sm">
+          댓글
+          <select value={commentPolicy} onChange={(e) => setCommentPolicy(e.target.value as CommentPolicy)} disabled={pending} className={field}>
+            {COMMENT_POLICIES.map((c) => (
+              <option key={c} value={c}>
+                {COMMENT_POLICY_LABEL[c]}
+              </option>
+            ))}
+          </select>
+          <span className="text-xs text-quiet">이미 달린 댓글은 그대로 보여요.</span>
+        </label>
+        {initial.scheduledAt && (
+          <label className="flex flex-col gap-1.5 text-sm">
+            예약 시각 <span className="text-xs text-quiet">(비우면 바로 공개)</span>
+            <input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} disabled={pending} className={field} />
+          </label>
+        )}
+      </fieldset>
 
       <fieldset className="flex flex-col gap-3">
         <legend className="mb-1.5 text-sm">

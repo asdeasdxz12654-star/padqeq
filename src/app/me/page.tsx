@@ -27,7 +27,7 @@ export default async function MePage() {
 
   const supabase = await createClient();
   const [{ data: full }, openReports, creditRows, followedTags, claimRows, followedMembers, openInquiries, { data: unreadThreads }] = await Promise.all([
-    supabase.from("profiles").select("bio, deletion_requested_at").eq("id", viewer.id).single(),
+    supabase.from("profiles").select("bio, links, deletion_requested_at").eq("id", viewer.id).single(),
     profile.role === "admin"
       ? supabase.from("reports").select("id", { count: "exact", head: true }).eq("status", "open")
       : Promise.resolve({ count: null }),
@@ -229,7 +229,7 @@ export default async function MePage() {
         <h2 id="edit-heading" className="mb-4 text-lg font-semibold">
           프로필 편집
         </h2>
-        <ProfileForm displayName={profile.display_name} bio={full?.bio ?? ""} />
+        <ProfileForm displayName={profile.display_name} bio={full?.bio ?? ""} links={full?.links ?? []} />
         <p className="mt-3 text-xs text-quiet">핸들(@{profile.handle})은 크레딧 태그의 기준이라 바꿀 수 없어요.</p>
       </section>
 

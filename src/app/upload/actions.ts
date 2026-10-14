@@ -26,12 +26,23 @@ export async function createDraft(input: DraftInput): Promise<Result<{ postId: s
   const viewer = await uploader();
   if (!viewer) return { ok: false, error: "업로드 권한이 없어요." };
 
-  const { title, body, category, shotYear, shotOn, hasPeople, photos, tagIds, credits } = parsed.data;
+  const { title, body, category, shotYear, shotOn, hasPeople, photos, tagIds, credits, visibility, commentPolicy, scheduledAt } = parsed.data;
   const supabase = await createClient();
 
   const { data: post, error: postError } = await supabase
     .from("posts")
-    .insert({ author_id: viewer.id, title, body, category, shot_year: shotYear, shot_on: shotOn, has_people: hasPeople })
+    .insert({
+      author_id: viewer.id,
+      title,
+      body,
+      category,
+      shot_year: shotYear,
+      shot_on: shotOn,
+      has_people: hasPeople,
+      visibility,
+      comment_policy: commentPolicy,
+      scheduled_at: scheduledAt,
+    })
     .select("id")
     .single();
   if (postError) return { ok: false, error: "게시물을 만들지 못했어요." };

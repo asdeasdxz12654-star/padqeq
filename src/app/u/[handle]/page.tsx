@@ -6,6 +6,7 @@ import { CollectionCards } from "@/components/collection-cards";
 import { ShareButton } from "@/components/share-button";
 import { FollowButton } from "@/components/follow-button";
 import { PhotoFeed } from "@/components/photo-feed";
+import { ProtectedPhoto } from "@/components/protected-photo";
 import { YearChips } from "@/components/year-chips";
 import { getViewer } from "@/lib/auth/viewer";
 import { loadCollectionCards } from "@/lib/collections/load";
@@ -60,11 +61,19 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
       : Promise.resolve({ data: null }),
   ]);
   const iBlocked = Boolean(blockRow);
+  // 커버 · 고정 글 (볼 수 있는 것만)
+  const featuredIds = [...new Set([...(profile.cover_post_id ? [profile.cover_post_id] : []), ...profile.pinned_post_ids])];
+  const featured = featuredIds.length ? await loadFeed({ year: null, category: null, query: null, postIds: featuredIds }) : [];
+  const cover = featured.find((f) => f.id === profile.cover_post_id)?.cover ?? null;
+  const pinned = profile.pinned_post_ids.flatMap((id) => featured.filter((f) => f.id === id));
+  const pinnedIds = new Set(pinned.map((p) => p.id));
   const items =
     tab === "collections"
       ? []
       : tab === "works"
-      ? await loadFeed({ year, category: null, query: null, authorId: profile.id })
+      ? year === null
+        ? [...pinned, ...(await loadFeed({ year, category: null, query: null, authorId: profile.id })).filter((p) => !pinnedIds.has(p.id))]
+        : await loadFeed({ year, category: null, query: null, authorId: profile.id })
       : // 내가 올린 글에 나를 크레딧한 경우는 작업물 탭에 이미 있으므로 뺀다
         (await loadFeed({ year: null, category: null, query: null, postIds: creditedIds })).filter((p) => p.handle !== profile.handle);
   const tabClass =
@@ -74,6 +83,19 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
 
   return (
     <div className="mx-auto max-w-[1440px]">
+      {cover && (
+        <div className="aspect-[3/1] max-h-72 w-full overflow-hidden bg-slot md:mt-4 md:rounded-2xl [&_picture]:h-full">
+          <ProtectedPhoto
+            sources={cover.sources}
+            alt=""
+            width={cover.width}
+            height={cover.height}
+            sizes="100vw"
+            priority
+            className="block size-full object-cover"
+          />
+        </div>
+      )}
       <header className="flex flex-col gap-3 px-4 pt-8 pb-2 md:px-6">
         <div className="flex items-center gap-4">
           <div aria-hidden="true" className="flex size-16 shrink-0 items-center justify-center rounded-full bg-slot text-xl font-bold text-quiet">
@@ -105,6 +127,18 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
         )}
 
         {profile.bio && <p className="max-w-2xl whitespace-pre-line text-sm leading-relaxed">{profile.bio}</p>}
+
+        {profile.links.length > 0 && (
+          <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+            {profile.links.map((link) => (
+              <li key={link}>
+                <a href={link} target="_blank" rel="nofollow noopener noreferrer ugc" className="text-quiet underline underline-offset-2 hover:text-text">
+                  {link.replace(/^https:\/\/(www\.)?/, "").replace(/\/$/, "")}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
 
         <p className="text-sm text-quiet">
           게시물 <strong className="text-text">{profile.postCount}</strong> · {yearFormat.format(new Date(profile.created_at))}부터
