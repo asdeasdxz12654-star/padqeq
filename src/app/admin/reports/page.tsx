@@ -5,6 +5,8 @@ import { photoSources } from "@/lib/photos/server";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { createClient } from "@/lib/supabase/server";
 import { BlurredPreview } from "./blurred-preview";
+import { CommentDecisionForm } from "./comment-decision-form";
+import { BoardDecisionForm, MessageReportPanel } from "./community-report-forms";
 import { DecisionForm } from "./decision-form";
 import { EvidenceImage } from "./evidence-image";
 
@@ -43,7 +45,10 @@ const REPORT_SELECT = `id, reason, detail, photo_position, status, created_at, r
 
 export default async function AdminReportsPage({ searchParams }: PageProps<"/admin/reports">) {
   const params = await searchParams;
-  const tab = params.tab === "done" || params.tab === "appeals" ? params.tab : "open";
+  const tab =
+    params.tab === "done" || params.tab === "appeals" || params.tab === "comments" || params.tab === "board" || params.tab === "messages"
+      ? params.tab
+      : "open";
   const selected = typeof params.post === "string" ? params.post : null;
   const supabase = await createClient();
 
@@ -91,6 +96,42 @@ export default async function AdminReportsPage({ searchParams }: PageProps<"/adm
   const appeals = appealRows as unknown as AppealRow[];
   const selectedAppeal = typeof params.appeal === "string" ? appeals.find((a) => a.id === params.appeal) ?? null : null;
 
+  // 댓글 신고: 댓글별로 묶어 오래된 순
+  const { data: commentRows, error: commentError } = await supabase
+    .from("comment_reports")
+    .select(COMMENT_REPORT_SELECT)
+    .eq("status", "open")
+    .order("created_at", { ascending: true })
+    .limit(500);
+  if (commentError) throw commentError;
+  const commentGroups = [
+    ...Map.groupBy(
+      (commentRows as unknown as CommentReportRow[]).filter((r) => r.comment),
+      (r) => r.comment!.id,
+    ).values(),
+  ].map((reports) => ({ comment: reports[0]!.comment!, reports }));
+
+  // 게시판 신고: 글 · 답글별로 묶어 오래된 순 / 메시지 신고: 대화별
+  const [{ data: boardRows, error: boardError }, { data: messageRows, error: messageError }] = await Promise.all([
+    supabase
+      .from("board_reports")
+      .select(BOARD_REPORT_SELECT)
+      .eq("status", "open")
+      .order("created_at", { ascending: true })
+      .limit(500),
+    supabase
+      .from("message_reports")
+      .select("id, reason, detail, created_at, reporter:profiles!message_reports_reporter_id_fkey(handle), reported:profiles!message_reports_reported_id_fkey(id, handle)")
+      .eq("status", "open")
+      .order("created_at", { ascending: true })
+      .limit(200),
+  ]);
+  if (boardError || messageError) throw boardError ?? messageError;
+  const boardGroups = [
+    ...Map.groupBy(boardRows as unknown as BoardReportRow[], (r) => r.reply?.id ?? r.post?.id ?? r.id).values(),
+  ].map((reports) => ({ post: reports[0]!.post, reply: reports[0]!.reply, reports }));
+  const messageReports = messageRows;
+
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-wrap items-center gap-4">
@@ -116,6 +157,27 @@ export default async function AdminReportsPage({ searchParams }: PageProps<"/adm
             className="rounded-full border border-line px-3 py-1.5 aria-[current=page]:border-text aria-[current=page]:bg-text aria-[current=page]:text-bg"
           >
             소명 {appeals.length}
+          </Link>
+          <Link
+            href="/admin/reports?tab=comments"
+            aria-current={tab === "comments" ? "page" : undefined}
+            className="rounded-full border border-line px-3 py-1.5 aria-[current=page]:border-text aria-[current=page]:bg-text aria-[current=page]:text-bg"
+          >
+            댓글 {commentGroups.length}
+          </Link>
+          <Link
+            href="/admin/reports?tab=board"
+            aria-current={tab === "board" ? "page" : undefined}
+            className="rounded-full border border-line px-3 py-1.5 aria-[current=page]:border-text aria-[current=page]:bg-text aria-[current=page]:text-bg"
+          >
+            게시판 {boardGroups.length}
+          </Link>
+          <Link
+            href="/admin/reports?tab=messages"
+            aria-current={tab === "messages" ? "page" : undefined}
+            className="rounded-full border border-line px-3 py-1.5 aria-[current=page]:border-text aria-[current=page]:bg-text aria-[current=page]:text-bg"
+          >
+            메시지 {messageReports.length}
           </Link>
         </nav>
       </header>
@@ -156,6 +218,30 @@ export default async function AdminReportsPage({ searchParams }: PageProps<"/adm
             {current ? <ReportDetail group={current} /> : <p className="text-sm text-quiet">왼쪽에서 신고를 고르세요.</p>}
           </section>
         </div>
+      ) : tab === "comments" ? (
+        <CommentReports groups={commentGroups} />
+      ) : tab === "board" ? (
+        <BoardReports groups={boardGroups} />
+      ) : tab === "messages" ? (
+        <ul className="flex max-w-3xl flex-col gap-4">
+          {messageReports.length === 0 && <p className="rounded-xl border border-line p-6 text-center text-sm text-quiet">처리할 메시지 신고가 없어요.</p>}
+          {messageReports.map((r) => (
+            <li key={r.id} className="flex flex-col gap-3 rounded-xl border border-line p-4 text-sm">
+              <p className="flex flex-wrap gap-x-3 text-xs text-quiet">
+                <span className="font-semibold text-text">{REASON_LABEL[r.reason].title}</span>
+                <span>신고 @{r.reporter?.handle ?? "?"}</span>
+                {r.reported && (
+                  <Link href={`/admin/members/${r.reported.id}`} className="hover:underline">
+                    대상 @{r.reported.handle} · 회원 관리
+                  </Link>
+                )}
+                <span>{timeFormat.format(new Date(r.created_at))}</span>
+              </p>
+              {r.detail && <p className="whitespace-pre-line">{r.detail}</p>}
+              <MessageReportPanel reportId={r.id} />
+            </li>
+          ))}
+        </ul>
       ) : tab === "appeals" ? (
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
           <section aria-label="소명 대기열">
@@ -383,5 +469,116 @@ async function ReportDetail({ group }: { group: { post: NonNullable<ReportRow["p
 
       <DecisionForm postId={post.id} options={post.held_at ? ["dismiss", "hold", "hide", "release"] : ["dismiss", "hold", "hide"]} />
     </>
+  );
+}
+
+type CommentReportRow = {
+  id: string;
+  reason: ReportReason;
+  detail: string;
+  created_at: string;
+  reporter: { handle: string } | null;
+  comment: {
+    id: string;
+    body: string;
+    hidden_at: string | null;
+    created_at: string;
+    author: { id: string; handle: string } | null;
+    post: { id: string; title: string } | null;
+  } | null;
+};
+
+const COMMENT_REPORT_SELECT = `id, reason, detail, created_at,
+  reporter:profiles!comment_reports_reporter_id_fkey(handle),
+  comment:comments!comment_reports_comment_id_fkey(id, body, hidden_at, created_at,
+    author:profiles!comments_author_id_fkey(id, handle), post:posts!comments_post_id_fkey(id, title))`;
+
+function CommentReports({ groups }: { groups: { comment: NonNullable<CommentReportRow["comment"]>; reports: CommentReportRow[] }[] }) {
+  if (groups.length === 0) return <p className="rounded-xl border border-line p-6 text-center text-sm text-quiet">처리할 댓글 신고가 없어요.</p>;
+  return (
+    <ul className="flex max-w-3xl flex-col gap-4">
+      {groups.map(({ comment, reports }) => (
+        <li key={comment.id} className="flex flex-col gap-3 rounded-xl border border-line p-4 text-sm">
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-quiet">
+            {comment.hidden_at && <span className="text-amber-300">자동으로 가려짐</span>}
+            {comment.author && (
+              <Link href={`/admin/members/${comment.author.id}`} className="hover:underline">
+                @{comment.author.handle} · 회원 관리
+              </Link>
+            )}
+            {comment.post && (
+              <Link href={`/p/${comment.post.id}#comments`} className="hover:underline">
+                글: {comment.post.title}
+              </Link>
+            )}
+            <span>{timeFormat.format(new Date(comment.created_at))}</span>
+          </p>
+          <blockquote className="rounded-lg bg-slot p-3 whitespace-pre-line">{comment.body}</blockquote>
+          <ol className="flex flex-col gap-1 text-xs">
+            {reports.map((r) => (
+              <li key={r.id}>
+                <span className="font-semibold">{REASON_LABEL[r.reason].title}</span>
+                <span className="text-quiet"> · @{r.reporter?.handle ?? "?"} · {timeFormat.format(new Date(r.created_at))}</span>
+                {r.detail && <span className="block whitespace-pre-line">{r.detail}</span>}
+              </li>
+            ))}
+          </ol>
+          <CommentDecisionForm commentId={comment.id} />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+type BoardReportRow = {
+  id: string;
+  reason: ReportReason;
+  detail: string;
+  created_at: string;
+  reporter: { handle: string } | null;
+  post: { id: string; title: string; body: string; hidden_at: string | null; author: { id: string; handle: string } | null } | null;
+  reply: { id: string; body: string; hidden_at: string | null; author: { id: string; handle: string } | null } | null;
+};
+
+const BOARD_REPORT_SELECT = `id, reason, detail, created_at,
+  reporter:profiles!board_reports_reporter_id_fkey(handle),
+  post:board_posts!board_reports_board_post_id_fkey(id, title, body, hidden_at, author:profiles!board_posts_author_id_fkey(id, handle)),
+  reply:board_replies!board_reports_reply_id_fkey(id, body, hidden_at, author:profiles!board_replies_author_id_fkey(id, handle))`;
+
+function BoardReports({ groups }: { groups: { post: BoardReportRow["post"]; reply: BoardReportRow["reply"]; reports: BoardReportRow[] }[] }) {
+  if (groups.length === 0) return <p className="rounded-xl border border-line p-6 text-center text-sm text-quiet">처리할 게시판 신고가 없어요.</p>;
+  return (
+    <ul className="flex max-w-3xl flex-col gap-4">
+      {groups.map(({ post, reply, reports }) => {
+        if (!post) return null;
+        const target = reply ?? post;
+        return (
+          <li key={reply?.id ?? post.id} className="flex flex-col gap-3 rounded-xl border border-line p-4 text-sm">
+            <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-quiet">
+              <span>{reply ? "답글" : "글"}</span>
+              {target.hidden_at && <span className="text-amber-300">자동으로 가려짐</span>}
+              {target.author && (
+                <Link href={`/admin/members/${target.author.id}`} className="hover:underline">
+                  @{target.author.handle} · 회원 관리
+                </Link>
+              )}
+              <Link href={`/community/${post.id}`} className="hover:underline">
+                글: {post.title}
+              </Link>
+            </p>
+            <blockquote className="max-h-48 overflow-y-auto rounded-lg bg-slot p-3 whitespace-pre-line">{target.body}</blockquote>
+            <ol className="flex flex-col gap-1 text-xs">
+              {reports.map((r) => (
+                <li key={r.id}>
+                  <span className="font-semibold">{REASON_LABEL[r.reason].title}</span>
+                  <span className="text-quiet"> · @{r.reporter?.handle ?? "?"} · {timeFormat.format(new Date(r.created_at))}</span>
+                </li>
+              ))}
+            </ol>
+            <BoardDecisionForm postId={post.id} replyId={reply?.id ?? null} />
+          </li>
+        );
+      })}
+    </ul>
   );
 }

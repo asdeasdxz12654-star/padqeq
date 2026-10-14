@@ -8,6 +8,7 @@ import { YearChips } from "@/components/year-chips";
 import { getViewer } from "@/lib/auth/viewer";
 import { loadCollectionCards } from "@/lib/collections/load";
 import { getFollowedMembers } from "@/lib/follows/follows";
+import { CREDIT_ROLE_LABEL } from "@/lib/photos/credit-input";
 import { loadFeed } from "@/lib/posts/feed";
 import { getProfileByHandle } from "@/lib/profiles/get-profile";
 import { createClient } from "@/lib/supabase/server";
@@ -49,7 +50,10 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
     .eq("status", "approved")
     .limit(200);
   const creditedIds = [...new Set((credited ?? []).map((c) => c.post_id))];
-  const collections = await loadCollectionCards(profile.id);
+  const [collections, { data: creator }] = await Promise.all([
+    loadCollectionCards(profile.id),
+    supabase.from("creator_profiles").select("roles, region, active_since, works, casting_open, listed").eq("user_id", profile.id).maybeSingle(),
+  ]);
   const items =
     tab === "collections"
       ? []
@@ -80,6 +84,20 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
           </div>
         </div>
 
+        {creator?.listed && (
+          <p className="flex flex-wrap gap-1.5 text-xs text-quiet">
+            {creator.casting_open && <span className="rounded border border-accent px-1.5 py-0.5 text-accent">섭외 가능</span>}
+            {creator.roles.map((r) => (
+              <span key={r} className="rounded border border-line px-1.5 py-0.5">
+                {CREDIT_ROLE_LABEL[r]}
+              </span>
+            ))}
+            {creator.region && <span className="rounded border border-line px-1.5 py-0.5">{creator.region}</span>}
+            {creator.active_since && <span className="rounded border border-line px-1.5 py-0.5">{creator.active_since}년부터</span>}
+            {creator.works && <span className="px-1.5 py-0.5">{creator.works}</span>}
+          </p>
+        )}
+
         {profile.bio && <p className="max-w-2xl whitespace-pre-line text-sm leading-relaxed">{profile.bio}</p>}
 
         <p className="text-sm text-quiet">
@@ -91,7 +109,15 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
             프로필 편집
           </Link>
         ) : viewer?.profile ? (
-          <FollowButton target={{ kind: "member", id: profile.id }} initial={following} />
+          <div className="flex flex-wrap gap-2">
+            <FollowButton target={{ kind: "member", id: profile.id }} initial={following} />
+            <Link
+              href={`/me/messages/new?to=${encodeURIComponent(profile.handle)}`}
+              className="inline-flex min-h-10 items-center rounded-full border border-line px-4 text-sm hover:border-quiet"
+            >
+              메시지
+            </Link>
+          </div>
         ) : (
           <Link
             href={`/login?next=${encodeURIComponent(base)}`}

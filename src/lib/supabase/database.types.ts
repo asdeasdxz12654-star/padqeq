@@ -188,6 +188,345 @@ export type Database = {
           },
         ]
       }
+      blocks: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blocks_blocked_id_fkey"
+            columns: ["blocked_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blocks_blocker_id_fkey"
+            columns: ["blocker_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      board_posts: {
+        Row: {
+          author_id: string
+          board: Database["public"]["Enums"]["board_kind"]
+          body: string
+          casting_kind: Database["public"]["Enums"]["casting_kind"] | null
+          casting_terms: Database["public"]["Enums"]["casting_terms"] | null
+          closed_at: string | null
+          created_at: string
+          edited_at: string | null
+          hidden_at: string | null
+          id: string
+          region: string | null
+          shoot_on: string | null
+          title: string
+        }
+        Insert: {
+          author_id: string
+          board: Database["public"]["Enums"]["board_kind"]
+          body: string
+          casting_kind?: Database["public"]["Enums"]["casting_kind"] | null
+          casting_terms?: Database["public"]["Enums"]["casting_terms"] | null
+          closed_at?: string | null
+          created_at?: string
+          edited_at?: string | null
+          hidden_at?: string | null
+          id?: string
+          region?: string | null
+          shoot_on?: string | null
+          title: string
+        }
+        Update: {
+          author_id?: string
+          board?: Database["public"]["Enums"]["board_kind"]
+          body?: string
+          casting_kind?: Database["public"]["Enums"]["casting_kind"] | null
+          casting_terms?: Database["public"]["Enums"]["casting_terms"] | null
+          closed_at?: string | null
+          created_at?: string
+          edited_at?: string | null
+          hidden_at?: string | null
+          id?: string
+          region?: string | null
+          shoot_on?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "board_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      board_replies: {
+        Row: {
+          author_id: string
+          board_post_id: string
+          body: string
+          created_at: string
+          edited_at: string | null
+          hidden_at: string | null
+          id: string
+        }
+        Insert: {
+          author_id: string
+          board_post_id: string
+          body: string
+          created_at?: string
+          edited_at?: string | null
+          hidden_at?: string | null
+          id?: string
+        }
+        Update: {
+          author_id?: string
+          board_post_id?: string
+          body?: string
+          created_at?: string
+          edited_at?: string | null
+          hidden_at?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "board_replies_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "board_replies_board_post_id_fkey"
+            columns: ["board_post_id"]
+            isOneToOne: false
+            referencedRelation: "board_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      board_reports: {
+        Row: {
+          board_post_id: string
+          created_at: string
+          detail: string
+          id: string
+          reason: Database["public"]["Enums"]["report_reason"]
+          reply_id: string | null
+          reporter_id: string
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["report_status"]
+        }
+        Insert: {
+          board_post_id: string
+          created_at?: string
+          detail?: string
+          id?: string
+          reason: Database["public"]["Enums"]["report_reason"]
+          reply_id?: string | null
+          reporter_id: string
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+        }
+        Update: {
+          board_post_id?: string
+          created_at?: string
+          detail?: string
+          id?: string
+          reason?: Database["public"]["Enums"]["report_reason"]
+          reply_id?: string | null
+          reporter_id?: string
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "board_reports_board_post_id_fkey"
+            columns: ["board_post_id"]
+            isOneToOne: false
+            referencedRelation: "board_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "board_reports_reply_id_fkey"
+            columns: ["reply_id"]
+            isOneToOne: false
+            referencedRelation: "board_replies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "board_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comment_reports: {
+        Row: {
+          comment_id: string
+          created_at: string
+          detail: string
+          id: string
+          reason: Database["public"]["Enums"]["report_reason"]
+          reporter_id: string
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["report_status"]
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string
+          detail?: string
+          id?: string
+          reason: Database["public"]["Enums"]["report_reason"]
+          reporter_id: string
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string
+          detail?: string
+          id?: string
+          reason?: Database["public"]["Enums"]["report_reason"]
+          reporter_id?: string
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comment_reports_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comment_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comments: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          edited_at: string | null
+          hidden_at: string | null
+          id: string
+          parent_id: string | null
+          pinned: boolean
+          post_id: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          created_at?: string
+          edited_at?: string | null
+          hidden_at?: string | null
+          id?: string
+          parent_id?: string | null
+          pinned?: boolean
+          post_id: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          edited_at?: string | null
+          hidden_at?: string | null
+          id?: string
+          parent_id?: string | null
+          pinned?: boolean
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      creator_profiles: {
+        Row: {
+          active_since: number | null
+          casting_open: boolean
+          listed: boolean
+          region: string | null
+          roles: Database["public"]["Enums"]["credit_role"][]
+          updated_at: string
+          user_id: string
+          works: string
+        }
+        Insert: {
+          active_since?: number | null
+          casting_open?: boolean
+          listed?: boolean
+          region?: string | null
+          roles: Database["public"]["Enums"]["credit_role"][]
+          updated_at?: string
+          user_id: string
+          works?: string
+        }
+        Update: {
+          active_since?: number | null
+          casting_open?: boolean
+          listed?: boolean
+          region?: string | null
+          roles?: Database["public"]["Enums"]["credit_role"][]
+          updated_at?: string
+          user_id?: string
+          works?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       consent_records: {
         Row: {
           consented_on: string
@@ -356,6 +695,78 @@ export type Database = {
           },
         ]
       }
+      site_switches: {
+        Row: {
+          id: boolean
+          message: string
+          read_only: boolean
+          signup_closed: boolean
+          updated_at: string
+          updated_by: string | null
+          uploads_closed: boolean
+        }
+        Insert: {
+          id?: boolean
+          message?: string
+          read_only?: boolean
+          signup_closed?: boolean
+          updated_at?: string
+          updated_by?: string | null
+          uploads_closed?: boolean
+        }
+        Update: {
+          id?: boolean
+          message?: string
+          read_only?: boolean
+          signup_closed?: boolean
+          updated_at?: string
+          updated_by?: string | null
+          uploads_closed?: boolean
+        }
+        Relationships: []
+      }
+      thread_members: {
+        Row: {
+          created_at: string
+          guide_dismissed_at: string | null
+          last_read_at: string | null
+          status: Database["public"]["Enums"]["thread_member_status"]
+          thread_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          guide_dismissed_at?: string | null
+          last_read_at?: string | null
+          status: Database["public"]["Enums"]["thread_member_status"]
+          thread_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          guide_dismissed_at?: string | null
+          last_read_at?: string | null
+          status?: Database["public"]["Enums"]["thread_member_status"]
+          thread_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thread_members_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "message_threads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "thread_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tag_aliases: {
         Row: { alias: string; tag_id: string }
         Insert: { alias: string; tag_id: string }
@@ -504,6 +915,161 @@ export type Database = {
           },
         ]
       }
+      event_attendees: {
+        Row: {
+          cos_note: string
+          created_at: string
+          event_id: string
+          is_public: boolean
+          reminded_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cos_note?: string
+          created_at?: string
+          event_id: string
+          is_public?: boolean
+          reminded_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cos_note?: string
+          created_at?: string
+          event_id?: string
+          is_public?: boolean
+          reminded_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_attendees_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_attendees_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          created_at: string
+          description: string
+          ends_on: string
+          id: string
+          name: string
+          proposed_by: string | null
+          region: string
+          review_note: string | null
+          starts_on: string
+          status: Database["public"]["Enums"]["event_status"]
+          tag_id: string | null
+          updated_at: string
+          url: string | null
+          venue: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          ends_on: string
+          id?: string
+          name: string
+          proposed_by?: string | null
+          region: string
+          review_note?: string | null
+          starts_on: string
+          status?: Database["public"]["Enums"]["event_status"]
+          tag_id?: string | null
+          updated_at?: string
+          url?: string | null
+          venue: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          ends_on?: string
+          id?: string
+          name?: string
+          proposed_by?: string | null
+          region?: string
+          review_note?: string | null
+          starts_on?: string
+          status?: Database["public"]["Enums"]["event_status"]
+          tag_id?: string | null
+          updated_at?: string
+          url?: string | null
+          venue?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_proposed_by_fkey"
+            columns: ["proposed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: true
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inquiries: {
+        Row: {
+          answer: string | null
+          answered_at: string | null
+          answered_by: string | null
+          author_id: string
+          body: string
+          category: Database["public"]["Enums"]["inquiry_category"]
+          created_at: string
+          error_ref: string | null
+          id: string
+          status: Database["public"]["Enums"]["inquiry_status"]
+        }
+        Insert: {
+          answer?: string | null
+          answered_at?: string | null
+          answered_by?: string | null
+          author_id: string
+          body: string
+          category: Database["public"]["Enums"]["inquiry_category"]
+          created_at?: string
+          error_ref?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["inquiry_status"]
+        }
+        Update: {
+          answer?: string | null
+          answered_at?: string | null
+          answered_by?: string | null
+          author_id?: string
+          body?: string
+          category?: Database["public"]["Enums"]["inquiry_category"]
+          created_at?: string
+          error_ref?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["inquiry_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inquiries_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       member_follows: {
         Row: {
           created_at: string
@@ -569,33 +1135,246 @@ export type Database = {
           },
         ]
       }
+      notices: {
+        Row: {
+          body: string
+          category: Database["public"]["Enums"]["notice_category"]
+          created_by: string | null
+          id: string
+          maintenance_at: string | null
+          pinned: boolean
+          published_at: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          category: Database["public"]["Enums"]["notice_category"]
+          created_by?: string | null
+          id?: string
+          maintenance_at?: string | null
+          pinned?: boolean
+          published_at?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          category?: Database["public"]["Enums"]["notice_category"]
+          created_by?: string | null
+          id?: string
+          maintenance_at?: string | null
+          pinned?: boolean
+          published_at?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      message_reports: {
+        Row: {
+          created_at: string
+          detail: string
+          id: string
+          reason: Database["public"]["Enums"]["report_reason"]
+          reported_id: string | null
+          reporter_id: string
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["report_status"]
+          thread_id: string
+        }
+        Insert: {
+          created_at?: string
+          detail?: string
+          id?: string
+          reason: Database["public"]["Enums"]["report_reason"]
+          reported_id?: string | null
+          reporter_id: string
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+          thread_id: string
+        }
+        Update: {
+          created_at?: string
+          detail?: string
+          id?: string
+          reason?: Database["public"]["Enums"]["report_reason"]
+          reported_id?: string | null
+          reporter_id?: string
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reports_reported_id_fkey"
+            columns: ["reported_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_reports_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "message_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_settings: {
+        Row: {
+          receive: Database["public"]["Enums"]["message_receive"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          receive?: Database["public"]["Enums"]["message_receive"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          receive?: Database["public"]["Enums"]["message_receive"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_threads: {
+        Row: {
+          board_post_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          kind: Database["public"]["Enums"]["thread_kind"]
+          last_message_at: string
+        }
+        Insert: {
+          board_post_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["thread_kind"]
+          last_message_at?: string
+        }
+        Update: {
+          board_post_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["thread_kind"]
+          last_message_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_threads_board_post_id_fkey"
+            columns: ["board_post_id"]
+            isOneToOne: false
+            referencedRelation: "board_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_threads_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          body: string
+          created_at: string
+          form: Json | null
+          id: number
+          sender_id: string | null
+          thread_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          form?: Json | null
+          id?: number
+          sender_id?: string | null
+          thread_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          form?: Json | null
+          id?: number
+          sender_id?: string | null
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "message_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           actor_id: string | null
+          board_post_id: string | null
           created_at: string
+          event_id: string | null
           id: number
           kind: Database["public"]["Enums"]["notification_kind"]
           post_id: string | null
           read_at: string | null
           recipient_id: string
+          thread_id: string | null
         }
         Insert: {
           actor_id?: string | null
+          board_post_id?: string | null
           created_at?: string
+          event_id?: string | null
           id?: never
           kind: Database["public"]["Enums"]["notification_kind"]
           post_id?: string | null
           read_at?: string | null
           recipient_id: string
+          thread_id?: string | null
         }
         Update: {
           actor_id?: string | null
+          board_post_id?: string | null
           created_at?: string
+          event_id?: string | null
           id?: never
           kind?: Database["public"]["Enums"]["notification_kind"]
           post_id?: string | null
           read_at?: string | null
           recipient_id?: string
+          thread_id?: string | null
         }
         Relationships: [
           {
@@ -606,10 +1385,31 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "notifications_board_post_id_fkey"
+            columns: ["board_post_id"]
+            isOneToOne: false
+            referencedRelation: "board_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "notifications_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "message_threads"
             referencedColumns: ["id"]
           },
           {
@@ -835,6 +1635,91 @@ export type Database = {
       resolve_credit_claim: { Args: { accept: boolean; target: string }; Returns: undefined }
       arrange_my_photos: { Args: { keep: string[]; target: string }; Returns: undefined }
       moderate_post: { Args: { decision: string; note: string; target: string }; Returns: undefined }
+      am_i_adult: { Args: never; Returns: boolean }
+      confirm_adult: { Args: { birth_date: string }; Returns: boolean }
+      moderate_board: {
+        Args: { decision: string; note: string; target_post: string; target_reply: string | null }
+        Returns: undefined
+      }
+      start_thread: {
+        Args: { body: string; casting_post?: string | null; form?: Json | null; recipient: string }
+        Returns: string
+      }
+      send_message: { Args: { body: string; thread: string }; Returns: number }
+      respond_thread: { Args: { accept: boolean; thread: string }; Returns: undefined }
+      mark_thread_read: { Args: { thread: string }; Returns: undefined }
+      dismiss_thread_guide: { Args: { thread: string }; Returns: undefined }
+      my_threads: {
+        Args: never
+        Returns: {
+          board_post_id: string | null
+          closed: boolean
+          kind: Database["public"]["Enums"]["thread_kind"]
+          last_body: string | null
+          last_message_at: string
+          last_sender: string | null
+          my_status: Database["public"]["Enums"]["thread_member_status"]
+          other_handle: string
+          other_id: string
+          other_name: string
+          other_read_at: string | null
+          thread_id: string
+          unread: number
+        }[]
+      }
+      unread_thread_count: { Args: never; Returns: number }
+      report_thread: {
+        Args: { also_block: boolean; detail: string; reason: Database["public"]["Enums"]["report_reason"]; thread: string }
+        Returns: undefined
+      }
+      admin_reported_thread: {
+        Args: { report: string }
+        Returns: { body: string; created_at: string; form: Json | null; message_id: number; sender_handle: string | null }[]
+      }
+      resolve_message_report: { Args: { decision: string; note: string; report: string }; Returns: undefined }
+      creator_directory: {
+        Args: {
+          casting_only?: boolean
+          max_rows?: number
+          region_filter?: string | null
+          role_filter?: Database["public"]["Enums"]["credit_role"] | null
+          skip?: number
+        }
+        Returns: {
+          active_since: number | null
+          casting_open: boolean
+          display_name: string
+          handle: string
+          last_active: string | null
+          region: string | null
+          roles: Database["public"]["Enums"]["credit_role"][]
+          user_id: string
+          works: string
+        }[]
+      }
+      save_event: {
+        Args: {
+          event_description: string
+          event_ends: string
+          event_name: string
+          event_region: string
+          event_starts: string
+          event_url: string | null
+          event_venue: string
+          tag_slug: string
+          target: string | null
+        }
+        Returns: string
+      }
+      reject_event: { Args: { note: string; target: string }; Returns: undefined }
+      event_attendee_counts: { Args: { ids: string[] }; Returns: { attendees: number; event_id: string }[] }
+      moderate_comment: { Args: { decision: string; note: string; target: string }; Returns: undefined }
+      pin_comment: { Args: { pin: boolean; target: string }; Returns: undefined }
+      answer_inquiry: { Args: { reply: string; target: string }; Returns: undefined }
+      set_site_switches: {
+        Args: { message: string; note: string; read_only: boolean; signup_closed: boolean; uploads_closed: boolean }
+        Returns: undefined
+      }
       sanction_member: {
         Args: { action: string; days?: number | null; note: string; reason?: string | null; target: string }
         Returns: undefined
@@ -892,6 +1777,16 @@ export type Database = {
     }
     Enums: {
       appeal_status: "open" | "accepted" | "rejected"
+      board_kind: "casting" | "places" | "free" | "qna"
+      casting_kind: "model_wanted" | "photographer_wanted" | "group"
+      casting_terms: "paid" | "tfp" | "any"
+      message_receive: "everyone" | "following" | "none"
+      thread_kind: "direct" | "casting"
+      thread_member_status: "active" | "request" | "declined"
+      event_status: "official" | "proposed" | "rejected"
+      inquiry_category: "account" | "upload" | "credit" | "report" | "other"
+      inquiry_status: "open" | "answered"
+      notice_category: "maintenance" | "policy" | "news"
       claim_status: "open" | "approved" | "rejected"
       credit_role:
         | "cosplayer"
@@ -918,6 +1813,18 @@ export type Database = {
         | "suspension_lifted"
         | "upload_granted"
         | "upload_revoked"
+        | "inquiry_answered"
+        | "comment_added"
+        | "comment_replied"
+        | "comment_mentioned"
+        | "comment_hidden"
+        | "event_reminder"
+        | "event_approved"
+        | "event_rejected"
+        | "board_replied"
+        | "board_hidden"
+        | "message_received"
+        | "message_request"
       post_category: "cosplay" | "model" | "landscape" | "other"
       post_status: "draft" | "published" | "hidden"
       report_reason:
@@ -1063,6 +1970,16 @@ export const Constants = {
   public: {
     Enums: {
       appeal_status: ["open", "accepted", "rejected"],
+      board_kind: ["casting", "places", "free", "qna"],
+      casting_kind: ["model_wanted", "photographer_wanted", "group"],
+      casting_terms: ["paid", "tfp", "any"],
+      message_receive: ["everyone", "following", "none"],
+      thread_kind: ["direct", "casting"],
+      thread_member_status: ["active", "request", "declined"],
+      event_status: ["official", "proposed", "rejected"],
+      inquiry_category: ["account", "upload", "credit", "report", "other"],
+      inquiry_status: ["open", "answered"],
+      notice_category: ["maintenance", "policy", "news"],
       claim_status: ["open", "approved", "rejected"],
       credit_role: ["cosplayer", "model", "photographer", "retoucher", "other"],
       credit_status: ["pending", "approved", "rejected", "external"],
@@ -1084,6 +2001,18 @@ export const Constants = {
         "suspension_lifted",
         "upload_granted",
         "upload_revoked",
+        "inquiry_answered",
+        "comment_added",
+        "comment_replied",
+        "comment_mentioned",
+        "comment_hidden",
+        "event_reminder",
+        "event_approved",
+        "event_rejected",
+        "board_replied",
+        "board_hidden",
+        "message_received",
+        "message_request",
       ],
       post_category: ["cosplay", "model", "landscape", "other"],
       post_status: ["draft", "published", "hidden"],

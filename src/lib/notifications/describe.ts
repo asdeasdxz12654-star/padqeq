@@ -8,13 +8,19 @@ export type NotificationInput = {
   actorHandle: string | null;
   /** 게시물. 지워졌거나 받는 사람이 볼 수 없으면 null */
   post: { id: string; title: string } | null;
+  /** 행사. 지워졌거나 볼 수 없으면 null */
+  event?: { id: string; name: string } | null;
+  /** 게시판 글. 지워졌거나 볼 수 없으면 null */
+  board?: { id: string; title: string } | null;
+  /** 메시지 대화 */
+  threadId?: string | null;
 };
 
 /**
  * 알림 문구와 눌렀을 때 갈 곳. 문구는 DB가 아니라 여기서만 정한다.
  * 게시물 제목은 받침에 따라 조사가 달라지므로 문장에 넣지 않고 화면에서 따로 보여 준다.
  */
-export function describeNotification({ kind, actorHandle, post }: NotificationInput): { text: string; href: string | null } {
+export function describeNotification({ kind, actorHandle, post, event = null, board = null, threadId = null }: NotificationInput): { text: string; href: string | null } {
   const who = actorHandle ? `@${actorHandle}님` : "회원";
   const postHref = post ? `/p/${post.id}` : null;
 
@@ -50,7 +56,31 @@ export function describeNotification({ kind, actorHandle, post }: NotificationIn
       return { text: "사진을 올릴 수 있게 됐어요. 반가워요!", href: "/upload" };
     case "upload_revoked":
       return { text: "운영 정책에 따라 사진 올리기 권한이 회수됐어요. 이미 올린 사진은 그대로예요.", href: "/me" };
+    case "comment_added":
+      return { text: `${who}이 내 게시물에 댓글을 달았어요.`, href: post ? `/p/${post.id}#comments` : null };
+    case "comment_replied":
+      return { text: `${who}이 내 댓글에 답글을 달았어요.`, href: post ? `/p/${post.id}#comments` : null };
+    case "comment_mentioned":
+      return { text: `${who}이 댓글에서 나를 언급했어요.`, href: post ? `/p/${post.id}#comments` : null };
+    case "comment_hidden":
+      return { text: "운영 정책에 따라 내 댓글이 가려졌어요. 이의가 있으면 1:1 문의를 남겨 주세요.", href: postHref };
+    case "event_reminder":
+      return { text: "참가 예정인 행사가 내일이에요. 즐거운 촬영 되세요!", href: event ? `/events/${event.id}` : "/events" };
+    case "event_approved":
+      return { text: "제안한 행사가 등록됐어요. 고마워요!", href: event ? `/events/${event.id}` : "/events" };
+    case "event_rejected":
+      return { text: "제안한 행사를 등록하지 못했어요. 사유는 행사 제안 화면에서 볼 수 있어요.", href: "/events/propose" };
+    case "board_replied":
+      return { text: `${who}이 내 게시판 글에 답글을 달았어요.`, href: board ? `/community/${board.id}` : null };
+    case "board_hidden":
+      return { text: "운영 정책에 따라 내 게시판 글 또는 답글이 가려졌어요. 이의가 있으면 1:1 문의를 남겨 주세요.", href: board ? `/community/${board.id}` : null };
+    case "message_received":
+      return { text: `${who}이 메시지를 보냈어요.`, href: threadId ? `/me/messages/${threadId}` : "/me/messages" };
+    case "message_request":
+      return { text: `${who}이 메시지 요청을 보냈어요. 수락하기 전에는 상대가 읽음 여부를 알 수 없어요.`, href: threadId ? `/me/messages/${threadId}` : "/me/messages" };
+    case "inquiry_answered":
+      return { text: "1:1 문의에 답변이 달렸어요.", href: "/help?tab=inquiry" };
     case "report_reviewed":
-      return { text: "신고하신 게시물을 검토했어요. 알려 주셔서 고마워요.", href: postHref };
+      return { text: "신고하신 내용을 검토했어요. 알려 주셔서 고마워요.", href: postHref ?? (board ? `/community/${board.id}` : null) };
   }
 }

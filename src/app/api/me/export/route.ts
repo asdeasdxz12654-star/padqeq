@@ -12,7 +12,7 @@ export async function GET(request: Request) {
   if (!viewer?.profile) return new Response("로그인이 필요해요.", { status: 401 });
 
   const supabase = await createClient();
-  const [{ data: claims }, profile, posts, credits, reports, appeals, creditClaims] = await Promise.all([
+  const [{ data: claims }, profile, posts, credits, reports, appeals, creditClaims, comments, commentReports, inquiries, boardPosts, boardReplies, sentMessages, blocks, messageSetting, creator, attending, proposedEvents] = await Promise.all([
     supabase.auth.getClaims(),
     supabase.from("profiles").select("handle, display_name, bio, created_at, deletion_requested_at").eq("id", viewer.id).single(),
     supabase
@@ -29,6 +29,17 @@ export async function GET(request: Request) {
     supabase.from("reports").select("reason, detail, status, created_at, resolved_at, post_id, evidence:report_evidence(content_type, bytes, uploaded_at)").eq("reporter_id", viewer.id),
     supabase.from("appeals").select("post_id, statement, status, created_at, resolved_at").eq("author_id", viewer.id),
     supabase.from("credit_claims").select("credit_id, note, status, created_at, resolved_at").eq("claimant_id", viewer.id),
+    supabase.from("comments").select("post_id, parent_id, body, created_at, edited_at").eq("author_id", viewer.id).order("created_at"),
+    supabase.from("comment_reports").select("comment_id, reason, detail, status, created_at, resolved_at").eq("reporter_id", viewer.id),
+    supabase.from("inquiries").select("category, body, status, answer, created_at, answered_at").eq("author_id", viewer.id),
+    supabase.from("board_posts").select("id, board, title, body, region, casting_kind, casting_terms, shoot_on, closed_at, created_at, edited_at").eq("author_id", viewer.id),
+    supabase.from("board_replies").select("board_post_id, body, created_at, edited_at").eq("author_id", viewer.id),
+    supabase.from("messages").select("thread_id, body, form, created_at").eq("sender_id", viewer.id).order("id").limit(10000),
+    supabase.from("blocks").select("created_at, blocked:profiles!blocks_blocked_id_fkey(handle)").eq("blocker_id", viewer.id),
+    supabase.from("message_settings").select("receive").eq("user_id", viewer.id).maybeSingle(),
+    supabase.from("creator_profiles").select("listed, roles, region, active_since, works, casting_open, updated_at").eq("user_id", viewer.id).maybeSingle(),
+    supabase.from("event_attendees").select("is_public, cos_note, created_at, event:events!event_attendees_event_id_fkey(name, starts_on)").eq("user_id", viewer.id),
+    supabase.from("events").select("name, starts_on, ends_on, venue, region, status, created_at").eq("proposed_by", viewer.id),
   ]);
   if (profile.error || posts.error) return new Response("데이터를 모으지 못했어요.", { status: 500 });
 
@@ -48,6 +59,17 @@ export async function GET(request: Request) {
       reports_filed: reports.data ?? [],
       appeals_filed: appeals.data ?? [],
       credit_claims_filed: creditClaims.data ?? [],
+      comments: comments.data ?? [],
+      comment_reports_filed: commentReports.data ?? [],
+      inquiries: inquiries.data ?? [],
+      board_posts: boardPosts.data ?? [],
+      board_replies: boardReplies.data ?? [],
+      messages_sent: sentMessages.data ?? [],
+      message_settings: messageSetting.data ?? { receive: "everyone" },
+      blocked: blocks.data ?? [],
+      creator_profile: creator.data,
+      events_attending: attending.data ?? [],
+      events_proposed: proposedEvents.data ?? [],
       restriction: viewer.restriction,
     },
     null,

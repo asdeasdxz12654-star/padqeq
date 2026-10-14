@@ -26,7 +26,7 @@ export default async function MePage() {
   const { profile } = viewer;
 
   const supabase = await createClient();
-  const [{ data: full }, openReports, creditRows, followedTags, claimRows, followedMembers] = await Promise.all([
+  const [{ data: full }, openReports, creditRows, followedTags, claimRows, followedMembers, openInquiries, { data: unreadThreads }] = await Promise.all([
     supabase.from("profiles").select("bio, deletion_requested_at").eq("id", viewer.id).single(),
     profile.role === "admin"
       ? supabase.from("reports").select("id", { count: "exact", head: true }).eq("status", "open")
@@ -51,6 +51,10 @@ export default async function MePage() {
       .order("created_at")
       .limit(50),
     getFollowedMembers(viewer.id),
+    profile.role === "admin"
+      ? supabase.from("inquiries").select("id", { count: "exact", head: true }).eq("status", "open")
+      : Promise.resolve({ count: null }),
+    supabase.rpc("unread_thread_count"),
   ]);
   const creditClaims: CreditClaim[] = (claimRows.data ?? []).flatMap((c) =>
     c.credit?.post && c.credit.post.author_id === viewer.id && c.claimant
@@ -121,6 +125,33 @@ export default async function MePage() {
       </Link>
 
       <Link
+        href="/me/messages"
+        className="mt-2 flex min-h-14 items-center justify-between rounded-xl border border-line px-4 hover:border-quiet"
+      >
+        <span className="font-semibold">
+          메시지
+          {unreadThreads ? <span className="ml-2 rounded-full bg-accent px-2 text-xs text-on-accent">{unreadThreads}</span> : null}
+        </span>
+        <span className="text-xs text-quiet">대화 · 섭외 문의 · 메시지 요청 ›</span>
+      </Link>
+
+      <Link
+        href="/me/creator"
+        className="mt-2 flex min-h-14 items-center justify-between rounded-xl border border-line px-4 hover:border-quiet"
+      >
+        <span className="font-semibold">크리에이터 정보</span>
+        <span className="text-xs text-quiet">역할 · 지역 · 섭외 가능, 디렉토리에 올리기 ›</span>
+      </Link>
+
+      <Link
+        href="/help"
+        className="mt-2 flex min-h-14 items-center justify-between rounded-xl border border-line px-4 hover:border-quiet"
+      >
+        <span className="font-semibold">고객센터</span>
+        <span className="text-xs text-quiet">공지 · 자주 묻는 질문 · 1:1 문의 ›</span>
+      </Link>
+
+      <Link
         href="/me/year"
         className="mt-2 flex min-h-14 items-center justify-between rounded-xl border border-line px-4 hover:border-quiet"
       >
@@ -136,6 +167,13 @@ export default async function MePage() {
           </Link>
           <Link href="/admin/members" className="rounded-xl border border-line px-4 py-2 text-sm hover:border-quiet">
             회원 관리
+          </Link>
+          <Link href="/admin/events" className="rounded-xl border border-line px-4 py-2 text-sm hover:border-quiet">
+            행사 관리
+          </Link>
+          <Link href="/admin/support" className="rounded-xl border border-line px-4 py-2 text-sm hover:border-quiet">
+            고객센터 운영
+            {openInquiries.count ? <span className="ml-2 rounded-full bg-red-500/20 px-2 text-red-300">{openInquiries.count}</span> : null}
           </Link>
         </nav>
       )}

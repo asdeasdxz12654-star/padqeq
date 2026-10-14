@@ -4,6 +4,7 @@ import { CALLBACK_ERRORS } from "@/lib/auth/auth-errors";
 import { safeNextPath, withNext } from "@/lib/auth/next-path";
 import { isGoogleEnabled } from "@/lib/auth/providers";
 import { getViewer } from "@/lib/auth/viewer";
+import { InAppBrowserNotice } from "@/components/in-app-browser-notice";
 import { LoginPanel } from "./login-panel";
 
 export const metadata: Metadata = {
@@ -23,6 +24,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
 
   return (
     <div className="mx-auto flex max-w-sm flex-col px-4 pt-12 pb-16 md:pt-20">
+      <InAppBrowserNotice purpose="login" />
       <h1 className="text-3xl font-bold tracking-tight">해담</h1>
       <p className="mt-1 text-quiet">해마다, 잊지 않도록</p>
       <p className="mt-4 text-sm leading-relaxed text-quiet">

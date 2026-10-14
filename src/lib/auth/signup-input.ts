@@ -4,7 +4,7 @@ import { z } from "zod";
 // 최종 판단은 DB가 한다 (여기서는 빠른 안내용).
 
 /** 동의한 약관 · 개인정보처리방침 버전. 문서를 고치면 올린다. */
-export const POLICY_VERSION = "2026-10-14";
+export const POLICY_VERSION = "2026-10-14.2";
 
 export const MIN_AGE = 14;
 
@@ -63,5 +63,6 @@ export function signupErrorFromDb(message: string): { field: SignupField; messag
   }
   if (message.includes("birth_date_invalid")) return { field: "birthDate", message: "생년월일을 확인해 주세요." };
   if (message.includes("display_name_invalid")) return { field: "displayName", message: "표시 이름을 확인해 주세요." };
+  if (message.includes("signup_closed")) return { field: "form", message: "지금은 가입을 잠시 멈췄어요. 조금 뒤에 다시 시도해 주세요." };
   return { field: "form", message: "가입을 마치지 못했어요. 잠시 뒤 다시 시도해 주세요." };
 }

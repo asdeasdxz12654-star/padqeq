@@ -13,7 +13,10 @@ export default function ErrorPage({ error, reset }: { error: Error & { digest?: 
         <button type="button" onClick={reset} className="text-accent underline-offset-4 hover:underline">
           다시 시도
         </button>
-        <Link href="/help" className="text-accent underline-offset-4 hover:underline">
+        <Link
+          href={error.digest ? `/help?tab=inquiry&ref=${encodeURIComponent(error.digest)}` : "/help?tab=inquiry"}
+          className="text-accent underline-offset-4 hover:underline"
+        >
           문의하기
         </Link>
       </p>

@@ -22,7 +22,7 @@ export default async function NotificationsPage() {
   const { data, error } = await supabase
     .from("notifications")
     .select(
-      "id, kind, created_at, read_at, actor:profiles!notifications_actor_id_fkey(handle), post:posts!notifications_post_id_fkey(id, title)",
+      "id, kind, created_at, read_at, actor:profiles!notifications_actor_id_fkey(handle), post:posts!notifications_post_id_fkey(id, title), event:events!notifications_event_id_fkey(id, name), board:board_posts!notifications_board_post_id_fkey(id, title), thread_id",
     )
     .eq("recipient_id", viewer.id)
     .order("id", { ascending: false })
@@ -31,7 +31,7 @@ export default async function NotificationsPage() {
 
   const items = data.map((n) => ({
     ...n,
-    ...describeNotification({ kind: n.kind, actorHandle: n.actor?.handle ?? null, post: n.post }),
+    ...describeNotification({ kind: n.kind, actorHandle: n.actor?.handle ?? null, post: n.post, event: n.event, board: n.board, threadId: n.thread_id }),
   }));
   const newestUnread = items.find((n) => !n.read_at)?.id;
 
@@ -49,6 +49,8 @@ export default async function NotificationsPage() {
               <>
                 <span className="block">{n.text}</span>
                 {n.post && <span className="mt-1 block truncate text-xs text-quiet">{n.post.title}</span>}
+                {n.event && <span className="mt-1 block truncate text-xs text-quiet">{n.event.name}</span>}
+                {n.board && <span className="mt-1 block truncate text-xs text-quiet">{n.board.title}</span>}
                 <time dateTime={n.created_at} className="mt-1 block text-xs text-quiet">
                   {timeFormat.format(new Date(n.created_at))}
                 </time>

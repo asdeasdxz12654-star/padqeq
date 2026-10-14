@@ -3,12 +3,15 @@ import { notFound } from "next/navigation";
 import { getViewer } from "@/lib/auth/viewer";
 import { CATEGORY_LABEL } from "@/lib/photos/post-input";
 import Link from "next/link";
+import { getComments } from "@/lib/comments/load";
 import { getPost } from "@/lib/posts/get-post";
+import { getSiteSwitches } from "@/lib/support/switches";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { TagChip } from "@/components/tag-chip";
 import { createClient } from "@/lib/supabase/server";
 import { ClaimCreditButton } from "./claim-credit-button";
 import { CollectPanel } from "./collect-panel";
+import { Comments } from "./comments";
 import { HidePostButton } from "./hide-post-button";
 import { ModerationNotice } from "./moderation-notice";
 import { PhotoViewer } from "./photo-viewer";
@@ -83,6 +86,18 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
             .data,
         )
       : false;
+  // 댓글: 게시된 글 · 정지 · 읽기 전용이 아닐 때 쓸 수 있다 (DB가 다시 막는다)
+  const [{ comments, count: commentCount }, switches] = await Promise.all([getComments(post.id), getSiteSwitches()]);
+  const isAdmin = viewer?.profile?.role === "admin";
+  const commentsClosed =
+    post.status !== "published" || post.held_at
+      ? "게시된 글에만 댓글을 달 수 있어요."
+      : viewer?.restriction
+        ? "이용이 제한된 기간이라 댓글을 달 수 없어요."
+        : switches.readOnly && !isAdmin
+          ? "지금은 보기만 할 수 있어요."
+          : null;
+
   const credits = post.credits.filter(
     (c) => c.status === "approved" || c.status === "external" || isAuthor || (viewer !== null && c.member_id === viewer.id && c.status === "pending"),
   );
@@ -210,6 +225,18 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
           )}
           {canHide && <HidePostButton postId={post.id} />}
           {viewer?.profile?.role === "admin" && <WatermarkCheck postId={post.id} />}
+
+          <Comments
+            postId={post.id}
+            comments={comments}
+            count={commentCount}
+            viewerId={viewer?.profile ? viewer.id : null}
+            isPostAuthor={isAuthor}
+            isAdmin={isAdmin}
+            canWrite={Boolean(viewer?.profile) && commentsClosed === null}
+            closedReason={viewer?.profile ? commentsClosed : null}
+            loginHref={`/login?next=${encodeURIComponent(`/p/${post.id}#comments`)}`}
+          />
         </div>
       </div>
     </article>

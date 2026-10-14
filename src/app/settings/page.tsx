@@ -5,23 +5,27 @@ import { withNext } from "@/lib/auth/next-path";
 import { getViewer } from "@/lib/auth/viewer";
 import { createClient } from "@/lib/supabase/server";
 import { DeletionPanel } from "./deletion-panel";
+import { MessageSettings } from "./message-settings";
 
 export const metadata: Metadata = { title: "설정", robots: { index: false } };
 
 const dayFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "long" });
 
 // S-14 설정 (1단계: 계정 정보 · 내 데이터 내려받기 · 계정 삭제)
-// 콘텐츠 보기 · 업로드 기본값 · 크레딧 자동 승인 · 메시지 설정은 해당 기능과 함께.
+// 메시지 받기 범위 · 차단 목록. 콘텐츠 보기 · 업로드 기본값 · 크레딧 자동 승인은 해당 기능과 함께.
 export default async function SettingsPage() {
   const viewer = await getViewer();
   if (!viewer) redirect(withNext("/login", "/settings"));
   if (!viewer.profile) redirect(withNext("/welcome", "/settings"));
 
   const supabase = await createClient();
-  const [{ data: claims }, { data: profile }] = await Promise.all([
+  const [{ data: claims }, { data: profile }, { data: setting }, { data: blocks }] = await Promise.all([
     supabase.auth.getClaims(),
     supabase.from("profiles").select("created_at, deletion_requested_at").eq("id", viewer.id).single(),
+    supabase.from("message_settings").select("receive").eq("user_id", viewer.id).maybeSingle(),
+    supabase.from("blocks").select("blocked:profiles!blocks_blocked_id_fkey(id, handle)").eq("blocker_id", viewer.id).limit(1000),
   ]);
+  const blocked = (blocks ?? []).flatMap((b) => (b.blocked ? [b.blocked] : []));
   const email = typeof claims?.claims.email === "string" ? claims.claims.email : null;
 
   return (
@@ -49,12 +53,19 @@ export default async function SettingsPage() {
         </dl>
       </section>
 
+      <section id="messages" aria-labelledby="messages-heading" className="flex scroll-mt-20 flex-col gap-3">
+        <h2 id="messages-heading" className="text-lg font-semibold">
+          메시지 · 차단
+        </h2>
+        <MessageSettings receive={setting?.receive ?? "everyone"} blocked={blocked} />
+      </section>
+
       <section aria-labelledby="data-heading" className="flex flex-col gap-3">
         <h2 id="data-heading" className="text-lg font-semibold">
           내 데이터
         </h2>
         <p className="text-sm leading-relaxed text-quiet">
-          프로필 · 내 게시물 정보(제목 · 설명 · 촬영일 · 태그 · 크레딧) · 나를 태그한 크레딧 · 내가 한 신고 · 소명 기록을 파일(JSON)로 받아요.
+          프로필 · 내 게시물 정보(제목 · 설명 · 촬영일 · 태그 · 크레딧) · 나를 태그한 크레딧 · 댓글 · 게시판 글 · 내가 보낸 메시지 · 신고 · 소명 · 문의 기록을 파일(JSON)로 받아요.
         </p>
         <a
           href="/api/me/export"

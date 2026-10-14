@@ -18,6 +18,8 @@ export type FeedFilter = {
   postIds?: string[];
   /** 팔로우 피드: 이 태그가 붙었거나 이 회원이 올린 글 */
   following?: { tagIds: string[]; authorIds: string[] };
+  /** 몇 개까지 (기본 FEED_LIMIT) */
+  limit?: number;
 };
 
 export type FeedItem = {
@@ -36,7 +38,7 @@ export type FeedItem = {
 };
 
 /** 게시된 글 목록 (홈 · 탐색). 대표 사진에는 이미지 게이트 서명 주소를 붙인다. */
-export async function loadFeed({ year, category, query, tagIds, authorId, postIds, following }: FeedFilter): Promise<FeedItem[]> {
+export async function loadFeed({ year, category, query, tagIds, authorId, postIds, following, limit = FEED_LIMIT }: FeedFilter): Promise<FeedItem[]> {
   const supabase = await createClient();
 
   // 팔로우: 태그로 모은 글 id 또는 팔로우한 회원의 글
@@ -79,7 +81,7 @@ export async function loadFeed({ year, category, query, tagIds, authorId, postId
     .order("published_at", { ascending: false })
     .order("position", { referencedTable: "photos" })
     .limit(1, { referencedTable: "photos" })
-    .limit(FEED_LIMIT);
+    .limit(Math.min(limit, FEED_LIMIT));
   if (year !== null) feed = feed.eq("shot_year", year);
   if (category !== null) feed = feed.eq("category", category);
   if (taggedPostIds) feed = feed.in("id", taggedPostIds);

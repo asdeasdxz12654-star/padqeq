@@ -40,6 +40,9 @@ export async function completeSignup(formData: FormData): Promise<SignupErrors> 
   if (error) {
     const mapped = signupErrorFromDb(error.message);
     if (mapped !== "profile_exists") return { [mapped.field]: mapped.message };
+  } else {
+    // 만 19세 이상이면 그 사실만 기록한다 (섭외 게시판용). 생년월일은 저장하지 않는다. 실패해도 가입은 끝났다.
+    await supabase.rpc("confirm_adult", { birth_date: birthDate });
   }
 
   redirect(next);

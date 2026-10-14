@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { withNext } from "@/lib/auth/next-path";
 import { getViewer } from "@/lib/auth/viewer";
+import { InAppBrowserNotice } from "@/components/in-app-browser-notice";
+import { getSiteSwitches } from "@/lib/support/switches";
 import { currentYearKst } from "@/lib/year-chips";
 import { UploadStudio } from "./upload-studio";
 
@@ -25,6 +27,16 @@ export default async function UploadPage() {
     );
   }
 
+  const switches = await getSiteSwitches();
+  if (viewer.profile.role !== "admin" && (switches.uploadsClosed || switches.readOnly)) {
+    return (
+      <div className="mx-auto max-w-md px-4 py-24 text-center">
+        <h1 className="text-xl font-bold">사진 올리기를 잠시 멈췄어요</h1>
+        <p className="mt-2 text-sm leading-relaxed text-quiet">운영 점검 중이에요. 곧 다시 열릴 예정이니 조금 뒤에 와 주세요.</p>
+      </div>
+    );
+  }
+
   if (!viewer.profile.can_upload) {
     return (
       <div className="mx-auto max-w-md px-4 py-24 text-center">
@@ -38,6 +50,7 @@ export default async function UploadPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 pt-8 pb-16 md:px-6">
+      <InAppBrowserNotice purpose="upload" />
       <h1 className="text-2xl font-bold">업로드</h1>
       <p className="mt-2 text-sm leading-relaxed text-quiet">
         사진은 이 브라우저에서 고화질로 변환한 뒤 올라가요. 원본 파일은 서버에 저장하지 않으니 따로 보관해 주세요.
