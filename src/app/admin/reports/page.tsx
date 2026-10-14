@@ -30,13 +30,13 @@ type ReportRow = {
     held_at: string | null;
     held_reason: string | null;
     has_people: boolean;
-    author: { handle: string } | null;
+    author: { id: string; handle: string } | null;
   } | null;
 };
 
 const REPORT_SELECT = `id, reason, detail, photo_position, status, created_at, resolved_at,
   reporter:profiles!reports_reporter_id_fkey(handle, created_at),
-  post:posts!reports_post_id_fkey(id, title, status, held_at, held_reason, has_people, author:profiles!posts_author_id_fkey(handle))`;
+  post:posts!reports_post_id_fkey(id, title, status, held_at, held_reason, has_people, author:profiles!posts_author_id_fkey(id, handle))`;
 
 export default async function AdminReportsPage({ searchParams }: PageProps<"/admin/reports">) {
   const params = await searchParams;
@@ -215,12 +215,12 @@ type AppealRow = {
     held_reason: string | null;
     removed_at: string | null;
     has_people: boolean;
-    author: { handle: string } | null;
+    author: { id: string; handle: string } | null;
   } | null;
 };
 
 const APPEAL_POST = `post:posts!appeals_post_id_fkey(id, title, status, held_at, held_reason, removed_at, has_people,
-  author:profiles!posts_author_id_fkey(handle))`;
+  author:profiles!posts_author_id_fkey(id, handle))`;
 
 async function AppealDetail({ appeal, post }: { appeal: AppealRow; post: NonNullable<AppealRow["post"]> }) {
   const supabase = await createClient();
@@ -245,7 +245,11 @@ async function AppealDetail({ appeal, post }: { appeal: AppealRow; post: NonNull
           <Link href={`/p/${post.id}`} className="text-lg font-semibold hover:underline">
             {post.title}
           </Link>
-          {post.author && <span className="text-quiet">업로더 @{post.author.handle}</span>}
+          {post.author && (
+            <Link href={`/admin/members/${post.author.id}`} className="text-quiet hover:underline">
+              업로더 @{post.author.handle} · 회원 관리
+            </Link>
+          )}
           <span className="text-quiet">상태: {removed ? "게시 중단" : `임시 비공개 (${post.held_reason ?? ""})`}</span>
           <span className="text-quiet">
             촬영 동의 기록:{" "}
@@ -315,9 +319,14 @@ async function ReportDetail({ group }: { group: { post: NonNullable<ReportRow["p
             {post.title}
           </Link>
           {post.author && (
-            <Link href={profileHref(post.author.handle)} className="text-quiet hover:underline">
-              업로더 @{post.author.handle}
-            </Link>
+            <span className="flex flex-wrap gap-x-3 text-quiet">
+              <Link href={profileHref(post.author.handle)} className="hover:underline">
+                업로더 @{post.author.handle}
+              </Link>
+              <Link href={`/admin/members/${post.author.id}`} className="underline underline-offset-2">
+                회원 관리
+              </Link>
+            </span>
           )}
           <span className="text-quiet">
             사진 {photos.data?.length ?? 0}장{reports.some((r) => r.photo_position !== null) && ` · ${pointed + 1}번째 사진 지목`}

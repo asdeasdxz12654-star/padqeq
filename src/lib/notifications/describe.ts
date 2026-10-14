@@ -42,6 +42,14 @@ export function describeNotification({ kind, actorHandle, post }: NotificationIn
       return { text: `${who}이 크레딧 연결을 승인했어요. 이제 내 프로필에 보여요.`, href: postHref };
     case "credit_claim_rejected":
       return { text: `${who}이 크레딧 연결 요청을 거절했어요.`, href: postHref };
+    case "member_suspended":
+      return { text: "운영 정책에 따라 이용이 일시 제한됐어요. 기간과 사유는 마이에서 볼 수 있어요.", href: "/me" };
+    case "suspension_lifted":
+      return { text: "이용 제한이 풀렸어요. 다시 모든 기능을 쓸 수 있어요.", href: "/me" };
+    case "upload_granted":
+      return { text: "사진을 올릴 수 있게 됐어요. 반가워요!", href: "/upload" };
+    case "upload_revoked":
+      return { text: "운영 정책에 따라 사진 올리기 권한이 회수됐어요. 이미 올린 사진은 그대로예요.", href: "/me" };
     case "report_reviewed":
       return { text: "신고하신 게시물을 검토했어요. 알려 주셔서 고마워요.", href: postHref };
   }

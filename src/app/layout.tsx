@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans_KR } from "next/font/google";
 import { connection } from "next/server";
 import { PhotoGuard } from "@/components/photo-guard";
+import { RestrictionBanner } from "@/components/restriction-banner";
 import { SiteHeader } from "@/components/site-header";
 import { TabBar } from "@/components/tab-bar";
 import "./globals.css";
@@ -46,6 +47,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           본문으로 건너뛰기
         </a>
         <SiteHeader />
+        <RestrictionBanner />
         <main id="main" className="flex-1 pb-20 md:pb-0">
           {children}
         </main>

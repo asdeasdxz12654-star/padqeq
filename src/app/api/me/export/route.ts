@@ -48,6 +48,7 @@ export async function GET(request: Request) {
       reports_filed: reports.data ?? [],
       appeals_filed: appeals.data ?? [],
       credit_claims_filed: creditClaims.data ?? [],
+      restriction: viewer.restriction,
     },
     null,
     2,

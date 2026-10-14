@@ -537,6 +537,38 @@ export type Database = {
           },
         ]
       }
+      member_restrictions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          member_id: string
+          reason: string
+          suspended_until: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          member_id: string
+          reason: string
+          suspended_until: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          member_id?: string
+          reason?: string
+          suspended_until?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_restrictions_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           actor_id: string | null
@@ -760,6 +792,14 @@ export type Database = {
       resolve_credit_claim: { Args: { accept: boolean; target: string }; Returns: undefined }
       arrange_my_photos: { Args: { keep: string[]; target: string }; Returns: undefined }
       moderate_post: { Args: { decision: string; note: string; target: string }; Returns: undefined }
+      sanction_member: {
+        Args: { action: string; days?: number | null; note: string; reason?: string | null; target: string }
+        Returns: undefined
+      }
+      member_sanction_history: {
+        Args: { target: string }
+        Returns: { action: string; actor_handle: string | null; created_at: string; detail: Json }[]
+      }
       approve_tag: { Args: { target: string }; Returns: undefined }
       create_official_tag: {
         Args: {
@@ -831,6 +871,10 @@ export type Database = {
         | "credit_claimed"
         | "credit_claim_approved"
         | "credit_claim_rejected"
+        | "member_suspended"
+        | "suspension_lifted"
+        | "upload_granted"
+        | "upload_revoked"
       post_category: "cosplay" | "model" | "landscape" | "other"
       post_status: "draft" | "published" | "hidden"
       report_reason:
@@ -993,6 +1037,10 @@ export const Constants = {
         "credit_claimed",
         "credit_claim_approved",
         "credit_claim_rejected",
+        "member_suspended",
+        "suspension_lifted",
+        "upload_granted",
+        "upload_revoked",
       ],
       post_category: ["cosplay", "model", "landscape", "other"],
       post_status: ["draft", "published", "hidden"],

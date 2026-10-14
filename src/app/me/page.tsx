@@ -134,6 +134,9 @@ export default async function MePage() {
             신고 처리
             {openReports.count ? <span className="ml-2 rounded-full bg-red-500/20 px-2 text-red-300">{openReports.count}</span> : null}
           </Link>
+          <Link href="/admin/members" className="rounded-xl border border-line px-4 py-2 text-sm hover:border-quiet">
+            회원 관리
+          </Link>
         </nav>
       )}
 
