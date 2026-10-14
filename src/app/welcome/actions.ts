@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { safeNextPath, withNext } from "@/lib/auth/next-path";
 import { POLICY_VERSION, type SignupField, signupErrorFromDb, signupSchema } from "@/lib/auth/signup-input";
@@ -53,5 +54,7 @@ export async function completeSignup(formData: FormData): Promise<SignupErrors> 
     await supabase.rpc("confirm_adult", { birth_date: birthDate });
   }
 
+  // 상단 바 · 탭 등 모든 화면이 새 프로필로 다시 그려지게 (안 하면 브라우저에 남은 화면이 "가입 마무리"를 계속 보여 준다)
+  revalidatePath("/", "layout");
   redirect(next);
 }
