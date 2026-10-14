@@ -35,7 +35,7 @@ export default async function AdminMembersPage({ searchParams }: PageProps<"/adm
   let query = supabase
     .from("profiles")
     .select(
-      "id, handle, display_name, role, can_upload, created_at, deletion_requested_at, restriction:member_restrictions(suspended_until), posts!posts_author_id_fkey(count)",
+      "id, handle, display_name, role, can_upload, created_at, deletion_requested_at, restriction:member_restrictions!member_restrictions_member_id_fkey(suspended_until), posts!posts_author_id_fkey(count)",
     )
     .order("created_at", { ascending: false })
     .limit(100);

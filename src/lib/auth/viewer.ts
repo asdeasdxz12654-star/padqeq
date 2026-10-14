@@ -26,7 +26,7 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
   const { sub, user_metadata: meta } = data.claims;
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("handle, display_name, role, can_upload, restriction:member_restrictions(suspended_until, reason)")
+    .select("handle, display_name, role, can_upload, restriction:member_restrictions!member_restrictions_member_id_fkey(suspended_until, reason)")
     .eq("id", sub)
     .maybeSingle();
   if (profileError) throw profileError;

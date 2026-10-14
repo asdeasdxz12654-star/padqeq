@@ -1127,6 +1127,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "member_restrictions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "member_restrictions_member_id_fkey"
             columns: ["member_id"]
             isOneToOne: true
