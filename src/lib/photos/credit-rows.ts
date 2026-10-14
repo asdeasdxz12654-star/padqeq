@@ -33,11 +33,21 @@ export async function insertCredits(
       : { post_id: postId, role: c.role, external_label: c.label, external_url: c.url, status: "external" as const },
   );
   const { error } = await supabase.from("credits").insert(rows);
-  if (error) return { ok: false, error: "크레딧을 저장하지 못했어요." };
+  if (error) return { ok: false, error: creditErrorMessage(error.message) };
 
   if (rows.some((r) => "member_id" in r && r.member_id === viewerId)) {
     // 당사자 승인 규칙(RLS)대로 내 크레딧은 내가 승인한다
     await supabase.from("credits").update({ status: "approved" }).eq("post_id", postId).eq("member_id", viewerId).eq("status", "pending");
   }
   return { ok: true };
+}
+
+/** 크레딧 요청 제한 (DB 트리거) 문구 */
+export function creditErrorMessage(message: string): string {
+  if (message.includes("credit_blocked")) return "차단 관계인 회원에게는 크레딧을 요청할 수 없어요.";
+  if (message.includes("credit_declined_before")) return "이 글의 크레딧을 거절했거나 뺀 회원에게는 다시 요청할 수 없어요.";
+  if (message.includes("credit_duplicate")) return "같은 회원을 같은 역할로 두 번 올릴 수 없어요.";
+  if (message.includes("credit_pending_limit")) return "이 회원에게 답을 기다리는 요청이 20개 있어요. 답을 받은 뒤 다시 요청해 주세요.";
+  if (message.includes("credit_rate_limited")) return "오늘은 크레딧 요청을 더 보낼 수 없어요. 내일 다시 시도해 주세요.";
+  return "크레딧을 저장하지 못했어요.";
 }

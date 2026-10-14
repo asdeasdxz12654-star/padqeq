@@ -161,6 +161,9 @@ export default async function MePage() {
 
       {profile.role === "admin" && (
         <nav aria-label="운영" className="mt-8 flex flex-wrap gap-2">
+          <Link href="/admin" className="rounded-xl border border-line px-4 py-2 text-sm font-semibold hover:border-quiet">
+            운영 홈
+          </Link>
           <Link href="/admin/reports" className="rounded-xl border border-line px-4 py-2 text-sm hover:border-quiet">
             신고 처리
             {openReports.count ? <span className="ml-2 rounded-full bg-red-500/20 px-2 text-red-300">{openReports.count}</span> : null}

@@ -4,11 +4,13 @@
 //  2. Supabase 세션 갱신 (만료된 토큰을 새로 받아 쿠키로 돌려줌)
 //  3. 예약 작업: DB 일시정지 방지, 백업 확인
 //  4. 대표 주소가 아닌 주소(workers.dev 등)로 들어오면 대표 주소로 영구 이동
+//  5. 이름을 밝히고 오는 AI 학습 · 수집 크롤러는 robots.txt만 보여 주고 거절 (403)
 // Next 16의 proxy.ts는 Workers에서 아직 실험 기능이라 이곳에서 처리한다.
 
 import { createServerClient, parseCookieHeader, serializeCookieHeader } from "@supabase/ssr";
 // @ts-expect-error -- `opennextjs-cloudflare build`가 만드는 파일
 import { default as nextHandler } from "./.open-next/worker.js";
+import { isAiCrawler } from "./src/lib/security/ai-crawlers";
 import { buildCsp, createNonce } from "./src/lib/security/csp";
 
 const BACKUP_MAX_AGE_MS = 26 * 60 * 60 * 1000;
@@ -17,6 +19,12 @@ const SESSIONLESS_PREFIXES = ["/img/", "/_next/static/", "/wasm/"];
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    if (url.pathname !== "/robots.txt" && isAiCrawler(request.headers.get("user-agent"))) {
+      return new Response("AI 학습 · 수집을 허용하지 않습니다. / AI training and scraping are not permitted.", {
+        status: 403,
+        headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noai, noimageai" },
+      });
+    }
     if (env.SITE_HOST && url.hostname !== env.SITE_HOST) {
       url.hostname = env.SITE_HOST;
       url.protocol = "https:";

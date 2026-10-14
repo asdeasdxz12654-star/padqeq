@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getAdminPending } from "@/lib/admin/pending";
 import { getViewer } from "@/lib/auth/viewer";
 import { getUnreadCount } from "@/lib/notifications/unread";
 import { profileHref } from "@/lib/profiles/profile-href";
@@ -7,7 +8,8 @@ import { NAV_ITEMS } from "./nav-items";
 /** 상단 바. 데스크톱(768px~)에서는 GNB + 업로드 버튼 + 계정, 모바일에서는 로고와 가입 안내만. */
 export async function SiteHeader() {
   const viewer = await getViewer();
-  const unread = await getUnreadCount(viewer?.profile ? viewer.id : null);
+  const isAdmin = viewer?.profile?.role === "admin";
+  const [unread, pending] = await Promise.all([getUnreadCount(viewer?.profile ? viewer.id : null), isAdmin ? getAdminPending() : null]);
 
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-bg/95 pt-[env(safe-area-inset-top)] backdrop-blur">
@@ -40,6 +42,20 @@ export async function SiteHeader() {
               >
                 업로드
               </Link>
+              {pending && (
+                <Link
+                  href="/admin"
+                  aria-label={pending.total ? `운영, 처리할 일 ${pending.total}건` : "운영"}
+                  className="flex min-h-11 items-center gap-1.5 text-quiet hover:text-text"
+                >
+                  운영
+                  {pending.total > 0 && (
+                    <span className="min-w-[18px] rounded-full bg-red-500/80 px-1 text-center text-[11px] leading-[18px] font-bold text-white">
+                      {pending.total > 99 ? "99+" : pending.total}
+                    </span>
+                  )}
+                </Link>
+              )}
               {viewer?.profile && <NotificationBell unread={unread} />}
               {viewer?.profile ? (
                 <Link href={profileHref(viewer.profile.handle)} className="hidden max-w-40 truncate text-quiet hover:text-text md:block">
