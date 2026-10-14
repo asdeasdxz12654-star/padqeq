@@ -268,3 +268,20 @@ export async function setBookmark(postId: string, save: boolean): Promise<{ ok: 
   revalidatePath("/me/saved");
   return { ok: true };
 }
+
+/** 좋아요 · 취소 (S-06 ②). 볼 수 있는 게시된 글 · 정지 여부는 DB가 확인한다. */
+export async function setLike(postId: string, like: boolean): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!idSchema.safeParse(postId).success) return { ok: false, error: "잘못된 요청이에요." };
+  const viewer = await getViewer();
+  if (!viewer?.profile) return { ok: false, error: "로그인이 필요해요." };
+  const supabase = await createClient();
+  const { error } = like
+    ? await supabase.from("post_likes").insert({ post_id: postId, user_id: viewer.id })
+    : await supabase.from("post_likes").delete().eq("post_id", postId).eq("user_id", viewer.id);
+  if (error && error.code !== "23505") {
+    if (error.message.includes("member_suspended")) return { ok: false, error: "이용이 제한된 기간이에요." };
+    if (error.message.includes("site_read_only")) return { ok: false, error: "지금은 보기만 할 수 있어요." };
+    return { ok: false, error: "좋아요를 누르지 못했어요." };
+  }
+  return { ok: true };
+}

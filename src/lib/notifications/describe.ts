@@ -78,6 +78,9 @@ export function describeNotification({ kind, actorHandle, post, event = null, bo
       return { text: `${who}이 메시지를 보냈어요.`, href: threadId ? `/me/messages/${threadId}` : "/me/messages" };
     case "message_request":
       return { text: `${who}이 메시지 요청을 보냈어요. 수락하기 전에는 상대가 읽음 여부를 알 수 없어요.`, href: threadId ? `/me/messages/${threadId}` : "/me/messages" };
+    case "post_liked":
+      // 같은 글의 좋아요는 안 읽은 알림 하나로 묶인다
+      return { text: `${who}이 내 게시물을 좋아해요.`, href: postHref };
     case "inquiry_answered":
       return { text: "1:1 문의에 답변이 달렸어요.", href: "/help?tab=inquiry" };
     case "report_reviewed":

@@ -4,14 +4,17 @@ import { getViewer } from "@/lib/auth/viewer";
 import { CATEGORY_LABEL } from "@/lib/photos/post-input";
 import Link from "next/link";
 import { getComments } from "@/lib/comments/load";
+import { OG_IMAGES } from "@/lib/og";
 import { getPost } from "@/lib/posts/get-post";
 import { getSiteSwitches } from "@/lib/support/switches";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { TagChip } from "@/components/tag-chip";
 import { createClient } from "@/lib/supabase/server";
 import { ClaimCreditButton } from "./claim-credit-button";
+import { ShareButton } from "@/components/share-button";
 import { CollectPanel } from "./collect-panel";
 import { Comments } from "./comments";
+import { LikeButton } from "./like-button";
 import { HidePostButton } from "./hide-post-button";
 import { ModerationNotice } from "./moderation-notice";
 import { PhotoViewer } from "./photo-viewer";
@@ -37,6 +40,13 @@ export async function generateMetadata({ params }: PageProps<"/p/[id]">): Promis
   return {
     title: post.title,
     description: `@${post.author.handle} · ${CATEGORY_LABEL[post.category]} · ${post.shot_year}`,
+    openGraph: {
+      type: "article",
+      title: `${post.title} · 해담`,
+      description: `@${post.author.handle}의 ${post.shot_year}년 ${CATEGORY_LABEL[post.category]} 사진 — 해담에서 보기`,
+      url: `/p/${post.id}`,
+      images: OG_IMAGES,
+    },
     // 게시되지 않은 글(초안 · 숨김)은 검색에 넣지 않는다
     robots: post.status === "published" ? undefined : { index: false },
   };
@@ -79,6 +89,9 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
 
   // 저장 여부 (게시된 글만 저장할 수 있다)
   const canSave = Boolean(viewer?.profile) && post.status === "published";
+  // 좋아요 수 · 내가 눌렀는지 (볼 수 있는 글만)
+  const { data: likeRows } = await (await createClient()).rpc("post_like_stats", { ids: [post.id] });
+  const likeStats = likeRows?.[0] ?? null;
   const saved =
     canSave && viewer
       ? Boolean(
@@ -142,18 +155,28 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
               {CATEGORY_LABEL[post.category]} · 촬영 {post.shot_on ? dateFormat.format(new Date(post.shot_on)) : `${post.shot_year}년`}
               {post.published_at && ` · 게시 ${dateFormat.format(new Date(post.published_at))}`}
             </p>
-            {canSave ? (
-              <SaveButton postId={post.id} initial={saved} />
-            ) : (
-              !viewer &&
-              post.status === "published" && (
-                <Link
-                  href={`/login?next=${encodeURIComponent(`/p/${post.id}`)}`}
-                  className="inline-flex min-h-10 items-center self-start rounded-full bg-accent px-4 text-sm font-semibold text-on-accent"
-                >
-                  저장
-                </Link>
-              )
+            {post.status === "published" && !post.held_at && (
+              <div className="flex flex-wrap items-center gap-2">
+                <LikeButton
+                  postId={post.id}
+                  initial={likeStats?.liked ?? false}
+                  count={likeStats?.likes ?? 0}
+                  loginHref={viewer?.profile ? null : `/login?next=${encodeURIComponent(`/p/${post.id}`)}`}
+                />
+                {canSave ? (
+                  <SaveButton postId={post.id} initial={saved} />
+                ) : (
+                  !viewer && (
+                    <Link
+                      href={`/login?next=${encodeURIComponent(`/p/${post.id}`)}`}
+                      className="inline-flex min-h-10 items-center rounded-full bg-accent px-4 text-sm font-semibold text-on-accent"
+                    >
+                      저장
+                    </Link>
+                  )
+                )}
+                <ShareButton path={`/p/${post.id}`} title={post.title} />
+              </div>
             )}
           </header>
 

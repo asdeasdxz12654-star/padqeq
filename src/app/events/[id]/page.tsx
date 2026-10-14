@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PhotoFeed } from "@/components/photo-feed";
+import { ShareButton } from "@/components/share-button";
 import { todayKst } from "@/lib/auth/signup-input";
 import { getViewer } from "@/lib/auth/viewer";
 import { formatRange } from "@/lib/events/calendar";
@@ -87,6 +88,11 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
             )}
           </p>
           {event.description && <p className="mt-2 text-sm leading-relaxed whitespace-pre-line">{event.description}</p>}
+          {official && (
+            <div className="mt-2">
+              <ShareButton path={`/events/${event.id}`} title={event.name} />
+            </div>
+          )}
           {!upcoming && official && <p className="mt-2 text-sm text-quiet">지난 행사예요. 이 행사에서 찍은 사진을 모아 봐요.</p>}
           {upcoming && official && viewer?.profile?.can_upload && tag.data && (
             <p className="mt-2 text-sm text-quiet">이 행사에서 찍은 사진을 올릴 때 태그 #{tag.data.name}을 붙이면 여기에 모여요.</p>

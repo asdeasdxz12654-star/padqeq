@@ -7,6 +7,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteNotice } from "@/components/site-notice";
 import { SiteHeader } from "@/components/site-header";
 import { TabBar } from "@/components/tab-bar";
+import { OG_IMAGES } from "@/lib/og";
 import "./globals.css";
 
 // 빌드 때 받아 같은 출처에서 서빙한다 (CSP font-src 'self')
@@ -21,6 +22,15 @@ export const metadata: Metadata = {
   title: { default: "해담", template: "%s · 해담" },
   description: "해마다, 잊지 않도록 — 코스프레 · 모델 · 풍경 사진을 해마다 담아 두는 추억 갤러리",
   applicationName: "해담",
+  // 공유 카드(카카오톡 · SNS 미리보기)의 절대 주소 기준
+  metadataBase: new URL("https://www.memories.haedam.app"),
+  openGraph: {
+    siteName: "해담",
+    locale: "ko_KR",
+    type: "website",
+    images: OG_IMAGES,
+  },
+  twitter: { card: "summary_large_image" },
   formatDetection: { telephone: false },
 };
 

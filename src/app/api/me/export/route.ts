@@ -12,7 +12,7 @@ export async function GET(request: Request) {
   if (!viewer?.profile) return new Response("로그인이 필요해요.", { status: 401 });
 
   const supabase = await createClient();
-  const [{ data: claims }, profile, posts, credits, reports, appeals, creditClaims, comments, commentReports, inquiries, boardPosts, boardReplies, sentMessages, blocks, messageSetting, creator, attending, proposedEvents] = await Promise.all([
+  const [{ data: claims }, profile, posts, credits, reports, appeals, creditClaims, comments, commentReports, inquiries, boardPosts, boardReplies, sentMessages, blocks, messageSetting, creator, attending, proposedEvents, likes] = await Promise.all([
     supabase.auth.getClaims(),
     supabase.from("profiles").select("handle, display_name, bio, created_at, deletion_requested_at").eq("id", viewer.id).single(),
     supabase
@@ -40,6 +40,7 @@ export async function GET(request: Request) {
     supabase.from("creator_profiles").select("listed, roles, region, active_since, works, casting_open, updated_at").eq("user_id", viewer.id).maybeSingle(),
     supabase.from("event_attendees").select("is_public, cos_note, created_at, event:events!event_attendees_event_id_fkey(name, starts_on)").eq("user_id", viewer.id),
     supabase.from("events").select("name, starts_on, ends_on, venue, region, status, created_at").eq("proposed_by", viewer.id),
+    supabase.from("post_likes").select("post_id, created_at").eq("user_id", viewer.id).order("created_at"),
   ]);
   if (profile.error || posts.error) return new Response("데이터를 모으지 못했어요.", { status: 500 });
 
@@ -70,6 +71,7 @@ export async function GET(request: Request) {
       creator_profile: creator.data,
       events_attending: attending.data ?? [],
       events_proposed: proposedEvents.data ?? [],
+      likes_given: likes.data ?? [],
       restriction: viewer.restriction,
     },
     null,

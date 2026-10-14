@@ -1572,6 +1572,39 @@ export type Database = {
           },
         ]
       }
+      post_likes: {
+        Row: {
+          created_at: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       posts: {
         Row: {
           author_id: string
@@ -1789,6 +1822,7 @@ export type Database = {
       resolve_credit_claim: { Args: { accept: boolean; target: string }; Returns: undefined }
       arrange_my_photos: { Args: { keep: string[]; target: string }; Returns: undefined }
       moderate_post: { Args: { decision: string; note: string; target: string }; Returns: undefined }
+      post_like_stats: { Args: { ids: string[] }; Returns: { liked: boolean; likes: number; post_id: string }[] }
       can_i_upload: { Args: never; Returns: boolean }
       set_upload_stage: { Args: { note: string; stage: Database["public"]["Enums"]["upload_stage"] }; Returns: undefined }
       create_invite_code: { Args: { days: number; max_uses: number; note: string }; Returns: string }
@@ -1992,6 +2026,7 @@ export type Database = {
         | "board_hidden"
         | "message_received"
         | "message_request"
+        | "post_liked"
       post_category: "cosplay" | "model" | "landscape" | "other"
       post_status: "draft" | "published" | "hidden"
       report_reason:
@@ -2181,6 +2216,7 @@ export const Constants = {
         "board_hidden",
         "message_received",
         "message_request",
+        "post_liked",
       ],
       post_category: ["cosplay", "model", "landscape", "other"],
       post_status: ["draft", "published", "hidden"],

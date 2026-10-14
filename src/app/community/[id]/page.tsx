@@ -8,6 +8,7 @@ import { BOARD_LABEL, CASTING_KIND_LABEL, TERMS_LABEL } from "@/lib/boards/label
 import { profileHref } from "@/lib/profiles/profile-href";
 import { createClient } from "@/lib/supabase/server";
 import { getSiteSwitches } from "@/lib/support/switches";
+import { ShareButton } from "@/components/share-button";
 import { AdultConfirm } from "../adult-confirm";
 import { CastingApply, PostActions, Replies, type ReplyView } from "./post-interactions";
 
@@ -96,6 +97,12 @@ export default async function BoardPostPage({ params }: PageProps<"/community/[i
         </p>
       </header>
       <div className="mt-6 text-[15px] leading-relaxed break-words whitespace-pre-line">{post.body}</div>
+
+      {!post.hidden_at && (
+        <div className="mt-6">
+          <ShareButton path={`/community/${post.id}`} title={post.title} />
+        </div>
+      )}
 
       <div className="mt-6">
         <PostActions id={post.id} mine={mine} closed={post.closed_at !== null} isCasting={isCasting} canReport={Boolean(viewer?.profile) && !mine} />

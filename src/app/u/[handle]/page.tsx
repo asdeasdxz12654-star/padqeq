@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BlockButton } from "@/components/block-button";
 import { CollectionCards } from "@/components/collection-cards";
+import { ShareButton } from "@/components/share-button";
 import { FollowButton } from "@/components/follow-button";
 import { PhotoFeed } from "@/components/photo-feed";
 import { YearChips } from "@/components/year-chips";
@@ -110,9 +111,12 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
         </p>
 
         {isMe ? (
-          <Link href="/me" className="self-start rounded-full border border-line px-4 py-1.5 text-sm hover:border-quiet">
-            프로필 편집
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/me" className="inline-flex min-h-10 items-center rounded-full border border-line px-4 text-sm hover:border-quiet">
+              프로필 편집
+            </Link>
+            <ShareButton path={base} title={`${profile.display_name} (@${profile.handle})`} />
+          </div>
         ) : viewer?.profile ? (
           <div className="flex flex-wrap gap-2">
             <FollowButton target={{ kind: "member", id: profile.id }} initial={following} />
