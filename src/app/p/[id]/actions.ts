@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getViewer } from "@/lib/auth/viewer";
+import { EVIDENCE_TYPES, MAX_EVIDENCE_BYTES } from "@/lib/moderation/evidence";
 import { REPORT_REASONS } from "@/lib/moderation/reasons";
 import { getPost, type ViewerPhoto } from "@/lib/posts/get-post";
 import { createClient } from "@/lib/supabase/server";
@@ -17,7 +18,9 @@ const reportSchema = z.object({
 });
 
 /** 신고 (S-15). 같은 글 중복 · 하루 20건 · 내 글 · 볼 수 없는 글은 DB가 막는다. */
-export async function submitReport(input: z.input<typeof reportSchema>): Promise<{ ok: boolean; error?: string }> {
+export async function submitReport(
+  input: z.input<typeof reportSchema>,
+): Promise<{ ok: true; reportId: string } | { ok: false; error: string }> {
   const parsed = reportSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "신고 내용을 확인해 주세요." };
   const viewer = await getViewer();
@@ -25,20 +28,51 @@ export async function submitReport(input: z.input<typeof reportSchema>): Promise
 
   const { postId, reason, detail, photoPosition } = parsed.data;
   const supabase = await createClient();
-  const { error } = await supabase.from("reports").insert({
-    reporter_id: viewer.id,
-    post_id: postId,
-    reason,
-    detail,
-    photo_position: photoPosition,
-  });
+  const { data, error } = await supabase
+    .from("reports")
+    .insert({
+      reporter_id: viewer.id,
+      post_id: postId,
+      reason,
+      detail,
+      photo_position: photoPosition,
+    })
+    .select("id")
+    .single();
   if (error) {
     if (error.code === "23505") return { ok: false, error: "이미 신고한 게시물이에요. 처리 결과를 기다려 주세요." };
     if (error.message.includes("report_rate_limited")) return { ok: false, error: "오늘은 더 신고할 수 없어요. 내일 다시 시도해 주세요." };
     return { ok: false, error: "신고하지 못했어요. 잠시 뒤 다시 시도해 주세요." };
   }
   revalidatePath("/");
-  return { ok: true };
+  return { ok: true, reportId: data.id };
+}
+
+const evidenceSchema = z.object({
+  reportId: z.uuid(),
+  contentType: z.enum(EVIDENCE_TYPES),
+  bytes: z.int().min(1).max(MAX_EVIDENCE_BYTES),
+});
+
+/** 신고 증거 자리 만들기. 파일은 돌려준 id로 /api/reports/evidence/{id}에 올린다. 신고자 · 3장 제한은 DB가 확인한다. */
+export async function startEvidence(input: z.input<typeof evidenceSchema>): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
+  const parsed = evidenceSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "JPEG · PNG · WebP 사진을 10MB까지 올릴 수 있어요." };
+  const viewer = await getViewer();
+  if (!viewer?.profile) return { ok: false, error: "로그인이 필요해요." };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("add_report_evidence", {
+    target: parsed.data.reportId,
+    content_type: parsed.data.contentType,
+    bytes: parsed.data.bytes,
+  });
+  const row = data?.[0];
+  if (error || !row) {
+    if (error?.message.includes("evidence_limit")) return { ok: false, error: "증거는 3장까지 붙일 수 있어요." };
+    return { ok: false, error: "증거를 올리지 못했어요." };
+  }
+  return { ok: true, id: row.id };
 }
 
 /** 화면을 오래 열어 두어 서명 주소가 만료됐을 때 새 주소를 받는다 (권한은 다시 확인) */

@@ -1,8 +1,22 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import { EVIDENCE_ACCEPT, MAX_EVIDENCE_FILES, evidenceFileProblem, isEvidenceType } from "@/lib/moderation/evidence";
 import { REASON_LABEL, REPORT_REASONS, type ReportReason } from "@/lib/moderation/reasons";
-import { submitReport } from "./actions";
+import { startEvidence, submitReport } from "./actions";
+
+/** 증거 사진 하나 올리기: 자리 만들기 → 파일 올리기. 실패하면 false */
+async function uploadEvidence(reportId: string, file: File): Promise<boolean> {
+  if (!isEvidenceType(file.type)) return false;
+  const slot = await startEvidence({ reportId, contentType: file.type, bytes: file.size });
+  if (!slot.ok) return false;
+  const response = await fetch(`/api/reports/evidence/${slot.id}`, {
+    method: "PUT",
+    body: file,
+    headers: { "Content-Type": file.type },
+  }).catch(() => null);
+  return response?.ok ?? false;
+}
 
 // S-15 신고 (게시물 › 신고). 접수되면 신고자 피드에서 바로 빠진다.
 export function ReportButton({ postId, photoCount }: { postId: string; photoCount: number }) {
@@ -10,6 +24,9 @@ export function ReportButton({ postId, photoCount }: { postId: string; photoCoun
   const [reason, setReason] = useState<ReportReason | null>(null);
   const [detail, setDetail] = useState("");
   const [photo, setPhoto] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const [failedUploads, setFailedUploads] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -27,7 +44,7 @@ export function ReportButton({ postId, photoCount }: { postId: string; photoCoun
       <dialog
         ref={dialog}
         aria-labelledby="report-title"
-        className="m-auto w-[min(92vw,28rem)] rounded-2xl border border-line bg-surface p-0 text-text backdrop:bg-black/70"
+        className="m-auto max-h-[90dvh] w-[min(92vw,28rem)] overflow-y-auto rounded-2xl border border-line bg-surface p-0 text-text backdrop:bg-black/70"
       >
         {done ? (
           <div className="flex flex-col gap-4 p-5">
@@ -35,6 +52,11 @@ export function ReportButton({ postId, photoCount }: { postId: string; photoCoun
               접수되었어요
             </h2>
             <p className="text-sm leading-relaxed text-quiet">운영팀이 확인할게요. 이 게시물은 내 피드에서 더 이상 보이지 않아요.</p>
+            {failedUploads > 0 && (
+              <p role="alert" className="text-sm text-red-300">
+                증거 사진 {failedUploads}장을 올리지 못했어요. 신고는 접수됐으니 필요하면 문의 이메일로 보내 주세요.
+              </p>
+            )}
             <button
               type="button"
               onClick={() => dialog.current?.close()}
@@ -57,8 +79,15 @@ export function ReportButton({ postId, photoCount }: { postId: string; photoCoun
                   detail,
                   photoPosition: photo === "" ? null : Number(photo),
                 });
-                if (result.ok) setDone(true);
-                else setError(result.error ?? "신고하지 못했어요.");
+                if (!result.ok) {
+                  setError(result.error);
+                  return;
+                }
+                // 신고는 이미 접수됐다. 증거 실패는 알려만 준다.
+                let failed = 0;
+                for (const file of files) if (!(await uploadEvidence(result.reportId, file))) failed++;
+                setFailedUploads(failed);
+                setDone(true);
               });
             }}
           >
@@ -113,6 +142,31 @@ export function ReportButton({ postId, photoCount }: { postId: string; photoCoun
                 className="rounded-xl border border-line bg-bg px-3 py-2 text-base"
               />
             </label>
+
+            <div className="flex flex-col gap-1.5 text-sm">
+              <label htmlFor={`evidence-${postId}`}>
+                증거 사진 <span className="text-xs text-quiet">(선택 · {MAX_EVIDENCE_FILES}장까지 · 운영팀만 봐요)</span>
+              </label>
+              <input
+                id={`evidence-${postId}`}
+                type="file"
+                accept={EVIDENCE_ACCEPT}
+                multiple
+                onChange={(e) => {
+                  const picked = Array.from(e.target.files ?? []);
+                  const problem = picked.map(evidenceFileProblem).find((p) => p !== null) ?? null;
+                  const tooMany = picked.length > MAX_EVIDENCE_FILES ? `${MAX_EVIDENCE_FILES}장까지 고를 수 있어요` : null;
+                  setFileError(problem ?? tooMany);
+                  setFiles(problem || tooMany ? [] : picked);
+                  if (problem || tooMany) e.target.value = "";
+                }}
+                className="text-sm file:mr-3 file:min-h-11 file:rounded-xl file:border file:border-line file:bg-bg file:px-3 file:text-text"
+              />
+              <span className="text-xs leading-relaxed text-quiet">
+                내 원본 사진 · 동의하지 않았다는 대화 화면 등. 원본 사진의 촬영 정보(날짜 · 기기 · 위치)도 본인 확인을 위해 그대로 전달돼요.
+              </span>
+              {fileError && <span role="alert" className="text-xs text-red-300">{fileError}</span>}
+            </div>
 
             {error && (
               <p role="alert" className="text-sm text-red-300">

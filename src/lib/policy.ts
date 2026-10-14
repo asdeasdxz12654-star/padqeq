@@ -7,5 +7,5 @@ export const OPERATOR = {
   email: "asdeasdxz12654@gmail.com",
   /** 개인정보 보호책임자 */
   privacyOfficer: "울프 (운영자)",
-  effective: "2026년 10월 13일",
+  effective: "2026년 10월 14일",
 } as const;

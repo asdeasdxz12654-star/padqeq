@@ -6,6 +6,7 @@ import { profileHref } from "@/lib/profiles/profile-href";
 import { createClient } from "@/lib/supabase/server";
 import { BlurredPreview } from "./blurred-preview";
 import { DecisionForm } from "./decision-form";
+import { EvidenceImage } from "./evidence-image";
 
 export const metadata: Metadata = { title: "신고 처리" };
 
@@ -23,6 +24,7 @@ type ReportRow = {
   created_at: string;
   resolved_at: string | null;
   reporter: { handle: string; created_at: string } | null;
+  evidence: { id: string; uploaded_at: string | null }[];
   post: {
     id: string;
     title: string;
@@ -35,6 +37,7 @@ type ReportRow = {
 };
 
 const REPORT_SELECT = `id, reason, detail, photo_position, status, created_at, resolved_at,
+  evidence:report_evidence(id, uploaded_at),
   reporter:profiles!reports_reporter_id_fkey(handle, created_at),
   post:posts!reports_post_id_fkey(id, title, status, held_at, held_reason, has_people, author:profiles!posts_author_id_fkey(id, handle))`;
 
@@ -359,6 +362,15 @@ async function ReportDetail({ group }: { group: { post: NonNullable<ReportRow["p
                 {r.reporter && ` (가입 ${timeFormat.format(new Date(r.reporter.created_at))})`} · 접수 {timeFormat.format(new Date(r.created_at))}
               </p>
               {r.detail && <p className="mt-1.5 whitespace-pre-line">{r.detail}</p>}
+              {r.evidence.some((e) => e.uploaded_at) && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {r.evidence
+                    .filter((e) => e.uploaded_at)
+                    .map((e, n) => (
+                      <EvidenceImage key={e.id} id={e.id} index={n + 1} />
+                    ))}
+                </div>
+              )}
             </li>
           ))}
         </ol>

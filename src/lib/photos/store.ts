@@ -20,7 +20,8 @@ type R2Like = {
   head(key: string): Promise<unknown | null>;
 };
 
-const SAFE_KEY = /^display\/[0-9a-f]{32}\/(4000|2560|1200|400)\.avif$|^display\/[0-9a-f]{32}\/1600\.jpg$/;
+// 사진 변환본 · 신고 증거(운영자 전용)
+const SAFE_KEY = /^display\/[0-9a-f]{32}\/(4000|2560|1200|400)\.avif$|^display\/[0-9a-f]{32}\/1600\.jpg$|^evidence\/[0-9a-f]{32}$/;
 
 function assertKey(key: string) {
   if (!SAFE_KEY.test(key)) throw new Error(`허용되지 않은 저장 경로: ${key}`);

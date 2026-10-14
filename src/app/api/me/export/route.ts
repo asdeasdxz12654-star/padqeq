@@ -26,7 +26,7 @@ export async function GET(request: Request) {
       .eq("author_id", viewer.id)
       .order("created_at"),
     supabase.from("credits").select("role, status, created_at, post:posts!credits_post_id_fkey(id, title)").eq("member_id", viewer.id),
-    supabase.from("reports").select("reason, detail, status, created_at, resolved_at, post_id").eq("reporter_id", viewer.id),
+    supabase.from("reports").select("reason, detail, status, created_at, resolved_at, post_id, evidence:report_evidence(content_type, bytes, uploaded_at)").eq("reporter_id", viewer.id),
     supabase.from("appeals").select("post_id, statement, status, created_at, resolved_at").eq("author_id", viewer.id),
     supabase.from("credit_claims").select("credit_id, note, status, created_at, resolved_at").eq("claimant_id", viewer.id),
   ]);

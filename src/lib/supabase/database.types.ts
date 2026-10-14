@@ -719,6 +719,44 @@ export type Database = {
         }
         Relationships: []
       }
+      report_evidence: {
+        Row: {
+          bytes: number
+          content_type: string
+          created_at: string
+          id: string
+          report_id: string
+          storage_key: string
+          uploaded_at: string | null
+        }
+        Insert: {
+          bytes: number
+          content_type: string
+          created_at?: string
+          id?: string
+          report_id: string
+          storage_key: string
+          uploaded_at?: string | null
+        }
+        Update: {
+          bytes?: number
+          content_type?: string
+          created_at?: string
+          id?: string
+          report_id?: string
+          storage_key?: string
+          uploaded_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_evidence_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reports: {
         Row: {
           created_at: string
@@ -789,6 +827,11 @@ export type Database = {
       cancel_account_deletion: { Args: never; Returns: undefined }
       add_my_photos: { Args: { entries: Json; target: string }; Returns: string[] }
       finish_my_photos: { Args: { ids: string[]; target: string }; Returns: number }
+      add_report_evidence: {
+        Args: { bytes: number; content_type: string; target: string }
+        Returns: { id: string; storage_key: string }[]
+      }
+      finish_report_evidence: { Args: { target: string }; Returns: boolean }
       resolve_credit_claim: { Args: { accept: boolean; target: string }; Returns: undefined }
       arrange_my_photos: { Args: { keep: string[]; target: string }; Returns: undefined }
       moderate_post: { Args: { decision: string; note: string; target: string }; Returns: undefined }
