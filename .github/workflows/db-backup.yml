@@ -91,6 +91,7 @@ jobs:
           echo "오래된 알림 삭제: $(psql -c 'select private.purge_old_notifications();')건"
           echo "기간이 지난 이용 정지 정리: $(psql -c 'select private.purge_expired_restrictions();')건"
           echo "올리다 그만둔 신고 증거 삭제: $(psql -c 'select private.purge_stale_evidence();')건"
+          echo "처리 90일 지난 증거 · 증빙 삭제: $(psql -c 'select private.purge_old_evidence();')건"
           echo "행사 전날 알림: $(psql -c 'select private.send_event_reminders();')건"
           echo "아무도 없는 대화 삭제: $(psql -c 'select private.purge_orphan_threads();')건"
 

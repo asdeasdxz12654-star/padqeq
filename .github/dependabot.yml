@@ -1,0 +1,31 @@
+# 의존성 보안 업데이트 (P-02 공급망)
+#  · npm(pnpm) 패키지와 GitHub Actions를 매주 확인해 업데이트 PR을 만든다
+#  · 보안 취약점 PR은 일정과 상관없이 바로 만들어진다 (저장소 설정 › Dependabot security updates)
+#  · 새로 배포된 버전은 7일 기다렸다가 제안한다 (공급망 공격 대비, pnpm minimumReleaseAge와 같은 생각)
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Asia/Seoul
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    labels: [dependencies]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Asia/Seoul
+    cooldown:
+      default-days: 7
+    labels: [dependencies]

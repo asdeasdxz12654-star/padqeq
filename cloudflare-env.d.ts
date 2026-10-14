@@ -7,6 +7,8 @@ interface __BaseEnv_CloudflareEnv {
 	NEXT_PUBLIC_SUPABASE_URL: string;
 	NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: string;
 	SITE_HOST: string;
+	IMAGE_ACCOUNT_LIMIT: RateLimit;
+	IMAGE_IP_LIMIT: RateLimit;
 }
 declare namespace Cloudflare {
 	interface GlobalProps {

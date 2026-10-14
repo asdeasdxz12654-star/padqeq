@@ -106,7 +106,7 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
     <article className="mx-auto max-w-[1440px] px-0 pt-4 pb-16 md:px-6 md:pt-6">
       {/* 작성자에게는 조치 안내 · 소명, 운영자에게는 상태만 */}
       {isAuthor && (post.removed_at || (post.status === "published" && post.held_at)) ? (
-        <ModerationNotice postId={post.id} removed={Boolean(post.removed_at)} />
+        <ModerationNotice postId={post.id} removed={Boolean(post.removed_at)} actionAt={(post.removed_at ?? post.held_at)!} />
       ) : post.status === "published" && post.held_at ? (
         <p className="mx-4 mb-4 rounded-lg border border-amber-400/40 bg-amber-400/10 px-3 py-2 text-sm text-amber-200 md:mx-0">
           신고로 임시 비공개 중이에요. 운영자가 확인할 때까지 다른 사람에게는 보이지 않아요.

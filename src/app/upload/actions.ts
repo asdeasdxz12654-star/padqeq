@@ -67,6 +67,16 @@ export async function createDraft(input: DraftInput): Promise<Result<{ postId: s
     return { ok: false, error: "사진 정보를 저장하지 못했어요." };
   }
 
+  // 사진 지문 (운영 정책으로 게시 중단된 사진과 같으면 거부)
+  const { error: hashError } = await supabase.rpc("set_photo_hashes", {
+    target_post: post.id,
+    entries: photoIds.map((photo_id, i) => ({ photo_id, hash: photos[i]!.phash })),
+  });
+  if (hashError) {
+    await supabase.from("posts").delete().eq("id", post.id);
+    return { ok: false, error: photoHashError(hashError.message) };
+  }
+
   // 태그 (쓸 수 있는 태그인지는 RLS가 확인)
   if (tagIds.length) {
     const { error: tagError } = await supabase
@@ -158,4 +168,10 @@ export async function discardDraft(input: { postId: string }): Promise<Result<nu
     .eq("author_id", viewer.id)
     .eq("status", "draft");
   return error ? { ok: false, error: "초안을 지우지 못했어요." } : { ok: true, data: null };
+}
+
+function photoHashError(message: string): string {
+  return message.includes("photo_blocked")
+    ? "운영 정책에 따라 게시가 중단된 사진과 같은 사진이 있어 올릴 수 없어요."
+    : "사진 정보를 저장하지 못했어요.";
 }

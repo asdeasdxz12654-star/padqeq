@@ -124,3 +124,19 @@ export async function resolveMessageReport(input: z.input<typeof messageReportSc
   revalidatePath("/admin/reports");
   return { ok: true };
 }
+
+const claimSchema = z.object({ claimId: z.uuid(), accept: z.boolean() });
+
+/** 크레딧 연결 요청 처리 (운영자 · 2단계 인증 세션만, DB 함수가 다시 확인) */
+export async function resolveClaim(input: z.input<typeof claimSchema>): Promise<{ ok: boolean; error?: string }> {
+  const parsed = claimSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "잘못된 요청이에요." };
+  const viewer = await getViewer();
+  if (viewer?.profile?.role !== "admin") return { ok: false, error: "운영자만 처리할 수 있어요." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("resolve_credit_claim", { target: parsed.data.claimId, accept: parsed.data.accept });
+  if (error) return { ok: false, error: "처리하지 못했어요. 이미 처리된 요청일 수 있어요." };
+  revalidatePath("/admin/reports");
+  revalidatePath("/", "layout");
+  return { ok: true };
+}

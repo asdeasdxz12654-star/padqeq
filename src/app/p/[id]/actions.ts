@@ -70,6 +70,7 @@ export async function startEvidence(input: z.input<typeof evidenceSchema>): Prom
   const row = data?.[0];
   if (error || !row) {
     if (error?.message.includes("evidence_limit")) return { ok: false, error: "증거는 3장까지 붙일 수 있어요." };
+    if (error?.message.includes("evidence_not_allowed")) return { ok: false, error: "증거는 초상권 · 저작권 신고에만 붙일 수 있어요." };
     return { ok: false, error: "증거를 올리지 못했어요." };
   }
   return { ok: true, id: row.id };
@@ -144,29 +145,59 @@ const appealSchema = z.object({
     .string()
     .trim()
     .min(10, "10자 이상 적어 주세요.")
-    .max(2000, "2000자까지 적을 수 있어요.")
+    .max(1000, "1000자까지 적을 수 있어요.")
     .refine((v) => !/\p{Cc}/u.test(v.replace(/\r?\n/g, "")), "쓸 수 없는 문자가 있어요."),
 });
 
 /** 소명 (이의 제기). 조치된 내 글 · 한 번에 하나 · 게시물당 3번은 DB가 다시 확인한다. */
-export async function submitAppeal(input: z.input<typeof appealSchema>): Promise<{ ok: boolean; error?: string }> {
+export async function submitAppeal(
+  input: z.input<typeof appealSchema>,
+): Promise<{ ok: true; appealId: string } | { ok: false; error: string }> {
   const parsed = appealSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "내용을 확인해 주세요." };
   const viewer = await getViewer();
   if (!viewer?.profile) return { ok: false, error: "로그인이 필요해요." };
 
   const supabase = await createClient();
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("appeals")
-    .insert({ post_id: parsed.data.postId, author_id: viewer.id, statement: parsed.data.statement });
+    .insert({ post_id: parsed.data.postId, author_id: viewer.id, statement: parsed.data.statement })
+    .select("id")
+    .single();
   if (error) {
     if (error.code === "23505") return { ok: false, error: "이미 검토 중인 소명이 있어요." };
-    if (error.message.includes("appeal_limit")) return { ok: false, error: "이 게시물은 소명을 모두 사용했어요." };
+    if (error.message.includes("appeal_limit")) return { ok: false, error: "이 조치에는 이미 소명했어요. 조치 1건당 한 번 소명할 수 있어요." };
+    if (error.message.includes("appeal_expired")) return { ok: false, error: "조치 후 30일이 지나 소명할 수 없어요. 1:1 문의로 알려 주세요." };
     return { ok: false, error: "소명할 수 없는 게시물이에요." };
   }
   revalidatePath(`/p/${parsed.data.postId}`);
   revalidatePath("/admin/reports");
-  return { ok: true };
+  return { ok: true, appealId: data.id };
+}
+
+const appealEvidenceSchema = z.object({
+  appealId: z.uuid(),
+  contentType: z.enum(EVIDENCE_TYPES),
+  bytes: z.int().min(1).max(MAX_EVIDENCE_BYTES),
+});
+
+/** 소명 증빙 자리 만들기. 파일은 돌려준 id로 /api/appeals/evidence/{id}에 올린다. 5개 제한은 DB가 확인한다. */
+export async function startAppealEvidence(
+  input: z.input<typeof appealEvidenceSchema>,
+): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
+  const parsed = appealEvidenceSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "JPEG · PNG · WebP 사진을 10MB까지 올릴 수 있어요." };
+  const viewer = await getViewer();
+  if (!viewer?.profile) return { ok: false, error: "로그인이 필요해요." };
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("add_appeal_evidence", {
+    target: parsed.data.appealId,
+    content_type: parsed.data.contentType,
+    bytes: parsed.data.bytes,
+  });
+  const row = data?.[0];
+  if (error || !row) return { ok: false, error: error?.message.includes("evidence_limit") ? "증빙은 5개까지예요." : "증빙을 올리지 못했어요." };
+  return { ok: true, id: row.id };
 }
 
 /** 내가 숨긴 글을 다시 게시한다. 운영자가 게시 중단한 글은 DB가 막는다 (소명으로만). */

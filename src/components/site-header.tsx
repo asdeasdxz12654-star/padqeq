@@ -9,6 +9,7 @@ import { NAV_ITEMS } from "./nav-items";
 export async function SiteHeader() {
   const viewer = await getViewer();
   const isAdmin = viewer?.profile?.role === "admin";
+  const mfaRequired = viewer?.mfaRequired ?? false;
   const [unread, pending] = await Promise.all([getUnreadCount(viewer?.profile ? viewer.id : null), isAdmin ? getAdminPending() : null]);
 
   return (
@@ -42,6 +43,11 @@ export async function SiteHeader() {
               >
                 업로드
               </Link>
+              {mfaRequired && (
+                <Link href="/admin" className="flex min-h-11 items-center text-quiet hover:text-text">
+                  운영 (인증)
+                </Link>
+              )}
               {pending && (
                 <Link
                   href="/admin"

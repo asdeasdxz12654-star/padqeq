@@ -68,19 +68,3 @@ export async function respondCredit(input: z.input<typeof respondSchema>): Promi
   revalidatePath(profileHref(viewer.profile.handle));
   return { ok: true };
 }
-
-const claimSchema = z.object({ claimId: z.uuid(), accept: z.boolean() });
-
-/** 크레딧 연결 요청 처리 (내 글의 요청만, DB 함수가 다시 확인) */
-export async function resolveClaim(input: z.input<typeof claimSchema>): Promise<{ ok: boolean; error?: string }> {
-  const parsed = claimSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, error: "잘못된 요청이에요." };
-  const viewer = await getViewer();
-  if (!viewer?.profile) return { ok: false, error: "로그인이 필요해요." };
-
-  const supabase = await createClient();
-  const { error } = await supabase.rpc("resolve_credit_claim", { target: parsed.data.claimId, accept: parsed.data.accept });
-  if (error) return { ok: false, error: "처리하지 못했어요. 이미 처리된 요청일 수 있어요." };
-  revalidatePath("/", "layout");
-  return { ok: true };
-}

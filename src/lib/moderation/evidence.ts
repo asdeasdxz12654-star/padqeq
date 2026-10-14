@@ -5,6 +5,9 @@
 export const EVIDENCE_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 export type EvidenceType = (typeof EVIDENCE_TYPES)[number];
 export const MAX_EVIDENCE_FILES = 3;
+/** 증거를 붙일 수 있는 신고 사유 (S-14 ⑦) */
+export const EVIDENCE_REASONS = ["portrait_rights", "copyright"] as const;
+export const acceptsEvidence = (reason: string | null) => (EVIDENCE_REASONS as readonly string[]).includes(reason ?? "");
 export const MAX_EVIDENCE_BYTES = 10 * 1024 * 1024;
 /** 파일 고르기 창. 아이폰은 HEIC를 여기 맞춰 JPEG로 바꿔 준다. */
 export const EVIDENCE_ACCEPT = EVIDENCE_TYPES.join(",");

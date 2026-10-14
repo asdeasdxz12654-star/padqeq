@@ -26,6 +26,11 @@
     // DB 백업 전용. 사진 버킷과 분리.
     { "binding": "BACKUPS", "bucket_name": "haedam-backups" }
   ],
+  // 사진 열람 속도 제한 (1분). 값은 src/lib/security/image-rate-limit.ts의 IMAGE_LIMITS와 같게.
+  "ratelimits": [
+    { "name": "IMAGE_ACCOUNT_LIMIT", "namespace_id": "1001", "simple": { "limit": 120, "period": 60 } },
+    { "name": "IMAGE_IP_LIMIT", "namespace_id": "1002", "simple": { "limit": 300, "period": 60 } }
+  ],
   "triggers": {
     // 매일 03:00 KST(18:00 UTC): DB 일시정지 방지 + 백업 상태 확인
     "crons": ["0 18 * * *"]

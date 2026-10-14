@@ -135,3 +135,15 @@ export async function createTag(input: z.input<typeof createSchema>): Promise<{ 
   }
   return { ok: false, error: "같은 이름의 태그가 이미 있어요. 검색해서 골라 주세요." };
 }
+
+/** 이미 올린 내 사진 중 비슷한 것 (업로드 화면 경고, A-02 ②). 들어온 순서대로 글 id 또는 null */
+export async function findSimilarPhotos(hashes: string[]): Promise<(string | null)[]> {
+  const valid = hashes.slice(0, 100).filter((h) => /^[0-9a-f]{16}$/.test(h));
+  if (!valid.length) return hashes.map(() => null);
+  const viewer = await getViewer();
+  if (!viewer?.profile?.can_upload) return hashes.map(() => null);
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("my_similar_photos", { hashes: valid });
+  const byIdx = new Map((data ?? []).map((r) => [r.idx, r.post_id]));
+  return valid.map((_, i) => byIdx.get(i + 1) ?? null);
+}

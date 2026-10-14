@@ -12,6 +12,11 @@ export type Viewer = {
   profile: Pick<Tables<"profiles">, "handle" | "display_name" | "role" | "can_upload"> | null;
   /** 지금 이용 정지 중이면 기간 · 사유 (본인만 보는 정보). 정지 중에는 profile.can_upload도 false */
   restriction: { until: string; reason: string } | null;
+  /**
+   * 운영자 계정이지만 이 세션이 2단계 인증을 마치지 않음(aal1).
+   * 이때 profile.role은 'member'로 내려 운영 화면 · 기능을 감춘다 (DB도 aal2가 아니면 운영자 권한을 주지 않는다).
+   */
+  mfaRequired: boolean;
 };
 
 /**
@@ -23,7 +28,7 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
   const { data, error } = await supabase.auth.getClaims();
   if (error || !data) return null;
 
-  const { sub, user_metadata: meta } = data.claims;
+  const { sub, user_metadata: meta, aal } = data.claims;
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("handle, display_name, role, can_upload, restriction:member_restrictions!member_restrictions_member_id_fkey(suspended_until, reason)")
@@ -41,10 +46,18 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
   const restricted = profile?.restriction && isActiveRestriction(profile.restriction.suspended_until) ? profile.restriction : null;
   const restriction = restricted ? { until: restricted.suspended_until, reason: restricted.reason } : null;
 
+  const mfaRequired = profile?.role === "admin" && aal !== "aal2";
+
   return {
     id: sub,
     suggestedName,
-    profile: profile && { handle: profile.handle, display_name: profile.display_name, role: profile.role, can_upload: profile.can_upload && !restriction },
+    profile: profile && {
+      handle: profile.handle,
+      display_name: profile.display_name,
+      role: mfaRequired ? "member" : profile.role,
+      can_upload: profile.can_upload && !restriction,
+    },
     restriction,
+    mfaRequired,
   };
 });

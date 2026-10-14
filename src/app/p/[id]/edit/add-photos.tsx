@@ -44,6 +44,7 @@ export function AddPhotos({ postId, room }: { postId: string; room: number }) {
           bytes: p.result!.files["4000"].size,
           takenAt: p.takenAt,
           watermarkSeed: p.result!.seed,
+          phash: p.result!.phash,
         })),
       });
       if (!created.ok) throw new Error(created.error);

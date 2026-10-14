@@ -26,6 +26,8 @@ export const masterPhoto = z
     altText: z.string().trim().max(300).default(""),
     /** 보이지 않는 워터마크 열쇠 (브라우저가 변환하며 만든 16바이트) */
     watermarkSeed: z.string().regex(/^[0-9a-f]{32}$/),
+    /** 사진 지문 (dHash 16진수 16자리) */
+    phash: z.string().regex(/^[0-9a-f]{16}$/),
   })
   .refine(({ width, height }) => {
     const master = variantSize(width, height, "4000");

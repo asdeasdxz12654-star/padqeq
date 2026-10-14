@@ -18,6 +18,7 @@ export default async function AdminHomePage() {
     { href: "/admin/reports?tab=messages", title: "메시지 신고", help: "열람 기록이 남아요", count: pending.messages },
     { href: "/admin/support", title: "1:1 문의", help: "답하면 회원에게 알림", count: pending.inquiries },
     { href: "/admin/events", title: "행사 제안", help: "승인하면 행사 태그가 생겨요", count: pending.events },
+    { href: "/admin/reports?tab=claims", title: "크레딧 연결", help: "본인인지 확인하고 연결", count: pending.claims },
   ];
 
   return (

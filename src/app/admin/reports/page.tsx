@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { BlurredPreview } from "./blurred-preview";
 import { CommentDecisionForm } from "./comment-decision-form";
 import { BoardDecisionForm, MessageReportPanel } from "./community-report-forms";
+import { ClaimDecision } from "./claim-decision";
 import { DecisionForm } from "./decision-form";
 import { EvidenceImage } from "./evidence-image";
 
@@ -46,7 +47,12 @@ const REPORT_SELECT = `id, reason, detail, photo_position, status, created_at, r
 export default async function AdminReportsPage({ searchParams }: PageProps<"/admin/reports">) {
   const params = await searchParams;
   const tab =
-    params.tab === "done" || params.tab === "appeals" || params.tab === "comments" || params.tab === "board" || params.tab === "messages"
+    params.tab === "done" ||
+    params.tab === "appeals" ||
+    params.tab === "comments" ||
+    params.tab === "board" ||
+    params.tab === "messages" ||
+    params.tab === "claims"
       ? params.tab
       : "open";
   const selected = typeof params.post === "string" ? params.post : null;
@@ -127,6 +133,18 @@ export default async function AdminReportsPage({ searchParams }: PageProps<"/adm
       .limit(200),
   ]);
   if (boardError || messageError) throw boardError ?? messageError;
+
+  // 크레딧 연결 요청 (S-19 ②): 운영자가 본인인지 확인한다
+  const { data: claimRows, error: claimError } = await supabase
+    .from("credit_claims")
+    .select(
+      "id, note, created_at, claimant:profiles!credit_claims_claimant_id_fkey(id, handle, display_name, bio), credit:credits!credit_claims_credit_id_fkey(role, external_label, external_url, post:posts!credits_post_id_fkey(id, title, author:profiles!posts_author_id_fkey(handle)))",
+    )
+    .eq("status", "open")
+    .order("created_at")
+    .limit(200);
+  if (claimError) throw claimError;
+  const claims = claimRows;
   const boardGroups = [
     ...Map.groupBy(boardRows as unknown as BoardReportRow[], (r) => r.reply?.id ?? r.post?.id ?? r.id).values(),
   ].map((reports) => ({ post: reports[0]!.post, reply: reports[0]!.reply, reports }));
@@ -179,6 +197,13 @@ export default async function AdminReportsPage({ searchParams }: PageProps<"/adm
           >
             메시지 {messageReports.length}
           </Link>
+          <Link
+            href="/admin/reports?tab=claims"
+            aria-current={tab === "claims" ? "page" : undefined}
+            className="rounded-full border border-line px-3 py-1.5 aria-[current=page]:border-text aria-[current=page]:bg-text aria-[current=page]:text-bg"
+          >
+            크레딧 연결 {claims.length}
+          </Link>
         </nav>
       </header>
 
@@ -220,6 +245,42 @@ export default async function AdminReportsPage({ searchParams }: PageProps<"/adm
         </div>
       ) : tab === "comments" ? (
         <CommentReports groups={commentGroups} />
+      ) : tab === "claims" ? (
+        <ul className="flex max-w-3xl flex-col gap-4">
+          {claims.length === 0 && <p className="rounded-xl border border-line p-6 text-center text-sm text-quiet">확인할 연결 요청이 없어요.</p>}
+          {claims.map((c) => (
+            <li key={c.id} className="flex flex-col gap-2 rounded-xl border border-line p-4 text-sm">
+              <p>
+                {c.credit?.post ? (
+                  <Link href={`/p/${c.credit.post.id}`} className="font-semibold hover:underline">
+                    {c.credit.post.title}
+                  </Link>
+                ) : (
+                  "(지워진 글)"
+                )}
+                <span className="text-xs text-quiet"> · 업로더 @{c.credit?.post?.author?.handle ?? "?"} · {timeFormat.format(new Date(c.created_at))}</span>
+              </p>
+              <p>
+                미가입 표기 &lsquo;{c.credit?.external_label}&rsquo;
+                {c.credit?.external_url && (
+                  <a href={c.credit.external_url} target="_blank" rel="noopener noreferrer nofollow" className="ml-1 text-xs underline underline-offset-2">
+                    {c.credit.external_url}
+                  </a>
+                )}
+                {" → "}
+                {c.claimant && (
+                  <Link href={`/admin/members/${c.claimant.id}`} className="font-semibold hover:underline">
+                    @{c.claimant.handle}
+                  </Link>
+                )}
+              </p>
+              {c.claimant?.bio && <p className="rounded-lg bg-slot p-2 text-xs whitespace-pre-line text-quiet">프로필 소개: {c.claimant.bio}</p>}
+              {c.note && <p className="text-xs">요청 메모: &ldquo;{c.note}&rdquo;</p>}
+              <p className="text-xs text-quiet">표기된 SNS 계정과 같은 사람인지 확인해 주세요 (예: 그 SNS에 해담 핸들을 잠시 올려 달라고 1:1 문의로 요청).</p>
+              <ClaimDecision claimId={c.id} />
+            </li>
+          ))}
+        </ul>
       ) : tab === "board" ? (
         <BoardReports groups={boardGroups} />
       ) : tab === "messages" ? (
@@ -313,10 +374,11 @@ const APPEAL_POST = `post:posts!appeals_post_id_fkey(id, title, status, held_at,
 
 async function AppealDetail({ appeal, post }: { appeal: AppealRow; post: NonNullable<AppealRow["post"]> }) {
   const supabase = await createClient();
-  const [photos, reports, consents] = await Promise.all([
+  const [photos, reports, consents, evidence] = await Promise.all([
     supabase.from("photos").select("storage_key, width, height, position").eq("post_id", post.id).order("position").limit(1),
     supabase.from("reports").select("id, reason, detail, status, created_at").eq("post_id", post.id).order("created_at"),
     supabase.from("consent_records").select("subject_label, consented_on, has_minor").eq("post_id", post.id),
+    supabase.from("appeal_evidence").select("id").eq("appeal_id", appeal.id).not("uploaded_at", "is", null).order("created_at"),
   ]);
   const photo = photos.data?.[0];
   const sources = photo ? await photoSources(photo, ["400", "1200"]) : null;
@@ -354,6 +416,13 @@ async function AppealDetail({ appeal, post }: { appeal: AppealRow; post: NonNull
       <div className="flex flex-col gap-2">
         <h2 className="text-sm font-semibold">소명 내용</h2>
         <p className="whitespace-pre-line rounded-xl border border-line p-3 text-sm">{appeal.statement}</p>
+        {evidence.data && evidence.data.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {evidence.data.map((e, n) => (
+              <EvidenceImage key={e.id} id={e.id} index={n + 1} kind="appeals" />
+            ))}
+          </div>
+        )}
       </div>
 
       {reports.data && reports.data.length > 0 && (

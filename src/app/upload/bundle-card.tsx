@@ -179,6 +179,17 @@ export function BundleCard({
                   {RAW_LABEL[photo.raw.method]}
                 </span>
               )}
+              {photo.similarPostId && (
+                <a
+                  href={`/p/${photo.similarPostId}`}
+                  target="_blank"
+                  rel="noopener"
+                  title="이미 올린 사진과 비슷해요"
+                  className="absolute inset-x-0 top-0 bg-amber-500/90 px-1 py-0.5 text-center text-[10px] font-semibold text-black"
+                >
+                  이미 올린 사진?
+                </a>
+              )}
               {photo.status === "converting" && (
                 <span className="absolute inset-x-0 bottom-0 h-1 bg-line">
                   <span className="block h-full bg-accent" style={{ width: `${Math.round(photo.progress * 100)}%` }} />

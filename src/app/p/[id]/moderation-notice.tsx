@@ -1,11 +1,17 @@
 import { createClient } from "@/lib/supabase/server";
 import { AppealForm } from "./appeal-form";
 
-const APPEAL_LIMIT = 3;
 const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "medium", timeStyle: "short" });
 
 /** 작성자에게만: 임시 비공개 · 운영자 게시 중단 안내와 소명 (이의 제기) */
-export async function ModerationNotice({ postId, removed }: { postId: string; removed: boolean }) {
+const dayFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "long" });
+const APPEAL_DAYS = 30;
+
+/** 소명 기한 (조치 시각 + 30일) */
+const appealDeadline = (actionAt: string) => new Date(Date.parse(actionAt) + APPEAL_DAYS * 86_400_000);
+const isPast = (when: Date) => when.getTime() < Date.now();
+
+export async function ModerationNotice({ postId, removed, actionAt }: { postId: string; removed: boolean; actionAt: string }) {
   const supabase = await createClient();
   const { data: appeals } = await supabase
     .from("appeals")
@@ -15,7 +21,10 @@ export async function ModerationNotice({ postId, removed }: { postId: string; re
   const list = appeals ?? [];
   const open = list.find((a) => a.status === "open");
   const lastRejected = list[0]?.status === "rejected" ? list[0] : null;
-  const remaining = APPEAL_LIMIT - list.length;
+  // 조치 1건당 한 번 · 30일 안 (DB가 다시 확인한다)
+  const usedForThisAction = list.some((a) => Date.parse(a.created_at) >= Date.parse(actionAt));
+  const deadline = appealDeadline(actionAt);
+  const expired = isPast(deadline);
 
   return (
     <section
@@ -43,10 +52,12 @@ export async function ModerationNotice({ postId, removed }: { postId: string; re
               검토한 결과 조치를 유지하기로 했어요.
             </p>
           )}
-          {remaining > 0 ? (
-            <AppealForm postId={postId} remaining={remaining} />
+          {usedForThisAction ? (
+            <p className="text-amber-100/90">이 조치에는 이미 소명했어요. 다른 의견이 있으면 1:1 문의로 알려 주세요.</p>
+          ) : expired ? (
+            <p className="text-amber-100/90">조치 후 {APPEAL_DAYS}일이 지나 소명 기간이 끝났어요. 1:1 문의로 알려 주세요.</p>
           ) : (
-            <p className="text-amber-100/90">이 게시물은 소명을 {APPEAL_LIMIT}번 모두 사용했어요.</p>
+            <AppealForm postId={postId} deadline={dayFormat.format(deadline)} />
           )}
         </>
       )}

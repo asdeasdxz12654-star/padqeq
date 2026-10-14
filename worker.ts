@@ -5,12 +5,14 @@
 //  3. 예약 작업: DB 일시정지 방지, 백업 확인
 //  4. 대표 주소가 아닌 주소(workers.dev 등)로 들어오면 대표 주소로 영구 이동
 //  5. 이름을 밝히고 오는 AI 학습 · 수집 크롤러는 robots.txt만 보여 주고 거절 (403)
+//  6. 사진 열람 속도 제한 (계정 · IP마다 1분) · HSTS
 // Next 16의 proxy.ts는 Workers에서 아직 실험 기능이라 이곳에서 처리한다.
 
 import { createServerClient, parseCookieHeader, serializeCookieHeader } from "@supabase/ssr";
 // @ts-expect-error -- `opennextjs-cloudflare build`가 만드는 파일
 import { default as nextHandler } from "./.open-next/worker.js";
 import { isAiCrawler } from "./src/lib/security/ai-crawlers";
+import { sessionUserId } from "./src/lib/security/image-rate-limit";
 import { buildCsp, createNonce } from "./src/lib/security/csp";
 
 const BACKUP_MAX_AGE_MS = 26 * 60 * 60 * 1000;
@@ -34,6 +36,10 @@ export default {
       return new Response(null, { status, headers: { Location: url.toString(), "Cache-Control": "public, max-age=3600" } });
     }
 
+    if (url.pathname.startsWith("/img/") && (await imageRateLimited(request, env))) {
+      return new Response(null, { status: 429, headers: { "Retry-After": "60", "Cache-Control": "no-store" } });
+    }
+
     const nonce = createNonce();
     const csp = buildCsp({ nonce, supabaseUrl: env.NEXT_PUBLIC_SUPABASE_URL });
 
@@ -50,6 +56,8 @@ export default {
     const upstream: Response = await nextHandler.fetch(new Request(request, { headers }), env, ctx);
     const response = new Response(upstream.body, upstream);
     response.headers.set("Content-Security-Policy", csp);
+    // 이 주소는 앞으로 1년 동안 HTTPS로만 (하위 주소 포함)
+    response.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
     if (setCookies.length > 0) {
       for (const cookie of setCookies) response.headers.append("Set-Cookie", cookie);
       // 새 세션 쿠키가 담긴 응답이 공유 캐시에 남지 않도록
@@ -115,4 +123,15 @@ async function checkLatestBackup(env: CloudflareEnv): Promise<void> {
   if (!newest || Date.now() - newest.getTime() > BACKUP_MAX_AGE_MS) {
     console.error("[cron] DB backup is missing or stale", newest?.toISOString() ?? "none");
   }
+}
+
+/** 사진 요청이 속도 제한에 걸렸는지 (IP는 항상, 로그인했으면 계정도) */
+async function imageRateLimited(request: Request, env: CloudflareEnv): Promise<boolean> {
+  const ip = request.headers.get("cf-connecting-ip") ?? "unknown";
+  const user = sessionUserId(request.headers.get("cookie"));
+  const [byIp, byAccount] = await Promise.all([
+    env.IMAGE_IP_LIMIT.limit({ key: `ip:${ip}` }),
+    user ? env.IMAGE_ACCOUNT_LIMIT.limit({ key: `user:${user}` }) : Promise.resolve({ success: true }),
+  ]);
+  return !byIp.success || !byAccount.success;
 }

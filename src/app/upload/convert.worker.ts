@@ -6,13 +6,14 @@
 import { encodeAvif, preloadAvif } from "./avif-encoder";
 import { decodeHeif, isHeif } from "./heif-decoder";
 import { VARIANT_NAMES, VARIANTS, type VariantName, variantSize } from "@/lib/photos/variants";
+import { dHash, PHASH_HEIGHT, PHASH_WIDTH } from "@/lib/photos/phash";
 import { embedWatermark, SEED_BYTES, seedToHex } from "@/lib/photos/watermark";
 
 /** 보통은 파일을 그대로, RAW는 화면 쪽에서 현상한 그림(ImageBitmap)을 넘긴다 */
 export type ConvertRequest = { id: string; file: File } | { id: string; bitmap: ImageBitmap };
 export type ConvertMessage =
   | { id: string; type: "progress"; done: number; total: number }
-  | { id: string; type: "done"; width: number; height: number; seed: string; files: Record<VariantName, Blob> }
+  | { id: string; type: "done"; width: number; height: number; seed: string; phash: string; files: Record<VariantName, Blob> }
   | { id: string; type: "error"; message: string };
 
 // DOM 타입과 WebWorker 타입을 함께 켜면 충돌하므로 필요한 부분만 적는다
@@ -72,6 +73,7 @@ async function convert(request: ConvertRequest) {
   // 큰 것부터 차례로 줄여 가며 만든다 (4000 → 2560 → 1200 → 400)
   let previous: OffscreenCanvas | ImageBitmap = bitmap;
   let marked: OffscreenCanvas | null = null;
+  let phash = "";
   let done = 0;
   for (const name of ["4000", "2560", "1200", "400"] as const) {
     const size = variantSize(master.width, master.height, name);
@@ -85,6 +87,8 @@ async function convert(request: ConvertRequest) {
     const avif = await encodeAvif(pixels, { quality: VARIANTS[name].quality, speed: 7 });
     files[name] = new Blob([avif], { type: "image/avif" });
     if (name === "4000") marked = canvas;
+    // 사진 지문: 가장 작은 변환본을 9×8로 줄여서 (재업로드 차단 · 중복 경고용)
+    if (name === "400") phash = dHash(draw(canvas, PHASH_WIDTH, PHASH_HEIGHT).getContext("2d")!.getImageData(0, 0, PHASH_WIDTH, PHASH_HEIGHT).data);
     previous = canvas;
     post({ id, type: "progress", done: ++done, total });
   }
@@ -96,7 +100,7 @@ async function convert(request: ConvertRequest) {
   post({ id, type: "progress", done: ++done, total });
 
   bitmap.close();
-  post({ id, type: "done", width: master.width, height: master.height, seed: seedToHex(seed), files });
+  post({ id, type: "done", width: master.width, height: master.height, seed: seedToHex(seed), phash, files });
 }
 
 // 한 번에 한 장씩 (메모리 · CPU 보호)

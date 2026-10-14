@@ -36,6 +36,18 @@ export async function addPhotos(input: z.input<typeof addSchema>): Promise<Resul
     if (error.message.includes("people_admin_only")) return { ok: false, error: "사람이 나오는 게시물에는 지금은 운영자만 사진을 더할 수 있어요." };
     return { ok: false, error: "사진을 더할 수 없는 게시물이에요." };
   }
+  const { error: hashError } = await supabase.rpc("set_photo_hashes", {
+    target_post: parsed.data.postId,
+    entries: data.map((photo_id, i) => ({ photo_id, hash: parsed.data.photos[i]!.phash })),
+  });
+  if (hashError) {
+    return {
+      ok: false,
+      error: hashError.message.includes("photo_blocked")
+        ? "운영 정책에 따라 게시가 중단된 사진과 같은 사진이 있어 더할 수 없어요."
+        : "사진 정보를 저장하지 못했어요.",
+    };
+  }
   return { ok: true, data: { photoIds: data } };
 }
 

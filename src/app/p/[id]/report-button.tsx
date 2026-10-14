@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { EVIDENCE_ACCEPT, MAX_EVIDENCE_FILES, evidenceFileProblem, isEvidenceType } from "@/lib/moderation/evidence";
+import { EVIDENCE_ACCEPT, MAX_EVIDENCE_FILES, acceptsEvidence, evidenceFileProblem, isEvidenceType } from "@/lib/moderation/evidence";
 import { REASON_LABEL, REPORT_REASONS, type ReportReason } from "@/lib/moderation/reasons";
 import { startEvidence, submitReport } from "./actions";
 
@@ -85,7 +85,7 @@ export function ReportButton({ postId, photoCount }: { postId: string; photoCoun
                 }
                 // 신고는 이미 접수됐다. 증거 실패는 알려만 준다.
                 let failed = 0;
-                for (const file of files) if (!(await uploadEvidence(result.reportId, file))) failed++;
+                if (acceptsEvidence(reason)) for (const file of files) if (!(await uploadEvidence(result.reportId, file))) failed++;
                 setFailedUploads(failed);
                 setDone(true);
               });
@@ -143,6 +143,7 @@ export function ReportButton({ postId, photoCount }: { postId: string; photoCoun
               />
             </label>
 
+            {acceptsEvidence(reason) && (
             <div className="flex flex-col gap-1.5 text-sm">
               <label htmlFor={`evidence-${postId}`}>
                 증거 사진 <span className="text-xs text-quiet">(선택 · {MAX_EVIDENCE_FILES}장까지 · 운영팀만 봐요)</span>
@@ -166,7 +167,9 @@ export function ReportButton({ postId, photoCount }: { postId: string; photoCoun
                 내 원본 사진 · 동의하지 않았다는 대화 화면 등. 원본 사진의 촬영 정보(날짜 · 기기 · 위치)도 본인 확인을 위해 그대로 전달돼요.
               </span>
               {fileError && <span role="alert" className="text-xs text-red-300">{fileError}</span>}
+              <span className="text-xs text-quiet">처리가 끝나고 90일 뒤 자동으로 지워져요.</span>
             </div>
+            )}
 
             {error && (
               <p role="alert" className="text-sm text-red-300">

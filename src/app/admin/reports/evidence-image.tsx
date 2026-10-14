@@ -3,9 +3,9 @@
 import { useState } from "react";
 
 /** 신고 증거 사진. 성적 · 폭력적인 내용일 수 있어 흐리게 두고, 누르면 보인다. 새 탭에서 원래 크기로 연다. */
-export function EvidenceImage({ id, index }: { id: string; index: number }) {
+export function EvidenceImage({ id, index, kind = "reports" }: { id: string; index: number; kind?: "reports" | "appeals" }) {
   const [shown, setShown] = useState(false);
-  const src = `/api/reports/evidence/${id}`;
+  const src = `/api/${kind}/evidence/${id}`;
   return (
     <figure className="flex flex-col gap-1">
       <button

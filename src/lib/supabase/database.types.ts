@@ -39,6 +39,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      appeal_evidence: {
+        Row: {
+          appeal_id: string
+          bytes: number
+          content_type: string
+          created_at: string
+          id: string
+          storage_key: string
+          uploaded_at: string | null
+        }
+        Insert: {
+          appeal_id: string
+          bytes: number
+          content_type: string
+          created_at?: string
+          id?: string
+          storage_key: string
+          uploaded_at?: string | null
+        }
+        Update: {
+          appeal_id?: string
+          bytes?: number
+          content_type?: string
+          created_at?: string
+          id?: string
+          storage_key?: string
+          uploaded_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appeal_evidence_appeal_id_fkey"
+            columns: ["appeal_id"]
+            isOneToOne: false
+            referencedRelation: "appeals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appeals: {
         Row: {
           author_id: string
@@ -870,6 +908,7 @@ export type Database = {
           height: number
           id: string
           is_panorama: boolean | null
+          phash: number | null
           position: number
           ready_at: string | null
           post_id: string
@@ -884,6 +923,7 @@ export type Database = {
           height: number
           id?: string
           is_panorama?: boolean | null
+          phash?: number | null
           position: number
           ready_at?: string | null
           post_id: string
@@ -898,6 +938,7 @@ export type Database = {
           height?: number
           id?: string
           is_panorama?: boolean | null
+          phash?: number | null
           position?: number
           ready_at?: string | null
           post_id?: string
@@ -1642,6 +1683,13 @@ export type Database = {
       resolve_credit_claim: { Args: { accept: boolean; target: string }; Returns: undefined }
       arrange_my_photos: { Args: { keep: string[]; target: string }; Returns: undefined }
       moderate_post: { Args: { decision: string; note: string; target: string }; Returns: undefined }
+      add_appeal_evidence: {
+        Args: { bytes: number; content_type: string; target: string }
+        Returns: { id: string; storage_key: string }[]
+      }
+      finish_appeal_evidence: { Args: { target: string }; Returns: boolean }
+      set_photo_hashes: { Args: { entries: Json; target_post: string }; Returns: undefined }
+      my_similar_photos: { Args: { hashes: string[] }; Returns: { idx: number; post_id: string | null }[] }
       am_i_adult: { Args: never; Returns: boolean }
       confirm_adult: { Args: { birth_date: string }; Returns: boolean }
       moderate_board: {

@@ -7,6 +7,7 @@ import type { VariantName } from "@/lib/photos/variants";
 import type { ConvertMessage, ConvertRequest } from "./convert.worker";
 import { RAW_EXTENSIONS } from "@/lib/photos/raw-preview";
 import { decodeRaw, isMobileDevice, RAW_MAX_BYTES_DESKTOP, RAW_MAX_BYTES_MOBILE, type RawMethod } from "./raw-decoder";
+import { findSimilarPhotos } from "./tag-actions";
 
 // 사진 변환 상태 관리. 변환은 작업 스레드에서 한 장씩 차례로 한다.
 
@@ -32,7 +33,9 @@ export type Photo = {
   progress: number;
   error?: string;
   preview?: string;
-  result?: { width: number; height: number; seed: string; files: Record<VariantName, Blob> };
+  result?: { width: number; height: number; seed: string; phash: string; files: Record<VariantName, Blob> };
+  /** 이미 올린 내 사진과 비슷하면 그 글 id (경고만, 올릴 수는 있다) */
+  similarPostId?: string;
 };
 
 export function useConverter() {
@@ -59,10 +62,15 @@ export function useConverter() {
             status: "ready",
             progress: 1,
             preview,
-            result: { width: m.width, height: m.height, seed: m.seed, files: m.files },
+            result: { width: m.width, height: m.height, seed: m.seed, phash: m.phash, files: m.files },
           },
         };
       });
+      if (m.type === "done") {
+        void findSimilarPhotos([m.phash]).then(([postId]) => {
+          if (postId) setPhotos((all) => (all[m.id] ? { ...all, [m.id]: { ...all[m.id]!, similarPostId: postId } } : all));
+        });
+      }
     };
     worker.current = w;
     const created = urls.current;
