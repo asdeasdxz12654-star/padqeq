@@ -67,7 +67,15 @@ export default async function UploadPage() {
 
   // 이번 달 올린 사진 수 (운영자는 제한 없음, A-05 ③)
   const isAdmin = viewer.profile.role === "admin";
-  const quota = isAdmin ? null : (await (await createClient()).rpc("my_upload_quota").maybeSingle()).data;
+  const supabase = await createClient();
+  // 새로 고침 · 창 닫기로 남은 업로드 자리 정리 (6시간 넘은 것만: 다른 창에서 올리는 중일 수 있다)
+  const { data: stale } = await supabase
+    .from("upload_slots")
+    .select("id")
+    .lt("created_at", new Date(Date.now() - 6 * 3_600_000).toISOString())
+    .limit(500);
+  if (stale?.length) await supabase.rpc("discard_upload_slots", { ids: stale.map((s) => s.id) });
+  const quota = isAdmin ? null : (await supabase.rpc("my_upload_quota").maybeSingle()).data;
 
   return (
     <div className="mx-auto max-w-5xl px-4 pt-8 pb-16 md:px-6">

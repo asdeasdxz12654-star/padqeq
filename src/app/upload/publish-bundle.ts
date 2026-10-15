@@ -3,11 +3,12 @@
 import type { CreditInput } from "@/lib/photos/credit-input";
 import type { ConsentInput } from "@/lib/photos/post-input";
 import type { CommentPolicy, Visibility } from "@/lib/posts/audience";
-import { VARIANT_NAMES, VARIANTS } from "@/lib/photos/variants";
+import { VARIANT_NAMES, VARIANTS, type VariantName } from "@/lib/photos/variants";
 import { createDraft, publishPost } from "./actions";
 import type { Photo } from "./use-converter";
 
 // 묶음 하나(= 게시물 하나)를 올린다: 초안 만들기 → 변환본 올리기 → 게시.
+// 대량 업로드로 미리 올려 둔 사진(slotId)은 초안에 자리를 붙이기만 하고 다시 올리지 않는다.
 // 중간에 실패하면 만들어 둔 초안으로 다시 시도한다(같은 사진을 두 번 만들지 않음).
 
 const UPLOAD_CONCURRENCY = 3;
@@ -55,11 +56,12 @@ export async function publishBundle(
       photos: photos.map((p) => ({
         width: p.result!.width,
         height: p.result!.height,
-        bytes: p.result!.files["4000"].size,
+        bytes: p.result!.bytes,
         takenAt: p.takenAt,
         watermarkSeed: p.result!.seed,
         phash: p.result!.phash,
         exif: p.exif ?? null,
+        ...(p.slotId && { slotId: p.slotId }),
       })),
     });
     if (!created.ok) throw new Error(created.error);
@@ -67,7 +69,14 @@ export async function publishBundle(
     hooks.onDraft(current);
   }
 
-  await uploadPhotoFiles(current.photoIds, photos, hooks.onProgress);
+  const rest = photos.flatMap((p, i) => (p.slotId ? [] : [{ id: current.photoIds[i]!, files: p.result!.files! }]));
+  if (rest.length) {
+    await uploadPhotoFiles(
+      rest.map((r) => r.id),
+      rest.map((r) => r.files),
+      hooks.onProgress,
+    );
+  }
 
   hooks.onPublishing();
   const published = await publishPost({ postId: current.postId }, meta.hasPeople ? meta.consent : null);
@@ -77,16 +86,14 @@ export async function publishBundle(
 
 /**
  * 변환본을 /api/photos 로 올린다 (동시에 3개, 일시 오류는 두 번 더 시도).
- * photoIds[i]가 photos[i]의 사진 행이다. 업로드 화면 · 게시물 편집(사진 추가) 공용.
+ * ids[i]가 files[i]의 사진 행 또는 업로드 자리다. 업로드 화면 · 대량 업로드 · 게시물 편집(사진 추가) 공용.
  */
 export async function uploadPhotoFiles(
-  photoIds: string[],
-  photos: Photo[],
+  ids: string[],
+  files: Record<VariantName, Blob>[],
   onProgress: (sent: number, total: number) => void,
 ): Promise<void> {
-  const jobs = photos.flatMap((photo, index) =>
-    VARIANT_NAMES.map((name) => ({ photoId: photoIds[index]!, name, blob: photo.result!.files[name] })),
-  );
+  const jobs = files.flatMap((variants, index) => VARIANT_NAMES.map((name) => ({ photoId: ids[index]!, name, blob: variants[name] })));
   let sent = 0;
   onProgress(sent, jobs.length);
 

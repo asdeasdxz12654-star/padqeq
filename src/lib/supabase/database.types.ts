@@ -1627,6 +1627,44 @@ export type Database = {
           },
         ]
       }
+      upload_slots: {
+        Row: {
+          bytes: number
+          created_at: string
+          height: number
+          id: string
+          owner_id: string
+          storage_key: string
+          width: number
+        }
+        Insert: {
+          bytes: number
+          created_at?: string
+          height: number
+          id?: string
+          owner_id: string
+          storage_key?: string
+          width: number
+        }
+        Update: {
+          bytes?: number
+          created_at?: string
+          height?: number
+          id?: string
+          owner_id?: string
+          storage_key?: string
+          width?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upload_slots_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_likes: {
         Row: {
           created_at: string
@@ -2026,6 +2064,9 @@ export type Database = {
         Returns: { actioned: number; dismissed: number; reporter_id: string; total: number; unreliable: boolean }[]
       }
       my_upload_quota: { Args: never; Returns: { quota: number; used: number }[] }
+      reserve_upload_slot: { Args: { bytes: number; height: number; width: number }; Returns: string }
+      attach_upload_slots: { Args: { entries: Json; target_post: string }; Returns: number }
+      discard_upload_slots: { Args: { ids: string[] }; Returns: number }
       admin_audit_log: {
         Args: { before_id?: number | null; max_rows?: number; q?: string | null }
         Returns: {

@@ -21,6 +21,7 @@ import { ACCEPT_INPUT, MAX_SESSION_PHOTOS, type Photo, useConverter } from "./us
 // 업로드 (A-02 대량 업로드 · S-08).
 // 사진을 여러 장 넣으면 촬영 시각 30분 간격으로 묶음(= 게시물)을 나눈다.
 // 묶음마다 내용을 넣고, 공통 설정은 한 번에 적용한 뒤, 차례로 게시한다.
+// 사진은 변환하자마자 미리 올려 두므로(업로드 자리) 한 번에 500장까지 다룬다.
 
 type Common = { category: Bundle["category"]; hasPeople: boolean; consent: ConsentInput; tags: Bundle["tags"]; credits: Bundle["credits"] };
 
@@ -54,7 +55,7 @@ export function UploadStudio({
   currentYear: number;
 }) {
   const router = useRouter();
-  const { photos, addFiles, release } = useConverter();
+  const { photos, addFiles, release, retry } = useConverter({ stage: true });
   const [bundles, setBundles] = useState<Bundle[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
   const [common, setCommon] = useState<Common>({ category: "cosplay", hasPeople: true, consent: emptyConsent(), tags: [], credits: [] });
@@ -65,7 +66,7 @@ export function UploadStudio({
   const sessionCount = pending.reduce((n, b) => n + b.photoIds.length, 0);
 
   // 변환 · 업로드 중에 창을 닫으면 작업이 끊긴다
-  const busy = running || Object.values(photos).some((p) => p.status === "converting");
+  const busy = running || Object.values(photos).some((p) => p.status === "converting" || p.status === "uploading");
   useEffect(() => {
     if (!busy) return;
     const warn = (e: BeforeUnloadEvent) => e.preventDefault();
@@ -208,7 +209,7 @@ export function UploadStudio({
       );
       update(bundle.id, { state: { kind: "published", postId } });
       // 게시한 사진의 변환본은 더 들고 있을 필요가 없다
-      release(bundle.photoIds);
+      release(bundle.photoIds, { published: true });
       return true;
     } catch (e) {
       update(bundle.id, { state: { kind: "error", message: e instanceof Error ? e.message : "업로드하지 못했어요" } });
@@ -315,6 +316,7 @@ export function UploadStudio({
           onMovePhoto={(photoId, delta) => movePhoto(bundle.id, photoId, delta)}
           onTransferPhoto={(photoId, direction) => transferPhoto(bundle.id, photoId, direction)}
           onRemovePhoto={(photoId) => removePhoto(bundle.id, photoId)}
+          onRetryPhoto={retry}
           onRemoveBundle={() => removeBundle(bundle)}
           onMergeNext={() => mergeNext(bundle.id)}
           onPublish={() => {

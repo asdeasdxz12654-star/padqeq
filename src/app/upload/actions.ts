@@ -111,7 +111,44 @@ export async function createDraft(input: DraftInput): Promise<Result<{ postId: s
     return { ok: false, error: creditResult.error };
   }
 
+  // 미리 올려 둔 업로드 자리를 붙인다 (대량 업로드). 실패하면 자리는 그대로 남아 다시 시도할 수 있다.
+  // 마지막에 하는 이유: 붙인 뒤 초안을 지우면 자리의 파일까지 정리 대상이 된다.
+  const slotEntries = photoIds.flatMap((photo_id, i) => (photos[i]!.slotId ? [{ photo_id, slot_id: photos[i]!.slotId }] : []));
+  if (slotEntries.length) {
+    const { error: slotError } = await supabase.rpc("attach_upload_slots", { target_post: post.id, entries: slotEntries });
+    if (slotError) {
+      await supabase.from("posts").delete().eq("id", post.id);
+      return { ok: false, error: "미리 올린 사진을 찾지 못했어요. 사진을 빼고 다시 넣어 주세요." };
+    }
+  }
+
   return { ok: true, data: { postId: post.id, photoIds } };
+}
+
+const slotSchema = z.object({ width: z.int().positive(), height: z.int().positive(), bytes: z.int().positive() });
+
+/** 대량 업로드: 변환이 끝난 사진 한 장의 업로드 자리를 받는다. 파일은 /api/photos/{자리}/{크기} 로 올린다. */
+export async function reserveUploadSlot(input: z.input<typeof slotSchema>): Promise<Result<{ slotId: string }>> {
+  const parsed = slotSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "잘못된 요청이에요." };
+  const viewer = await uploader();
+  if (!viewer) return { ok: false, error: "업로드 권한이 없어요." };
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("reserve_upload_slot", parsed.data);
+  if (error) {
+    if (isMonthlyLimitError(error.message)) return { ok: false, error: MONTHLY_LIMIT_MESSAGE };
+    if (error.message.includes("too_many_slots")) return { ok: false, error: "게시하지 않은 사진이 500장이에요. 먼저 게시해 주세요." };
+    return { ok: false, error: "업로드를 시작하지 못했어요." };
+  }
+  return { ok: true, data: { slotId: data } };
+}
+
+/** 쓰지 않을 업로드 자리를 지운다 (파일은 다음 정리 작업에서 지운다) */
+export async function discardUploadSlots(ids: string[]): Promise<void> {
+  const parsed = z.array(z.uuid()).max(500).safeParse(ids);
+  if (!parsed.success || !parsed.data.length) return;
+  const supabase = await createClient();
+  await supabase.rpc("discard_upload_slots", { ids: parsed.data });
 }
 
 const publishSchema = z.object({ postId: z.uuid() });

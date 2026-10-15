@@ -15,7 +15,7 @@ import { createClient } from "@/lib/supabase/server";
 
 // 변환본 업로드 (P-01 ②~④).
 // 브라우저가 만든 변환본을 받아 서버에서 다시 확인한 뒤 R2에 저장한다.
-//  · 업로드 권한 + 내 초안 게시물의 사진인지 (RLS로 읽은 행 기준)
+//  · 업로드 권한 + 내 초안 게시물의 사진 또는 내 업로드 자리(대량 업로드)인지 (RLS로 읽은 행 기준)
 //  · 파일 내부 구조 · 형식 · 크기(px) · 용량이 DB에 적은 값과 맞는지
 //  · 메타데이터(EXIF · GPS) 잔존 여부
 
@@ -40,15 +40,25 @@ export async function PUT(request: NextRequest, ctx: RouteContext<"/api/photos/[
   if (!viewer.profile?.can_upload) return fail(403, "업로드 권한이 없어요");
 
   const supabase = await createClient();
-  const { data: photo, error } = await supabase
+  const { data: row, error } = await supabase
     .from("photos")
     .select("storage_key, width, height, bytes, ready_at, post:posts!inner(author_id, status)")
     .eq("id", id)
     .maybeSingle();
   if (error) return fail(500, "사진 정보를 읽지 못했어요");
-  if (!photo || photo.post.author_id !== viewer.id) return fail(404, "사진을 찾을 수 없어요");
-  // 초안의 사진이나, 게시된 글에 새로 붙여 아직 다 올라가지 않은 사진만
-  if (photo.post.status !== "draft" && photo.ready_at !== null) return fail(409, "게시된 사진은 바꿀 수 없어요");
+  let photo: { storage_key: string; width: number; height: number; bytes: number };
+  if (row) {
+    if (row.post.author_id !== viewer.id) return fail(404, "사진을 찾을 수 없어요");
+    // 초안의 사진이나, 게시된 글에 새로 붙여 아직 다 올라가지 않은 사진만
+    if (row.post.status !== "draft" && row.ready_at !== null) return fail(409, "게시된 사진은 바꿀 수 없어요");
+    photo = row;
+  } else {
+    // 업로드 자리 (본인 것만 읽힌다, RLS)
+    const { data: slot, error: slotError } = await supabase.from("upload_slots").select("storage_key, width, height, bytes").eq("id", id).maybeSingle();
+    if (slotError) return fail(500, "사진 정보를 읽지 못했어요");
+    if (!slot) return fail(404, "사진을 찾을 수 없어요");
+    photo = slot;
+  }
 
   const token = storageToken(photo.storage_key);
   if (!token) return fail(500, "저장 위치가 올바르지 않아요");

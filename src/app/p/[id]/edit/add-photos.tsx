@@ -41,7 +41,7 @@ export function AddPhotos({ postId, room }: { postId: string; room: number }) {
         photos: list.map((p) => ({
           width: p.result!.width,
           height: p.result!.height,
-          bytes: p.result!.files["4000"].size,
+          bytes: p.result!.bytes,
           takenAt: p.takenAt,
           watermarkSeed: p.result!.seed,
           phash: p.result!.phash,
@@ -49,7 +49,11 @@ export function AddPhotos({ postId, room }: { postId: string; room: number }) {
         })),
       });
       if (!created.ok) throw new Error(created.error);
-      await uploadPhotoFiles(created.data.photoIds, list, (sent, total) => setStage({ kind: "uploading", sent, total }));
+      await uploadPhotoFiles(
+        created.data.photoIds,
+        list.map((p) => p.result!.files!),
+        (sent, total) => setStage({ kind: "uploading", sent, total }),
+      );
       setStage({ kind: "finishing" });
       const finished = await finishPhotos({ postId, photoIds: created.data.photoIds });
       if (!finished.ok) throw new Error(finished.error);

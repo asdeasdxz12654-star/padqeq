@@ -52,8 +52,9 @@ export const emptyConsent = (): ConsentInput => ({
 /** 게시할 수 없는 이유 (없으면 null) */
 export function bundleProblem(bundle: Bundle, photos: Photo[], isAdmin: boolean): string | null {
   if (photos.length === 0) return "사진이 없어요";
-  if (photos.some((p) => p.status === "error")) return "변환에 실패한 사진을 빼 주세요";
-  if (photos.some((p) => p.status !== "ready")) return "사진 변환 중";
+  if (photos.some((p) => p.status === "error")) return "실패한 사진을 다시 시도하거나 빼 주세요";
+  if (photos.some((p) => p.status === "converting")) return "사진 변환 중";
+  if (photos.some((p) => p.status !== "ready")) return "사진 올리는 중";
   if (!bundle.title.trim()) return "제목을 입력해 주세요";
   if (photos.some((p) => p.raw) && !bundle.rawConfirmed) return "RAW 사진(보정 전 원본)인지 확인해 주세요";
   if (bundle.hasPeople) {
@@ -97,6 +98,7 @@ export function BundleCard({
   onMovePhoto,
   onTransferPhoto,
   onRemovePhoto,
+  onRetryPhoto,
   onRemoveBundle,
   onMergeNext,
   onPublish,
@@ -116,6 +118,8 @@ export function BundleCard({
   onRemoveBundle(): void;
   onMergeNext(): void;
   onPublish(): void;
+  /** 올리기에 실패한 사진 다시 시도 (대량 업로드) */
+  onRetryPhoto?(photoId: string): void;
 }) {
   const { state } = bundle;
   const published = state.kind === "published";
@@ -196,14 +200,22 @@ export function BundleCard({
                   이미 올린 사진?
                 </a>
               )}
-              {photo.status === "converting" && (
-                <span className="absolute inset-x-0 bottom-0 h-1 bg-line">
-                  <span className="block h-full bg-accent" style={{ width: `${Math.round(photo.progress * 100)}%` }} />
+              {(photo.status === "converting" || photo.status === "uploading") && (
+                <span className="absolute inset-x-0 bottom-0 h-1 bg-line" title={photo.status === "uploading" ? "올리는 중" : "변환 중"}>
+                  <span
+                    className={`block h-full ${photo.status === "uploading" ? "bg-emerald-400" : "bg-accent"}`}
+                    style={{ width: `${Math.round(photo.progress * 100)}%` }}
+                  />
                 </span>
               )}
               {photo.status === "error" && (
-                <span className="absolute inset-0 flex items-center justify-center bg-bg/70 p-1 text-center text-[10px] text-red-300">
+                <span className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-bg/70 p-1 text-center text-[10px] text-red-300">
                   {photo.error}
+                  {photo.retryable && onRetryPhoto && (
+                    <button type="button" onClick={() => onRetryPhoto(photo.id)} className="rounded-full border border-line px-2 py-0.5 text-text">
+                      다시 시도
+                    </button>
+                  )}
                 </span>
               )}
             </div>
