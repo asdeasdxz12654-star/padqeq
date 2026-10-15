@@ -5,6 +5,7 @@ import { getViewer } from "@/lib/auth/viewer";
 import { getUnreadCount } from "@/lib/notifications/unread";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { NAV_ITEMS } from "./nav-items";
+import { HeaderSearch } from "./search-box";
 
 /** 상단 바. 데스크톱(768px~)에서는 GNB + 업로드 버튼 + 계정, 모바일에서는 로고와 가입 안내만. */
 export async function SiteHeader() {
@@ -31,6 +32,7 @@ export async function SiteHeader() {
           </ul>
         </nav>
         <div className="ml-auto flex items-center gap-4 text-sm">
+          <HeaderSearch />
           {viewer && !viewer.profile ? (
             // 로그인은 했지만 핸들을 정하지 않은 상태 (가입 도중 이탈)
             <Link href="/welcome" className="rounded-full border border-accent px-3 py-1.5 font-semibold text-accent">
@@ -65,7 +67,7 @@ export async function SiteHeader() {
               )}
               {viewer?.profile && <NotificationBell unread={unread} />}
               {viewer?.profile ? (
-                <Link href={profileHref(viewer.profile.handle)} className="hidden min-h-11 max-w-40 items-center truncate text-quiet hover:text-text md:flex">
+                <Link href={profileHref(viewer.profile.handle)} className="hidden min-h-11 max-w-40 items-center truncate text-quiet hover:text-text lg:flex">
                   @{viewer.profile.handle}
                 </Link>
               ) : (

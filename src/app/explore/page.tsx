@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Form from "next/form";
 import Link from "next/link";
 import { FeedList } from "@/components/feed-list";
 import { TagChip } from "@/components/tag-chip";
@@ -7,7 +6,9 @@ import { YearChips } from "@/components/year-chips";
 import { CATEGORIES, CATEGORY_LABEL } from "@/lib/photos/post-input";
 import type { FeedScope } from "@/lib/posts/feed-scope";
 import { loadScopePage } from "@/lib/posts/feed-scope-server";
-import { escapeLike, feedHref, MAX_QUERY_LENGTH, parseCategory, parseQuery, parseSort, POPULAR_DAYS } from "@/lib/posts/feed-params";
+import { feedHref, parseCategory, parseQuery, parseSort, POPULAR_DAYS } from "@/lib/posts/feed-params";
+import { findCreators, findEvents, findTags } from "@/lib/search/find";
+import { SearchBox } from "@/components/search-box";
 import { formatRange } from "@/lib/events/calendar";
 import { listEvents } from "@/lib/events/load";
 import { profileHref } from "@/lib/profiles/profile-href";
@@ -53,28 +54,13 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
       <h1 className="sr-only">탐색</h1>
 
       <div className="px-4 pt-4 md:px-6">
-        <Form action="/explore" role="search" className="flex gap-2">
-          {category && <input type="hidden" name="category" value={category} />}
-          {year !== null && <input type="hidden" name="year" value={year} />}
-          {sort === "popular" && <input type="hidden" name="sort" value="popular" />}
-          <label className="sr-only" htmlFor="explore-q">
-            검색어
-          </label>
-          <input
-            id="explore-q"
-            name="q"
-            type="search"
-            defaultValue={q ?? ""}
-            maxLength={MAX_QUERY_LENGTH}
-            placeholder="제목 또는 @핸들"
-            enterKeyHint="search"
-            autoComplete="off"
-            className="min-h-11 min-w-0 flex-1 rounded-xl border border-line bg-surface px-3 text-base outline-none focus:border-accent"
-          />
-          <button type="submit" className="min-h-11 rounded-xl bg-accent px-4 text-sm font-semibold text-on-accent">
-            찾기
-          </button>
-        </Form>
+        <SearchBox
+          id="explore-q"
+          variant="page"
+          initialQuery={q ?? ""}
+          keep={{ ...(category && { category }), ...(year !== null && { year: String(year) }), ...(sort === "popular" && { sort }) }}
+          autoFocus={params.focus === "1"}
+        />
       </div>
 
       {query && (
@@ -279,46 +265,4 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
       )}
     </div>
   );
-}
-
-/** 검색어가 이름이나 다른 표기(별칭)에 들어간 태그 (볼 수 있는 것만, RLS) */
-async function findTags(text: string) {
-  const supabase = await createClient();
-  const pattern = `%${escapeLike(text)}%`;
-  const [byName, byAlias] = await Promise.all([
-    supabase.from("tags").select("id").ilike("name", pattern).limit(8),
-    supabase.from("tag_aliases").select("tag_id").ilike("alias", pattern).limit(8),
-  ]);
-  const ids = [...new Set([...(byName.data ?? []).map((r) => r.id), ...(byAlias.data ?? []).map((r) => r.tag_id)])];
-  if (!ids.length) return [];
-  const { data } = await supabase.from("tags").select("id, slug, name, kind").in("id", ids.slice(0, 8)).order("name");
-  return data ?? [];
-}
-
-/** 핸들 · 표시 이름으로 회원 찾기 (탈퇴 유예 · 차단은 RLS가 뺀다) */
-async function findCreators(text: string) {
-  const supabase = await createClient();
-  // PostgREST 필터 문법 문자는 지운다 (검색어가 조건을 바꾸지 못하게)
-  const like = escapeLike(text.replace(/^@/, "").replace(/[,()*:."']/g, ""));
-  if (!like) return [];
-  const { data } = await supabase
-    .from("profiles")
-    .select("handle, display_name")
-    .or(`handle.ilike.${like}*,display_name.ilike.*${like}*`)
-    .order("handle")
-    .limit(30);
-  return data ?? [];
-}
-
-/** 이름으로 공식 행사 찾기 (최근 것부터) */
-async function findEvents(text: string) {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("events")
-    .select("id, name, starts_on, ends_on")
-    .eq("status", "official")
-    .ilike("name", `%${escapeLike(text)}%`)
-    .order("starts_on", { ascending: false })
-    .limit(30);
-  return data ?? [];
 }
