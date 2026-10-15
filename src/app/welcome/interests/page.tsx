@@ -8,11 +8,12 @@ import { getFollowedMembers, getFollowedTags } from "@/lib/follows/follows";
 import { CREDIT_ROLE_LABEL } from "@/lib/photos/credit-input";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { createClient } from "@/lib/supabase/server";
+import { InterestPicker } from "@/app/settings/interest-picker";
 
 export const metadata: Metadata = { title: "관심 고르기", robots: { index: false } };
 
-// S-01 ⑥ ⑦ 가입 직후 (고르지 않아도 된다): 요즘 많이 담기는 작품 · 직접 올리는 크리에이터를 팔로우하면 홈 '팔로우' 피드가 채워진다.
-// 고를 것이 아직 없으면(서비스 초기) 이 단계를 건너뛴다.
+// S-01 ⑤ ⑥ ⑦ 가입 직후 (고르지 않아도 된다): 관심 분야는 홈 '추천' 순서에 반영되고,: 요즘 많이 담기는 작품 · 직접 올리는 크리에이터를 팔로우하면 홈 '팔로우' 피드가 채워진다.
+// 관심 분야는 늘 고를 수 있고, 작품 · 크리에이터는 있을 때만 보여 준다.
 export default async function InterestsPage({ searchParams }: PageProps<"/welcome/interests">) {
   const next = safeNextPath((await searchParams).next);
   const viewer = await getViewer();
@@ -20,11 +21,12 @@ export default async function InterestsPage({ searchParams }: PageProps<"/welcom
   if (!viewer.profile) redirect(withNext("/welcome", next));
 
   const supabase = await createClient();
-  const [{ data: trending }, { data: creators }, followedTags, followedMembers] = await Promise.all([
+  const [{ data: trending }, { data: creators }, followedTags, followedMembers, { data: me }] = await Promise.all([
     supabase.rpc("trending_works", { days: 90, max_rows: 12 }),
     supabase.rpc("creator_directory", { max_rows: 9 }),
     getFollowedTags(viewer.id),
     getFollowedMembers(viewer.id),
+    supabase.from("profiles").select("interest_categories").eq("id", viewer.id).maybeSingle(),
   ]);
   // 요즘 담기는 작품이 없으면 공식 작품 태그를 이름순으로
   const works = trending?.length
@@ -34,7 +36,6 @@ export default async function InterestsPage({ searchParams }: PageProps<"/welcom
         count: null,
       }));
   const people = (creators ?? []).filter((c) => c.user_id !== viewer.id).slice(0, 8);
-  if (!works.length && !people.length) redirect(next);
 
   const tagIds = new Set(followedTags.map((t) => t.id));
   const memberIds = new Set(followedMembers.map((m) => m.id));
@@ -43,11 +44,19 @@ export default async function InterestsPage({ searchParams }: PageProps<"/welcom
   return (
     <div className="mx-auto flex max-w-xl flex-col gap-8 px-4 pt-10 pb-16 md:pt-16">
       <header className="flex flex-col gap-2">
-        <h1 className="text-2xl font-bold">관심 있는 작품 · 작가를 골라 보세요</h1>
+        <h1 className="text-2xl font-bold">관심 있는 것을 골라 보세요</h1>
         <p className="text-sm leading-relaxed text-quiet">
           팔로우하면 홈의 &lsquo;팔로우&rsquo;에 새 사진이 모여요. 고르지 않아도 되고, 나중에 태그 · 프로필 화면에서 언제든 바꿀 수 있어요.
         </p>
       </header>
+
+      <section aria-labelledby="fields-heading" className="flex flex-col gap-2">
+        <h2 id="fields-heading" className="font-semibold">
+          관심 분야
+        </h2>
+        <p className="text-xs text-quiet">고른 분야의 사진이 홈 &lsquo;추천&rsquo;에서 조금 더 위에 나와요.</p>
+        <InterestPicker initial={me?.interest_categories ?? []} />
+      </section>
 
       {works.length > 0 && (
         <section aria-labelledby="works-heading" className="flex flex-col gap-2">

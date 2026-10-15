@@ -13,7 +13,14 @@ export async function filterForScope(scope: FeedScope): Promise<FeedFilter | nul
   const supabase = await createClient();
   switch (scope.kind) {
     case "home": {
-      if (!scope.following) return { ...NONE, year: scope.year };
+      // 추천은 최근 글 중심이라, 연도를 고르면 그해 사진을 최신순으로
+      if (scope.feed === "recommended" && scope.year === null) {
+        const { data, error } = await supabase.rpc("recommended_posts", { max_rows: 200 });
+        if (error) throw error;
+        // 최근 60일에 올라온 글이 없으면(오래 쉰 뒤 등) 최신순으로
+        if (data.length) return { ...NONE, rankedIds: data.map((r) => r.post_id) };
+      }
+      if (scope.feed !== "following") return { ...NONE, year: scope.year };
       const viewer = await getViewer();
       if (!viewer?.profile) return null;
       return { ...NONE, year: scope.year, following: await followedFeed(viewer.id) };

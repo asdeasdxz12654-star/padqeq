@@ -6,6 +6,7 @@ import { getViewer } from "@/lib/auth/viewer";
 import { createClient } from "@/lib/supabase/server";
 import { DeletionPanel } from "./deletion-panel";
 import { MessageSettings } from "./message-settings";
+import { InterestPicker } from "./interest-picker";
 import { SettingToggle } from "./setting-toggle";
 import { type ThemeChoice, ThemeForm } from "./theme-form";
 import { cookies } from "next/headers";
@@ -14,7 +15,7 @@ export const metadata: Metadata = { title: "설정", robots: { index: false } };
 
 const dayFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "long" });
 
-// S-14 설정: 계정 정보 · 받은 경고 · 화면(테마) · 알림 · 크레딧 자동 승인 · 메시지 받기 범위 · 차단 목록 · 내 데이터 내려받기 · 계정 삭제
+// S-14 설정: 계정 정보 · 받은 경고 · 화면(테마) · 관심 분야 · 알림 · 크레딧 자동 승인 · 메시지 받기 범위 · 차단 목록 · 내 데이터 내려받기 · 계정 삭제
 export default async function SettingsPage() {
   const viewer = await getViewer();
   if (!viewer) redirect(withNext("/login", "/settings"));
@@ -23,7 +24,7 @@ export default async function SettingsPage() {
   const supabase = await createClient();
   const [{ data: claims }, { data: profile }, { data: setting }, { data: blocks }, { data: warnings }] = await Promise.all([
     supabase.auth.getClaims(),
-    supabase.from("profiles").select("created_at, deletion_requested_at, memory_alerts, credit_auto_approve").eq("id", viewer.id).single(),
+    supabase.from("profiles").select("created_at, deletion_requested_at, memory_alerts, credit_auto_approve, interest_categories").eq("id", viewer.id).single(),
     supabase.from("message_settings").select("receive").eq("user_id", viewer.id).maybeSingle(),
     supabase.from("blocks").select("blocked:profiles!blocks_blocked_id_fkey(id, handle)").eq("blocker_id", viewer.id).limit(1000),
     // 받은 경고 (A-05 ⑥, 본인만 본다)
@@ -87,6 +88,14 @@ export default async function SettingsPage() {
           화면
         </h2>
         <ThemeForm current={themeChoice} />
+      </section>
+
+      <section aria-labelledby="interests-heading" className="flex flex-col gap-3">
+        <h2 id="interests-heading" className="text-lg font-semibold">
+          관심 분야
+        </h2>
+        <p className="text-sm text-quiet">고른 분야의 사진이 홈 &lsquo;추천&rsquo;에서 조금 더 위에 나와요.</p>
+        <InterestPicker initial={profile?.interest_categories ?? []} />
       </section>
 
       <section aria-labelledby="alerts-heading" className="flex flex-col gap-3">

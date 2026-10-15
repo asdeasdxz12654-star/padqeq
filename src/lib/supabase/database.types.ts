@@ -1791,6 +1791,7 @@ export type Database = {
         Row: {
           memory_alerts: boolean
           credit_auto_approve: boolean
+          interest_categories: Database["public"]["Enums"]["post_category"][]
           cover_post_id: string | null
           links: string[]
           pinned_post_ids: string[]
@@ -1807,6 +1808,7 @@ export type Database = {
         Insert: {
           memory_alerts?: boolean
           credit_auto_approve?: boolean
+          interest_categories?: Database["public"]["Enums"]["post_category"][]
           cover_post_id?: string | null
           links?: string[]
           pinned_post_ids?: string[]
@@ -1823,6 +1825,7 @@ export type Database = {
         Update: {
           memory_alerts?: boolean
           credit_auto_approve?: boolean
+          interest_categories?: Database["public"]["Enums"]["post_category"][]
           cover_post_id?: string | null
           links?: string[]
           pinned_post_ids?: string[]
@@ -1963,6 +1966,7 @@ export type Database = {
       arrange_my_photos: { Args: { keep: string[]; target: string }; Returns: undefined }
       moderate_post: { Args: { decision: string; note: string; target: string }; Returns: undefined }
       set_photo_exif: { Args: { entries: Json; target_post: string }; Returns: undefined }
+      recommended_posts: { Args: { max_rows?: number }; Returns: { post_id: string; score: number }[] }
       related_tags: {
         Args: { max_rows?: number; tag: string }
         Returns: { id: string; kind: Database["public"]["Enums"]["tag_kind"]; name: string; slug: string; together: number }[]

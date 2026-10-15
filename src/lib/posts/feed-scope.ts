@@ -7,9 +7,20 @@ import { MAX_QUERY_LENGTH } from "./feed-params";
 
 const year = z.int().min(1990).max(2100).nullable();
 
+/** 홈 피드 종류: 추천(기본) · 최신 · 팔로우(회원만) */
+export const HOME_FEEDS = ["recommended", "latest", "following"] as const;
+export type HomeFeed = (typeof HOME_FEEDS)[number];
+
+/** 주소의 ?feed= → 홈 피드. 팔로우는 회원만, 모르는 값은 추천 */
+export function parseHomeFeed(value: unknown, member: boolean): HomeFeed {
+  if (value === "latest") return "latest";
+  if (value === "following" && member) return "following";
+  return "recommended";
+}
+
 export const feedScopeSchema = z.discriminatedUnion("kind", [
-  /** 홈: 전체 또는 팔로우 */
-  z.object({ kind: z.literal("home"), year, following: z.boolean() }),
+  /** 홈: 추천 · 최신 · 팔로우 */
+  z.object({ kind: z.literal("home"), year, feed: z.enum(HOME_FEEDS) }),
   /** 탐색: 검색어 · 카테고리 · 연도 · 최신/인기 */
   z.object({
     kind: z.literal("explore"),
