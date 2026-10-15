@@ -7,12 +7,14 @@ import { getComments } from "@/lib/comments/load";
 import { getFollowedMembers } from "@/lib/follows/follows";
 import { COMMENT_POLICY_LABEL, VISIBILITY_LABEL } from "@/lib/posts/audience";
 import { OG_IMAGES } from "@/lib/og";
+import { loadFeed } from "@/lib/posts/feed";
 import { getPost } from "@/lib/posts/get-post";
 import { getSiteSwitches } from "@/lib/support/switches";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { TagChip } from "@/components/tag-chip";
 import { createClient } from "@/lib/supabase/server";
 import { ClaimCreditButton } from "./claim-credit-button";
+import { PhotoFeed } from "@/components/photo-feed";
 import { ShareButton } from "@/components/share-button";
 import { CollectPanel } from "./collect-panel";
 import { Comments } from "./comments";
@@ -139,6 +141,13 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
   ]);
   const pickedToday = Boolean(pickRow);
 
+  // 연관 게시물 (S-06 ⑨): 같은 캐릭터 · 행사 · 작품 → 같은 업로더 순, 최대 8개
+  const relatedTagIds = ["character", "event", "work"].flatMap((kind) => post.tags.filter((t) => t.kind === kind).map((t) => t.id));
+  const byTags = relatedTagIds.length && post.status === "published" ? await loadFeed({ year: null, category: null, query: null, tagIds: relatedTagIds, limit: 9 }) : [];
+  const byAuthor =
+    post.status === "published" && byTags.length < 9 ? await loadFeed({ year: null, category: null, query: null, authorId: post.author_id, limit: 9 }) : [];
+  const related = [...new Map([...byTags, ...byAuthor].filter((p) => p.id !== post.id).map((p) => [p.id, p])).values()].slice(0, 8);
+
   const credits = post.credits.filter(
     (c) => c.status === "approved" || c.status === "external" || isAuthor || (viewer !== null && c.member_id === viewer.id && c.status === "pending"),
   );
@@ -225,6 +234,20 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
 
           {post.body && <p className="whitespace-pre-line text-sm leading-relaxed">{post.body}</p>}
 
+          {post.exif && (
+            <p className="flex items-start gap-1.5 text-xs text-quiet">
+              <svg aria-hidden="true" viewBox="0 0 24 24" className="mt-0.5 size-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <rect x="3" y="7" width="18" height="13" rx="2" />
+                <circle cx="12" cy="13.5" r="3.5" />
+                <path d="M8 7l1.5-3h5L16 7" />
+              </svg>
+              <span>
+                <span className="sr-only">촬영 정보: </span>
+                {post.exif}
+              </span>
+            </p>
+          )}
+
           {post.tags.length > 0 && (
             <ul aria-label="태그" className="flex flex-wrap gap-1.5">
               {post.tags.map((tag) => (
@@ -309,6 +332,15 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
           />
         </div>
       </div>
+
+      {related.length > 0 && (
+        <section aria-labelledby="related-heading" className="mt-12">
+          <h2 id="related-heading" className="mb-3 px-4 text-lg font-semibold md:px-0">
+            연관 게시물
+          </h2>
+          <PhotoFeed items={related} empty="" />
+        </section>
+      )}
     </article>
   );
 }

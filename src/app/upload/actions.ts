@@ -26,7 +26,7 @@ export async function createDraft(input: DraftInput): Promise<Result<{ postId: s
   const viewer = await uploader();
   if (!viewer) return { ok: false, error: "업로드 권한이 없어요." };
 
-  const { title, body, category, shotYear, shotOn, hasPeople, photos, tagIds, credits, visibility, commentPolicy, scheduledAt } = parsed.data;
+  const { title, body, category, shotYear, shotOn, hasPeople, photos, tagIds, credits, visibility, commentPolicy, scheduledAt, showExif } = parsed.data;
   const supabase = await createClient();
 
   const { data: post, error: postError } = await supabase
@@ -42,6 +42,7 @@ export async function createDraft(input: DraftInput): Promise<Result<{ postId: s
       visibility,
       comment_policy: commentPolicy,
       scheduled_at: scheduledAt,
+      show_exif: showExif,
     })
     .select("id")
     .single();
@@ -87,6 +88,10 @@ export async function createDraft(input: DraftInput): Promise<Result<{ postId: s
     await supabase.from("posts").delete().eq("id", post.id);
     return { ok: false, error: photoHashError(hashError.message) };
   }
+
+  // 촬영 정보 (있는 사진만, 실패해도 게시는 이어 간다)
+  const exifEntries = photoIds.flatMap((photo_id, i) => (photos[i]!.exif ? [{ photo_id, exif: photos[i]!.exif }] : []));
+  if (exifEntries.length) await supabase.rpc("set_photo_exif", { target_post: post.id, entries: exifEntries });
 
   // 태그 (쓸 수 있는 태그인지는 RLS가 확인)
   if (tagIds.length) {

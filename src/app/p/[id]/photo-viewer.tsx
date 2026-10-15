@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { ViewerPhoto } from "@/lib/posts/get-post";
 import { refreshPhotoSources } from "./actions";
 
@@ -13,6 +13,8 @@ import { refreshPhotoSources } from "./actions";
 const MAX_CACHE = 6;
 
 type Status = "loading" | "ready" | "error";
+
+const noop = () => () => {};
 
 export function PhotoViewer({
   postId,
@@ -29,6 +31,19 @@ export function PhotoViewer({
   const [painted, setPainted] = useState<{ key: string; ok: boolean } | null>(null);
   const [box, setBox] = useState<{ width: number; maxHeight: number } | null>(null);
   const frame = useRef<HTMLDivElement>(null);
+  const root = useRef<HTMLDivElement>(null);
+  // 전체화면 (P-04): 지원하는 브라우저에서만 버튼을 보인다 (아이폰 Safari는 요소 전체화면을 지원하지 않음)
+  const canFullscreen = useSyncExternalStore(noop, () => Boolean(document.fullscreenEnabled), () => false);
+  const [full, setFull] = useState(false);
+  const toggleFullscreen = useCallback(() => {
+    if (document.fullscreenElement) void document.exitFullscreen();
+    else void root.current?.requestFullscreen().catch(() => undefined);
+  }, []);
+  useEffect(() => {
+    const onChange = () => setFull(document.fullscreenElement === root.current);
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
   const canvas = useRef<HTMLCanvasElement>(null);
   const bitmaps = useRef(new Map<string, Promise<ImageBitmap>>());
   const refreshed = useRef(false);
@@ -42,7 +57,9 @@ export function PhotoViewer({
   useEffect(() => {
     const el = frame.current;
     if (!el) return;
-    const measure = () => setBox({ width: el.clientWidth, maxHeight: Math.round(window.innerHeight * 0.78) });
+    // 전체화면이면 화면을 거의 다 쓴다
+    const measure = () =>
+      setBox({ width: el.clientWidth, maxHeight: Math.round(window.innerHeight * (document.fullscreenElement ? 0.9 : 0.78)) });
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(el);
@@ -59,10 +76,11 @@ export function PhotoViewer({
       if (e.target instanceof HTMLElement && e.target.closest("input, textarea, select")) return;
       if (e.key === "ArrowLeft") go(-1);
       if (e.key === "ArrowRight") go(1);
+      if ((e.key === "f" || e.key === "F") && !e.metaKey && !e.ctrlKey && document.fullscreenEnabled) toggleFullscreen();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [go]);
+  }, [go, toggleFullscreen]);
 
   // 화면에 그릴 크기 (CSS px). 파노라마는 높이에 맞추고 좌우로 민다.
   const display = box ? fit(photo, box) : null;
@@ -128,7 +146,7 @@ export function PhotoViewer({
   const swipe = useRef<number | null>(null);
 
   return (
-    <div className="flex flex-col gap-3">
+    <div ref={root} className={`flex flex-col gap-3 ${full ? "h-full justify-center bg-black p-4" : ""}`}>
       <div
         ref={frame}
         className={`photo-guard relative flex justify-center ${photo.isPanorama ? "overflow-x-auto" : "overflow-hidden"}`}
@@ -170,8 +188,9 @@ export function PhotoViewer({
         </div>
       </div>
 
-      {count > 1 && (
+      {(count > 1 || canFullscreen) && (
         <div className="flex items-center justify-center gap-4 text-sm">
+          {count > 1 && (
           <button
             type="button"
             onClick={() => go(-1)}
@@ -181,9 +200,13 @@ export function PhotoViewer({
           >
             ‹
           </button>
+          )}
+          {count > 1 && (
           <span aria-live="polite" className="tabular-nums text-quiet">
             {index + 1} / {count}
           </span>
+          )}
+          {count > 1 && (
           <button
             type="button"
             onClick={() => go(1)}
@@ -193,6 +216,18 @@ export function PhotoViewer({
           >
             ›
           </button>
+          )}
+          {canFullscreen && (
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              aria-label={full ? "전체화면 끝내기" : "전체화면 (F)"}
+              title={full ? "전체화면 끝내기" : "전체화면 (F)"}
+              className="min-h-11 min-w-11 rounded-full border border-line px-3 text-xs"
+            >
+              {full ? "닫기" : "전체화면"}
+            </button>
+          )}
         </div>
       )}
     </div>

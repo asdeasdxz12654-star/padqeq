@@ -36,6 +36,7 @@ export type Bundle = {
   commentPolicy: CommentPolicy;
   /** 예약 (한국 시간 datetime-local, 비었으면 바로 게시) */
   scheduledAt: string;
+  showExif: boolean;
   draft: Draft | null;
   state: BundleState;
 };
@@ -473,7 +474,7 @@ function AudienceFields({
 }: {
   bundle: Bundle;
   disabled: boolean;
-  onChange(patch: Partial<Pick<Bundle, "visibility" | "commentPolicy" | "scheduledAt">>): void;
+  onChange(patch: Partial<Pick<Bundle, "visibility" | "commentPolicy" | "scheduledAt" | "showExif">>): void;
 }) {
   const field = "min-h-11 rounded-xl border border-line bg-bg px-3 text-base";
   return (
@@ -503,6 +504,10 @@ function AudienceFields({
       <label className="flex flex-col gap-1.5 text-sm">
         예약 게시 <span className="text-xs text-quiet">(선택 · 한국 시간 · 90일 안)</span>
         <input type="datetime-local" value={bundle.scheduledAt} onChange={(e) => onChange({ scheduledAt: e.target.value })} className={field} />
+      </label>
+      <label className="flex items-center gap-2 text-sm sm:col-span-3">
+        <input type="checkbox" checked={bundle.showExif} onChange={(e) => onChange({ showExif: e.target.checked })} className="size-4 accent-[var(--accent)]" />
+        촬영 정보(카메라 · 렌즈 · 설정) 보여 주기 <span className="text-xs text-quiet">위치는 항상 지워져요</span>
       </label>
     </fieldset>
   );

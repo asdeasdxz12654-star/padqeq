@@ -8,6 +8,7 @@ import type { ConvertMessage, ConvertRequest } from "./convert.worker";
 import { RAW_EXTENSIONS } from "@/lib/photos/raw-preview";
 import { decodeRaw, isMobileDevice, RAW_MAX_BYTES_DESKTOP, RAW_MAX_BYTES_MOBILE, type RawMethod } from "./raw-decoder";
 import { findSimilarPhotos } from "./tag-actions";
+import { EXIF_TAGS, type ExifInfo, exifInfo } from "@/lib/photos/exif-info";
 
 // 사진 변환 상태 관리. 변환은 작업 스레드에서 한 장씩 차례로 한다.
 
@@ -34,6 +35,8 @@ export type Photo = {
   error?: string;
   preview?: string;
   result?: { width: number; height: number; seed: string; phash: string; files: Record<VariantName, Blob> };
+  /** 촬영 정보 (장비 · 설정) */
+  exif?: ExifInfo | null;
   /** 이미 올린 내 사진과 비슷하면 그 글 id (경고만, 올릴 수는 있다) */
   similarPostId?: string;
 };
@@ -100,6 +103,7 @@ export function useConverter() {
               name: file.name,
               // RAW의 촬영 시각은 해석하면서 읽는다 (CR3 등은 미리보기 EXIF에서)
               takenAt: await readTakenAt(file),
+              exif: await readExifInfo(file),
               status: "converting",
               progress: 0,
               ...(raw && { raw: { method: "pending" as const } }),
@@ -177,6 +181,15 @@ async function readTakenAt(file: File): Promise<string | null> {
     const data = await exifr.parse(file, ["DateTimeOriginal"]);
     const date: unknown = data?.DateTimeOriginal;
     return date instanceof Date && !Number.isNaN(date.getTime()) ? date.toISOString() : null;
+  } catch {
+    return null;
+  }
+}
+
+/** 촬영 정보 (장비 · 설정만, 위치는 읽지 않는다) */
+async function readExifInfo(file: File): Promise<ExifInfo | null> {
+  try {
+    return exifInfo(await exifr.parse(file, [...EXIF_TAGS]));
   } catch {
     return null;
   }

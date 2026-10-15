@@ -48,6 +48,8 @@ export async function addPhotos(input: z.input<typeof addSchema>): Promise<Resul
         : "사진 정보를 저장하지 못했어요.",
     };
   }
+  const exifEntries = data.flatMap((photo_id, i) => (parsed.data.photos[i]!.exif ? [{ photo_id, exif: parsed.data.photos[i]!.exif }] : []));
+  if (exifEntries.length) await supabase.rpc("set_photo_exif", { target_post: parsed.data.postId, entries: exifEntries });
   return { ok: true, data: { photoIds: data } };
 }
 

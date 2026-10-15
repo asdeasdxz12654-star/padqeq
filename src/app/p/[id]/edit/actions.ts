@@ -13,7 +13,7 @@ export async function updatePost(input: EditInput): Promise<{ ok: boolean; error
   const viewer = await getViewer();
   if (!viewer?.profile) return { ok: false, error: "로그인이 필요해요." };
 
-  const { postId, title, body, category, shotYear, shotOn, tagIds, alts, credits, photoOrder, visibility, commentPolicy, scheduledAt } = parsed.data;
+  const { postId, title, body, category, shotYear, shotOn, tagIds, alts, credits, photoOrder, visibility, commentPolicy, scheduledAt, showExif } = parsed.data;
   const supabase = await createClient();
 
   const { data: updated, error } = await supabase
@@ -26,6 +26,7 @@ export async function updatePost(input: EditInput): Promise<{ ok: boolean; error
       shot_on: shotOn,
       visibility,
       comment_policy: commentPolicy,
+      show_exif: showExif,
       ...(scheduledAt !== undefined && { scheduled_at: scheduledAt }),
     })
     .eq("id", postId)

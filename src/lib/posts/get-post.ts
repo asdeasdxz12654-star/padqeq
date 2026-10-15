@@ -1,4 +1,5 @@
 import "server-only";
+import { type ExifInfo, exifLine } from "@/lib/photos/exif-info";
 import { cache } from "react";
 import { viewerSources, type ViewerSources } from "@/lib/photos/server";
 import { createClient } from "@/lib/supabase/server";
@@ -24,9 +25,9 @@ export const getPost = cache(async (id: string) => {
   const { data: post, error } = await supabase
     .from("posts")
     .select(
-      `id, title, body, category, status, held_at, removed_at, shot_year, shot_on, published_at, has_people, author_id, visibility, scheduled_at, comment_policy,
+      `id, title, body, category, status, held_at, removed_at, shot_year, shot_on, published_at, has_people, author_id, visibility, scheduled_at, comment_policy, show_exif,
        author:profiles!posts_author_id_fkey(handle, display_name),
-       photos(id, storage_key, width, height, alt_text, is_panorama, position, ready_at),
+       photos(id, storage_key, width, height, alt_text, is_panorama, position, ready_at, exif),
        credits(id, role, status, member_id, external_label, external_url, member:profiles!credits_member_id_fkey(handle, display_name)),
        post_tags(tag:tags(id, slug, name, kind))`,
     )
@@ -61,7 +62,10 @@ export const getPost = cache(async (id: string) => {
     .flatMap((pt) => (pt.tag ? [pt.tag] : []))
     .sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind) || a.name.localeCompare(b.name, "ko"));
 
-  return { ...post, author: post.author, photos, tags };
+  // 촬영 정보: 업로더가 보여 주기로 한 경우 첫 사진의 장비 · 설정 (S-06 ⑧)
+  const firstExif = post.show_exif ? exifLine(post.photos[0]?.exif as ExifInfo | null) : null;
+
+  return { ...post, author: post.author, photos, tags, exif: firstExif };
 });
 
 export type PostDetail = NonNullable<Awaited<ReturnType<typeof getPost>>>;

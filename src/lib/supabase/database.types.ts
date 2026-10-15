@@ -931,6 +931,7 @@ export type Database = {
       }
       photos: {
         Row: {
+          exif: Json | null
           alt_text: string
           bytes: number
           created_at: string
@@ -946,6 +947,7 @@ export type Database = {
           width: number
         }
         Insert: {
+          exif?: Json | null
           alt_text?: string
           bytes: number
           created_at?: string
@@ -961,6 +963,7 @@ export type Database = {
           width: number
         }
         Update: {
+          exif?: Json | null
           alt_text?: string
           bytes?: number
           created_at?: string
@@ -1639,6 +1642,7 @@ export type Database = {
       }
       posts: {
         Row: {
+          show_exif: boolean
           visibility: Database["public"]["Enums"]["post_visibility"]
           scheduled_at: string | null
           comment_policy: Database["public"]["Enums"]["comment_policy"]
@@ -1660,6 +1664,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          show_exif?: boolean
           visibility?: Database["public"]["Enums"]["post_visibility"]
           scheduled_at?: string | null
           comment_policy?: Database["public"]["Enums"]["comment_policy"]
@@ -1681,6 +1686,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          show_exif?: boolean
           visibility?: Database["public"]["Enums"]["post_visibility"]
           scheduled_at?: string | null
           comment_policy?: Database["public"]["Enums"]["comment_policy"]
@@ -1713,6 +1719,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          memory_alerts: boolean
           cover_post_id: string | null
           links: string[]
           pinned_post_ids: string[]
@@ -1727,6 +1734,7 @@ export type Database = {
           upload_revoked_at: string | null
         }
         Insert: {
+          memory_alerts?: boolean
           cover_post_id?: string | null
           links?: string[]
           pinned_post_ids?: string[]
@@ -1741,6 +1749,7 @@ export type Database = {
           upload_revoked_at?: string | null
         }
         Update: {
+          memory_alerts?: boolean
           cover_post_id?: string | null
           links?: string[]
           pinned_post_ids?: string[]
@@ -1880,6 +1889,9 @@ export type Database = {
       resolve_credit_claim: { Args: { accept: boolean; target: string }; Returns: undefined }
       arrange_my_photos: { Args: { keep: string[]; target: string }; Returns: undefined }
       moderate_post: { Args: { decision: string; note: string; target: string }; Returns: undefined }
+      set_photo_exif: { Args: { entries: Json; target_post: string }; Returns: undefined }
+      tag_popular_posts: { Args: { days?: number; max_rows?: number; tag: string }; Returns: { likes: number; post_id: string }[] }
+      tag_cosers: { Args: { max_rows?: number; tag: string }; Returns: { display_name: string; handle: string; posts: number }[] }
       post_like_stats: { Args: { ids: string[] }; Returns: { liked: boolean; likes: number; post_id: string }[] }
       can_i_upload: { Args: never; Returns: boolean }
       set_upload_stage: { Args: { note: string; stage: Database["public"]["Enums"]["upload_stage"] }; Returns: undefined }
@@ -2087,6 +2099,7 @@ export type Database = {
         | "message_received"
         | "message_request"
         | "post_liked"
+        | "memory_today"
       post_category: "cosplay" | "model" | "landscape" | "other"
       post_status: "draft" | "published" | "hidden"
       report_reason:
@@ -2279,6 +2292,7 @@ export const Constants = {
         "message_received",
         "message_request",
         "post_liked",
+        "memory_today",
       ],
       post_category: ["cosplay", "model", "landscape", "other"],
       post_status: ["draft", "published", "hidden"],

@@ -152,6 +152,14 @@ export default async function MePage() {
       </Link>
 
       <Link
+        href="/memories"
+        className="mt-2 flex min-h-14 items-center justify-between rounded-xl border border-line px-4 hover:border-quiet"
+      >
+        <span className="font-semibold">N년 전 오늘</span>
+        <span className="text-xs text-quiet">예전 오늘 찍은 사진 ›</span>
+      </Link>
+
+      <Link
         href="/me/year"
         className="mt-2 flex min-h-14 items-center justify-between rounded-xl border border-line px-4 hover:border-quiet"
       >

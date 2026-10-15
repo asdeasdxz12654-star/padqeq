@@ -5,6 +5,7 @@ import { withNext } from "@/lib/auth/next-path";
 import { getViewer } from "@/lib/auth/viewer";
 import { createClient } from "@/lib/supabase/server";
 import { DeletionPanel } from "./deletion-panel";
+import { MemoryAlertToggle } from "./memory-alert-toggle";
 import { MessageSettings } from "./message-settings";
 import { type ThemeChoice, ThemeForm } from "./theme-form";
 import { cookies } from "next/headers";
@@ -23,7 +24,7 @@ export default async function SettingsPage() {
   const supabase = await createClient();
   const [{ data: claims }, { data: profile }, { data: setting }, { data: blocks }] = await Promise.all([
     supabase.auth.getClaims(),
-    supabase.from("profiles").select("created_at, deletion_requested_at").eq("id", viewer.id).single(),
+    supabase.from("profiles").select("created_at, deletion_requested_at, memory_alerts").eq("id", viewer.id).single(),
     supabase.from("message_settings").select("receive").eq("user_id", viewer.id).maybeSingle(),
     supabase.from("blocks").select("blocked:profiles!blocks_blocked_id_fkey(id, handle)").eq("blocker_id", viewer.id).limit(1000),
   ]);
@@ -62,6 +63,13 @@ export default async function SettingsPage() {
           화면
         </h2>
         <ThemeForm current={themeChoice} />
+      </section>
+
+      <section aria-labelledby="alerts-heading" className="flex flex-col gap-3">
+        <h2 id="alerts-heading" className="text-lg font-semibold">
+          알림
+        </h2>
+        <MemoryAlertToggle initial={profile?.memory_alerts ?? true} />
       </section>
 
       <section id="messages" aria-labelledby="messages-heading" className="flex scroll-mt-20 flex-col gap-3">

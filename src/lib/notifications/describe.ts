@@ -81,9 +81,38 @@ export function describeNotification({ kind, actorHandle, post, event = null, bo
     case "post_liked":
       // 같은 글의 좋아요는 안 읽은 알림 하나로 묶인다
       return { text: `${who}이 내 게시물을 좋아해요.`, href: postHref };
+    case "memory_today":
+      return { text: "오늘은 예전에 담아 둔 사진이 있는 날이에요. 그날의 추억을 다시 봐요.", href: "/memories" };
     case "inquiry_answered":
       return { text: "1:1 문의에 답변이 달렸어요.", href: "/help?tab=inquiry" };
     case "report_reviewed":
       return { text: "신고하신 내용을 검토했어요. 알려 주셔서 고마워요.", href: postHref ?? (board ? `/community/${board.id}` : null) };
   }
+}
+
+/** 알림 필터 (S-10 ⑤): 크레딧 · 반응 · 커뮤니티 · 운영 */
+export type NotificationGroup = "credit" | "reaction" | "community" | "ops";
+
+export const NOTIFICATION_GROUP_LABEL: Record<NotificationGroup, string> = {
+  credit: "크레딧",
+  reaction: "반응",
+  community: "커뮤니티",
+  ops: "운영",
+};
+
+export function notificationGroup(kind: NotificationKind): NotificationGroup {
+  if (kind.startsWith("credit_")) return "credit";
+  if (kind === "post_liked" || kind === "comment_added" || kind === "comment_replied" || kind === "comment_mentioned" || kind === "memory_today") {
+    return "reaction";
+  }
+  if (kind.startsWith("message_") || kind.startsWith("event_") || kind === "board_replied") return "community";
+  return "ops";
+}
+
+/** 시간 묶음 (S-10 ⑥): 오늘 · 이번 주(7일) · 이전 — 한국 날짜 기준 */
+export function timeBucket(createdAt: string, now: Date = new Date()): "오늘" | "이번 주" | "이전" {
+  const day = (d: Date) => new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Seoul" }).format(d);
+  const created = new Date(createdAt);
+  if (day(created) === day(now)) return "오늘";
+  return now.getTime() - created.getTime() < 7 * 86_400_000 ? "이번 주" : "이전";
 }

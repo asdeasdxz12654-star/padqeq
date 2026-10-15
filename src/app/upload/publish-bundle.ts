@@ -26,6 +26,7 @@ export type BundleMeta = {
   commentPolicy: CommentPolicy;
   /** 예약 시각 (한국 시간 datetime-local 값, 비었으면 바로) */
   scheduledAt: string;
+  showExif: boolean;
 };
 
 export type Draft = { postId: string; photoIds: string[] };
@@ -50,6 +51,7 @@ export async function publishBundle(
       visibility: meta.visibility,
       commentPolicy: meta.commentPolicy,
       scheduledAt: meta.scheduledAt || null,
+      showExif: meta.showExif,
       photos: photos.map((p) => ({
         width: p.result!.width,
         height: p.result!.height,
@@ -57,6 +59,7 @@ export async function publishBundle(
         takenAt: p.takenAt,
         watermarkSeed: p.result!.seed,
         phash: p.result!.phash,
+        exif: p.exif ?? null,
       })),
     });
     if (!created.ok) throw new Error(created.error);

@@ -8,8 +8,11 @@ export function OnThisDay({ items }: { items: OnThisDayItem[] }) {
 
   return (
     <section aria-labelledby="on-this-day" className="px-4 pt-2 pb-4 md:px-6">
-      <h2 id="on-this-day" className="mb-2 text-base font-semibold">
+      <h2 id="on-this-day" className="mb-2 flex items-center justify-between text-base font-semibold">
         이맘때의 사진
+        <Link href="/memories" className="text-xs font-normal text-quiet hover:underline">
+          모두 보기 ›
+        </Link>
       </h2>
       <ul className="-mx-4 flex snap-x snap-mandatory gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:-mx-6 md:px-6">
         {items.map((post) => (

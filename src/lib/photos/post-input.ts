@@ -29,6 +29,19 @@ export const masterPhoto = z
     watermarkSeed: z.string().regex(/^[0-9a-f]{32}$/),
     /** 사진 지문 (dHash 16진수 16자리) */
     phash: z.string().regex(/^[0-9a-f]{16}$/),
+    /** 촬영 정보 (장비 · 설정, 각 60자) */
+    exif: z
+      .object({
+        camera: z.string().max(60),
+        lens: z.string().max(60),
+        aperture: z.string().max(60),
+        shutter: z.string().max(60),
+        iso: z.string().max(60),
+        focal: z.string().max(60),
+      })
+      .partial()
+      .nullable()
+      .default(null),
   })
   .refine(({ width, height }) => {
     const master = variantSize(width, height, "4000");
@@ -56,6 +69,7 @@ export const draftSchema = z.object({
   visibility: z.enum(VISIBILITIES).default("public"),
   commentPolicy: z.enum(COMMENT_POLICIES).default("everyone"),
   scheduledAt: scheduleInput.default(null),
+  showExif: z.boolean().default(true),
 });
 export type DraftInput = z.input<typeof draftSchema>;
 

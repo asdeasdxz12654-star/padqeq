@@ -9,6 +9,7 @@ import { YearChips } from "@/components/year-chips";
 import { getViewer } from "@/lib/auth/viewer";
 import { loadFeed } from "@/lib/posts/feed";
 import { getFollowedTags } from "@/lib/follows/follows";
+import { profileHref } from "@/lib/profiles/profile-href";
 import { createClient } from "@/lib/supabase/server";
 import { TAG_KIND_LABEL } from "@/lib/tags/tag-rules";
 import { buildYearChips, parseYearParam } from "@/lib/year-chips";
@@ -63,11 +64,17 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
   const supabase = await createClient();
   // 작품 허브에는 그 작품 캐릭터 사진도 함께
   const tagIds = [tag.id, ...tag.children.map((c) => c.id)];
-  const [years, items, viewer] = await Promise.all([
+  // 허브 탭 (S-04 ⑧): 최신 · 인기(최근 30일 좋아요) · 코스어(작품 · 캐릭터)
+  const showCosers = tag.kind === "work" || tag.kind === "character";
+  const view = query.view === "popular" ? "popular" : query.view === "cosers" && showCosers ? "cosers" : "latest";
+  const [years, items, viewer, popular, cosers] = await Promise.all([
     supabase.rpc("published_shot_years"),
-    loadFeed({ year, category: null, query: null, tagIds }),
+    view === "latest" ? loadFeed({ year, category: null, query: null, tagIds }) : Promise.resolve([]),
     getViewer(),
+    view === "popular" ? popularPosts(tag.id) : Promise.resolve([]),
+    view === "cosers" ? supabase.rpc("tag_cosers", { tag: tag.id }).then((r) => r.data ?? []) : Promise.resolve([]),
   ]);
+  const viewHref = (v: "latest" | "popular" | "cosers") => (v === "latest" ? base : `${base}?view=${v}`);
   const following = viewer?.profile ? (await getFollowedTags(viewer.id)).some((t) => t.id === tag.id) : false;
   if (years.error) throw years.error;
 
@@ -120,16 +127,70 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
         </nav>
       )}
 
-      <YearChips
-        chips={buildYearChips(years.data.map((r) => r.year))}
-        selected={year}
-        hrefFor={(y) => (y === null ? base : `${base}?year=${y}`)}
-      />
+      <nav aria-label="보기" className="flex gap-2 px-4 pt-4 text-sm md:px-6">
+        {(["latest", "popular", ...(showCosers ? (["cosers"] as const) : [])] as const).map((v) => (
+          <Link
+            key={v}
+            href={viewHref(v)}
+            aria-current={view === v ? "page" : undefined}
+            className="rounded-full border border-line px-3 py-1.5 aria-[current=page]:border-text aria-[current=page]:bg-text aria-[current=page]:text-bg"
+          >
+            {v === "latest" ? "최신" : v === "popular" ? "인기" : "코스어"}
+          </Link>
+        ))}
+      </nav>
 
-      <PhotoFeed
-        items={items}
-        empty={year ? `${year}년의 ${tag.name} 사진이 아직 없어요.` : `${tag.name} 사진이 아직 없어요.`}
-      />
+      {view === "latest" && (
+        <>
+          <YearChips
+            chips={buildYearChips(years.data.map((r) => r.year))}
+            selected={year}
+            hrefFor={(y) => (y === null ? base : `${base}?year=${y}`)}
+          />
+          <PhotoFeed
+            items={items}
+            empty={year ? `${year}년의 ${tag.name} 사진이 아직 없어요.` : `${tag.name} 사진이 아직 없어요.`}
+          />
+        </>
+      )}
+
+      {view === "popular" && (
+        <div className="pt-4">
+          <p className="px-4 pb-3 text-xs text-quiet md:px-6">최근 30일 동안 좋아요를 많이 받은 순서예요.</p>
+          <PhotoFeed items={popular} empty="최근 30일 동안 좋아요를 받은 사진이 없어요." />
+        </div>
+      )}
+
+      {view === "cosers" && (
+        <section aria-label="코스어" className="px-4 pt-4 md:px-6">
+          <p className="pb-3 text-xs text-quiet">이 태그가 붙은 사진에 코스어로 크레딧된 회원이에요.</p>
+          {cosers.length === 0 ? (
+            <p className="py-12 text-center text-sm text-quiet">아직 크레딧된 코스어가 없어요.</p>
+          ) : (
+            <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {cosers.map((c) => (
+                <li key={c.handle}>
+                  <Link href={profileHref(c.handle)} className="flex items-baseline gap-2 rounded-xl border border-line px-3 py-2.5 hover:border-quiet">
+                    <span className="font-semibold">@{c.handle}</span>
+                    <span className="min-w-0 flex-1 truncate text-sm text-quiet">{c.display_name}</span>
+                    <span className="shrink-0 text-xs text-quiet">{c.posts}장</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
     </div>
   );
+}
+
+/** 인기 (최근 30일 좋아요 순, 볼 수 있는 글만) */
+async function popularPosts(tagId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("tag_popular_posts", { tag: tagId, days: 30, max_rows: 40 });
+  if (!data?.length) return [];
+  const order = data.map((r) => r.post_id);
+  const feed = await loadFeed({ year: null, category: null, query: null, postIds: order });
+  return order.flatMap((id) => feed.filter((f) => f.id === id));
 }

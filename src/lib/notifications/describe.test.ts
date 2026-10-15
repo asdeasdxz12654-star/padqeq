@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Constants } from "@/lib/supabase/database.types";
-import { describeNotification } from "./describe";
+import { describeNotification, notificationGroup, timeBucket } from "./describe";
 
 const post = { id: "60000000-0000-4000-8000-000000000001", title: "봄 벚꽃" };
 
@@ -25,5 +25,21 @@ describe("describeNotification", () => {
   it("볼 수 없는 게시물 · 탈퇴한 상대는 이름 없이 표시하고 링크하지 않는다", () => {
     expect(describeNotification({ kind: "report_reviewed", actorHandle: null, post: null }).href).toBeNull();
     expect(describeNotification({ kind: "credit_approved", actorHandle: null, post }).text).toMatch(/^회원이/);
+  });
+});
+
+describe("알림 묶기", () => {
+  it("종류별로 나눈다", () => {
+    expect(notificationGroup("credit_requested")).toBe("credit");
+    expect(notificationGroup("post_liked")).toBe("reaction");
+    expect(notificationGroup("message_received")).toBe("community");
+    expect(notificationGroup("post_hidden")).toBe("ops");
+  });
+
+  it("오늘 · 이번 주 · 이전 (한국 날짜)", () => {
+    const now = new Date("2026-10-15T03:00:00Z"); // 10월 15일 낮 12시 (한국)
+    expect(timeBucket("2026-10-14T16:00:00Z", now)).toBe("오늘"); // 10월 15일 새벽 1시 (한국)
+    expect(timeBucket("2026-10-14T14:00:00Z", now)).toBe("이번 주");
+    expect(timeBucket("2026-10-01T00:00:00Z", now)).toBe("이전");
   });
 });

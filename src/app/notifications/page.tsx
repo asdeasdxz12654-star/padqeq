@@ -3,19 +3,29 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { withNext } from "@/lib/auth/next-path";
 import { getViewer } from "@/lib/auth/viewer";
-import { describeNotification } from "@/lib/notifications/describe";
+import {
+  NOTIFICATION_GROUP_LABEL,
+  type NotificationGroup,
+  describeNotification,
+  notificationGroup,
+  timeBucket,
+} from "@/lib/notifications/describe";
 import { createClient } from "@/lib/supabase/server";
 import { MarkRead } from "./mark-read";
 
 export const metadata: Metadata = { title: "알림", robots: { index: false } };
 
 const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "medium", timeStyle: "short" });
+const GROUPS = Object.keys(NOTIFICATION_GROUP_LABEL) as NotificationGroup[];
+const isGroup = (v: unknown): v is NotificationGroup => typeof v === "string" && (GROUPS as string[]).includes(v);
 
-// 알림 (사이트 안에서만). 최근 50개. 읽은 알림은 90일 뒤 정리된다.
-export default async function NotificationsPage() {
+// 알림 (S-10 ⑤⑥, 사이트 안에서만). 최근 100개 · 종류 필터 · 오늘 · 이번 주 · 이전. 읽은 알림은 90일 뒤 정리된다.
+export default async function NotificationsPage({ searchParams }: PageProps<"/notifications">) {
   const viewer = await getViewer();
   if (!viewer) redirect(withNext("/login", "/notifications"));
   if (!viewer.profile) redirect(withNext("/welcome", "/notifications"));
+  const params = await searchParams;
+  const group = isGroup(params.f) ? params.f : null;
 
   const supabase = await createClient();
   // 상대 · 게시물은 지금 내가 볼 수 있을 때만 붙는다 (RLS)
@@ -26,53 +36,74 @@ export default async function NotificationsPage() {
     )
     .eq("recipient_id", viewer.id)
     .order("id", { ascending: false })
-    .limit(50);
+    .limit(100);
   if (error) throw error;
 
-  const items = data.map((n) => ({
+  const all = data.map((n) => ({
     ...n,
+    group: notificationGroup(n.kind),
+    bucket: timeBucket(n.created_at),
     ...describeNotification({ kind: n.kind, actorHandle: n.actor?.handle ?? null, post: n.post, event: n.event, board: n.board, threadId: n.thread_id }),
   }));
-  const newestUnread = items.find((n) => !n.read_at)?.id;
+  // 읽음 처리는 필터와 상관없이 가장 최근 안 읽은 것까지
+  const newestUnread = all.find((n) => !n.read_at)?.id;
+  const items = group ? all.filter((n) => n.group === group) : all;
+  const buckets = (["오늘", "이번 주", "이전"] as const).map((b) => ({ label: b, items: items.filter((n) => n.bucket === b) })).filter((b) => b.items.length);
+  const chip = "rounded-full border border-line px-3 py-1.5 aria-[current=page]:border-text aria-[current=page]:bg-text aria-[current=page]:text-bg";
 
   return (
     <div className="mx-auto max-w-xl px-4 pt-10 pb-16 md:px-6">
-      <h1 className="mb-6 text-2xl font-bold">알림</h1>
+      <h1 className="mb-4 text-2xl font-bold">알림</h1>
       {newestUnread !== undefined && <MarkRead upToId={newestUnread} />}
+      <nav aria-label="알림 종류" className="-mx-4 mb-6 flex gap-2 overflow-x-auto px-4 pb-1 text-sm">
+        <Link href="/notifications" aria-current={!group ? "page" : undefined} className={`${chip} shrink-0`}>
+          전체
+        </Link>
+        {GROUPS.map((g) => (
+          <Link key={g} href={`/notifications?f=${g}`} aria-current={group === g ? "page" : undefined} className={`${chip} shrink-0`}>
+            {NOTIFICATION_GROUP_LABEL[g]}
+          </Link>
+        ))}
+      </nav>
 
-      {items.length === 0 ? (
-        <p className="rounded-xl border border-line px-4 py-10 text-center text-sm text-quiet">아직 알림이 없어요.</p>
+      {buckets.length === 0 ? (
+        <p className="rounded-xl border border-line px-4 py-10 text-center text-sm text-quiet">{group ? "이 종류의 알림이 없어요." : "아직 알림이 없어요."}</p>
       ) : (
-        <ul className="flex flex-col gap-2">
-          {items.map((n) => {
-            const body = (
-              <>
-                <span className="block">{n.text}</span>
-                {n.post && <span className="mt-1 block truncate text-xs text-quiet">{n.post.title}</span>}
-                {n.event && <span className="mt-1 block truncate text-xs text-quiet">{n.event.name}</span>}
-                {n.board && <span className="mt-1 block truncate text-xs text-quiet">{n.board.title}</span>}
-                <time dateTime={n.created_at} className="mt-1 block text-xs text-quiet">
-                  {timeFormat.format(new Date(n.created_at))}
-                </time>
-              </>
-            );
-            const box = `block rounded-xl border p-3 text-sm leading-relaxed ${
-              n.read_at ? "border-line" : "border-accent/50 bg-accent/5"
-            }`;
-            return (
-              <li key={n.id}>
-                {!n.read_at && <span className="sr-only">새 알림: </span>}
-                {n.href ? (
-                  <Link href={n.href} className={`${box} hover:border-quiet`}>
-                    {body}
-                  </Link>
-                ) : (
-                  <div className={box}>{body}</div>
-                )}
-              </li>
-            );
-          })}
-        </ul>
+        buckets.map((b) => (
+          <section key={b.label} aria-labelledby={`bucket-${b.label}`} className="mb-6">
+            <h2 id={`bucket-${b.label}`} className="mb-2 text-sm font-semibold text-quiet">
+              {b.label}
+            </h2>
+            <ul className="flex flex-col gap-2">
+              {b.items.map((n) => {
+                const body = (
+                  <>
+                    <span className="block">{n.text}</span>
+                    {n.post && <span className="mt-1 block truncate text-xs text-quiet">{n.post.title}</span>}
+                    {n.event && <span className="mt-1 block truncate text-xs text-quiet">{n.event.name}</span>}
+                    {n.board && <span className="mt-1 block truncate text-xs text-quiet">{n.board.title}</span>}
+                    <time dateTime={n.created_at} className="mt-1 block text-xs text-quiet">
+                      {timeFormat.format(new Date(n.created_at))}
+                    </time>
+                  </>
+                );
+                const box = `block rounded-xl border p-3 text-sm leading-relaxed ${n.read_at ? "border-line" : "border-accent/50 bg-accent/5"}`;
+                return (
+                  <li key={n.id}>
+                    {!n.read_at && <span className="sr-only">새 알림: </span>}
+                    {n.href ? (
+                      <Link href={n.href} className={`${box} hover:border-quiet`}>
+                        {body}
+                      </Link>
+                    ) : (
+                      <div className={box}>{body}</div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ))
       )}
     </div>
   );

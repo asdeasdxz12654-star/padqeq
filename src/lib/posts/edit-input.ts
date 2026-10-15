@@ -33,6 +33,7 @@ export const editSchema = z
     }),
     visibility: z.enum(VISIBILITIES),
     commentPolicy: z.enum(COMMENT_POLICIES),
+    showExif: z.boolean().default(true),
     /** 예약 중인 글만 바꿀 수 있다 (undefined면 그대로) */
     scheduledAt: scheduleInput.optional(),
   })
