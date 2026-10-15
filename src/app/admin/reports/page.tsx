@@ -26,7 +26,7 @@ type ReportRow = {
   status: string;
   created_at: string;
   resolved_at: string | null;
-  reporter: { handle: string; created_at: string } | null;
+  reporter: { id: string; handle: string; created_at: string } | null;
   evidence: { id: string; uploaded_at: string | null }[];
   post: {
     id: string;
@@ -41,7 +41,7 @@ type ReportRow = {
 
 const REPORT_SELECT = `id, reason, detail, photo_position, status, created_at, resolved_at,
   evidence:report_evidence(id, uploaded_at),
-  reporter:profiles!reports_reporter_id_fkey(handle, created_at),
+  reporter:profiles!reports_reporter_id_fkey(id, handle, created_at),
   post:posts!reports_post_id_fkey(id, title, status, held_at, held_reason, has_people, author:profiles!posts_author_id_fkey(id, handle))`;
 
 export default async function AdminReportsPage({ searchParams }: PageProps<"/admin/reports">) {
@@ -455,10 +455,14 @@ async function AppealDetail({ appeal, post }: { appeal: AppealRow; post: NonNull
 async function ReportDetail({ group }: { group: { post: NonNullable<ReportRow["post"]>; reports: ReportRow[] } }) {
   const { post, reports } = group;
   const supabase = await createClient();
-  const [photos, consents] = await Promise.all([
+  const reporterIds = [...new Set(reports.flatMap((r) => (r.reporter ? [r.reporter.id] : [])))];
+  const [photos, consents, reporterStats] = await Promise.all([
     supabase.from("photos").select("storage_key, width, height, position").eq("post_id", post.id).order("position"),
     supabase.from("consent_records").select("subject_label, consented_on, has_minor, guardian_consent").eq("post_id", post.id),
+    // 신고자 이력 (허위 신고 판단용)
+    reporterIds.length ? supabase.rpc("admin_reporter_stats", { ids: reporterIds }) : Promise.resolve({ data: [] }),
   ]);
+  const statsOf = (id: string | undefined) => reporterStats.data?.find((s) => s.reporter_id === id);
   // 신고자가 지목한 사진이 있으면 그 사진을, 없으면 대표 사진을
   const pointed = reports.find((r) => r.photo_position !== null)?.photo_position ?? 0;
   const photo = photos.data?.find((p) => p.position === pointed) ?? photos.data?.[0];
@@ -516,6 +520,16 @@ async function ReportDetail({ group }: { group: { post: NonNullable<ReportRow["p
                 신고자 @{r.reporter?.handle ?? "?"}
                 {r.reporter && ` (가입 ${timeFormat.format(new Date(r.reporter.created_at))})`} · 접수 {timeFormat.format(new Date(r.created_at))}
               </p>
+              {(() => {
+                const s = statsOf(r.reporter?.id);
+                if (!s) return null;
+                return (
+                  <p className={`text-xs ${s.unreliable ? "text-amber-300" : "text-quiet"}`}>
+                    신고 이력 {s.total}건 · 조치 {s.actioned} · 기각 {s.dismissed}
+                    {s.unreliable && " · 기각이 많아 자동 임시 비공개 인원에 세지 않아요"}
+                  </p>
+                );
+              })()}
               {r.detail && <p className="mt-1.5 whitespace-pre-line">{r.detail}</p>}
               {r.evidence.some((e) => e.uploaded_at) && (
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -536,7 +550,7 @@ async function ReportDetail({ group }: { group: { post: NonNullable<ReportRow["p
         미성년자 관련은 접수 즉시 임시 비공개됐어요. 불법 촬영물이 의심되면 게시 중단 후 원본을 보존하고 수사기관 협조 절차를 따르세요.
       </p>
 
-      <DecisionForm postId={post.id} options={post.held_at ? ["dismiss", "hold", "hide", "release"] : ["dismiss", "hold", "hide"]} />
+      <DecisionForm postId={post.id} options={post.held_at ? ["dismiss", "hold", "hide", "release", "quarantine"] : ["dismiss", "hold", "hide", "quarantine"]} />
     </>
   );
 }

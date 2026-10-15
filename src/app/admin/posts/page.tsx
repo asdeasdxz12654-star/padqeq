@@ -27,7 +27,7 @@ export default async function AdminPostsPage({ searchParams }: PageProps<"/admin
   let query = supabase
     .from("posts")
     .select(
-      "id, title, status, category, shot_year, held_at, removed_at, trashed_at, scheduled_at, published_at, created_at, visibility, author:profiles!posts_author_id_fkey(handle), photos(count), reports!reports_post_id_fkey(count)",
+      "id, title, status, category, shot_year, held_at, removed_at, trashed_at, quarantined_at, scheduled_at, published_at, created_at, visibility, author:profiles!posts_author_id_fkey(handle), photos(count), reports!reports_post_id_fkey(count)",
       { count: "exact" },
     )
     .order(trash ? "trashed_at" : "created_at", { ascending: false })

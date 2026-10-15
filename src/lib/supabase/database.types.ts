@@ -1282,6 +1282,12 @@ export type Database = {
           },
         ]
       }
+      site_limits: {
+        Row: { key: string; max_value: number; min_value: number; updated_at: string; updated_by: string | null; value: number }
+        Insert: { key: string; max_value: number; min_value: number; updated_at?: string; updated_by?: string | null; value: number }
+        Update: { key?: string; max_value?: number; min_value?: number; updated_at?: string; updated_by?: string | null; value?: number }
+        Relationships: []
+      }
       member_warnings: {
         Row: { created_at: string; created_by: string | null; id: number; member_id: string; reason: string }
         Insert: { created_at?: string; created_by?: string | null; id?: never; member_id: string; reason: string }
@@ -1656,6 +1662,7 @@ export type Database = {
       }
       posts: {
         Row: {
+          quarantined_at: string | null
           trashed_at: string | null
           trash_prev_status: Database["public"]["Enums"]["post_status"] | null
           trash_prev_removed_at: string | null
@@ -1681,6 +1688,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          quarantined_at?: string | null
           trashed_at?: string | null
           trash_prev_status?: Database["public"]["Enums"]["post_status"] | null
           trash_prev_removed_at?: string | null
@@ -1706,6 +1714,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          quarantined_at?: string | null
           trashed_at?: string | null
           trash_prev_status?: Database["public"]["Enums"]["post_status"] | null
           trash_prev_removed_at?: string | null
@@ -2011,6 +2020,12 @@ export type Database = {
       answer_inquiry: { Args: { reply: string; target: string }; Returns: undefined }
       admin_posts_action: { Args: { action: string; note: string; targets: string[] }; Returns: number }
       admin_dashboard: { Args: never; Returns: Json }
+      set_site_limit: { Args: { name: string; new_value: number; note: string }; Returns: undefined }
+      admin_reporter_stats: {
+        Args: { ids: string[] }
+        Returns: { actioned: number; dismissed: number; reporter_id: string; total: number; unreliable: boolean }[]
+      }
+      my_upload_quota: { Args: never; Returns: { quota: number; used: number }[] }
       admin_audit_log: {
         Args: { before_id?: number | null; max_rows?: number; q?: string | null }
         Returns: {

@@ -15,6 +15,7 @@ export type AdminPostRow = {
   held_at: string | null;
   removed_at: string | null;
   trashed_at: string | null;
+  quarantined_at: string | null;
   scheduled_at: string | null;
   published_at: string | null;
   created_at: string;
@@ -37,7 +38,7 @@ export function PostsTable({ rows, trash, categoryLabel }: { rows: AdminPostRow[
   const [confirm, setConfirm] = useState("");
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
-  const actions: BulkAction[] = trash ? ["untrash", "purge"] : ["hide", "restore", "trash"];
+  const actions: BulkAction[] = trash ? ["untrash", "unquarantine", "purge"] : ["hide", "restore", "trash", "quarantine"];
   const allChecked = rows.length > 0 && selected.size === rows.length;
 
   const toggle = (id: string) =>
@@ -184,7 +185,9 @@ export function PostsTable({ rows, trash, categoryLabel }: { rows: AdminPostRow[
                   </td>
                   <td className={`px-2 py-2 tabular-nums ${reports ? "font-semibold text-red-300" : "text-quiet"}`}>{reports}</td>
                   <td className="px-2 py-2 tabular-nums text-quiet">
-                    {trash && r.trashed_at
+                    {trash && r.quarantined_at
+                      ? "보존 (격리)"
+                      : trash && r.trashed_at
                       ? fullDate.format(purgeDate(r.trashed_at))
                       : r.published_at
                         ? fullDate.format(new Date(r.published_at))

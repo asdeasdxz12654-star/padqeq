@@ -25,6 +25,7 @@ describe("표시", () => {
     expect(postStateLabel({ ...base, status: "hidden", removed_at: "x" }, now)).toBe("게시 중단");
     expect(postStateLabel({ ...base, status: "hidden" }, now)).toBe("숨김");
     expect(postStateLabel({ ...base, trashed_at: "x" }, now)).toBe("휴지통");
+    expect(postStateLabel({ ...base, trashed_at: "x", quarantined_at: "x" }, now)).toBe("격리");
   });
 
   it("영구 삭제 예정일은 30일 뒤", () => {

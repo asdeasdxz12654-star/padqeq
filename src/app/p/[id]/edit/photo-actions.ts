@@ -6,6 +6,7 @@ import { getViewer } from "@/lib/auth/viewer";
 import { masterPhoto, MAX_PHOTOS_PER_POST } from "@/lib/photos/post-input";
 import { photoStore } from "@/lib/photos/store";
 import { objectKey, storageToken, VARIANT_NAMES } from "@/lib/photos/variants";
+import { MONTHLY_LIMIT_MESSAGE, isMonthlyLimitError } from "@/lib/photos/quota";
 import { createClient } from "@/lib/supabase/server";
 
 type Result<T> = { ok: true; data: T } | { ok: false; error: string };
@@ -32,6 +33,7 @@ export async function addPhotos(input: z.input<typeof addSchema>): Promise<Resul
     })),
   });
   if (error) {
+    if (isMonthlyLimitError(error.message)) return { ok: false, error: MONTHLY_LIMIT_MESSAGE };
     if (error.message.includes("photo_limit")) return { ok: false, error: `사진은 게시물당 ${MAX_PHOTOS_PER_POST}장까지예요.` };
     if (error.message.includes("people_admin_only")) return { ok: false, error: "사람이 나오는 게시물에는 지금은 운영자만 사진을 더할 수 있어요." };
     return { ok: false, error: "사진을 더할 수 없는 게시물이에요." };

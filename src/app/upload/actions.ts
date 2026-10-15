@@ -7,6 +7,7 @@ import { consentSchema, draftSchema, type ConsentInput, type DraftInput } from "
 import { insertCredits } from "@/lib/photos/credit-rows";
 import { photoStore } from "@/lib/photos/store";
 import { objectKey, storageToken, VARIANT_NAMES } from "@/lib/photos/variants";
+import { MONTHLY_LIMIT_MESSAGE, isMonthlyLimitError } from "@/lib/photos/quota";
 import { createClient } from "@/lib/supabase/server";
 
 // 서버 액션은 공개 API와 같다: 입력 검증 → 로그인 → 권한 순서로 확인한다.
@@ -64,7 +65,7 @@ export async function createDraft(input: DraftInput): Promise<Result<{ postId: s
     .select("id, position");
   if (photoError || !rows) {
     await supabase.from("posts").delete().eq("id", post.id);
-    return { ok: false, error: "사진 정보를 저장하지 못했어요." };
+    return { ok: false, error: isMonthlyLimitError(photoError?.message) ? MONTHLY_LIMIT_MESSAGE : "사진 정보를 저장하지 못했어요." };
   }
 
   const photoIds = rows.toSorted((a, b) => a.position - b.position).map((r) => r.id);

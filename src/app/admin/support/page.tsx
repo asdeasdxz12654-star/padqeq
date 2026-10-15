@@ -5,6 +5,8 @@ import { INQUIRY_CATEGORY_LABEL, NOTICE_CATEGORY_LABEL } from "@/lib/support/lab
 import { getSiteSwitches } from "@/lib/support/switches";
 import { AnswerForm, type NoticeDraft, NoticeForm, SwitchesForm } from "./forms";
 import { BannedWords, InviteCodes, StageForm } from "./opening-forms";
+import { LIMIT_ORDER } from "@/lib/admin/limits";
+import { LimitsForm } from "./limits-form";
 
 export const metadata: Metadata = { title: "고객센터 운영" };
 
@@ -160,11 +162,13 @@ async function Notices({ edit }: { edit: string | null }) {
 
 async function System() {
   const supabase = await createClient();
-  const [switches, { data: invites }, { data: words }] = await Promise.all([
+  const [switches, { data: invites }, { data: words }, { data: limits }] = await Promise.all([
     getSiteSwitches(),
     supabase.from("invite_codes").select("code, note, max_uses, used_count, expires_at, revoked_at").order("created_at", { ascending: false }).limit(50),
     supabase.from("banned_words").select("word").order("word").limit(500),
+    supabase.from("site_limits").select("key, value, min_value, max_value"),
   ]);
+  const orderedLimits = (limits ?? []).toSorted((a, b) => LIMIT_ORDER.indexOf(a.key) - LIMIT_ORDER.indexOf(b.key));
   return (
     <div className="grid max-w-5xl gap-8 lg:grid-cols-2">
       <section aria-labelledby="switch-heading" className="flex flex-col gap-3">
@@ -185,6 +189,15 @@ async function System() {
           초대 코드
         </h2>
         <InviteCodes invites={invites ?? []} stage={switches.uploadStage} />
+      </section>
+      <section aria-labelledby="limits-heading" className="flex flex-col gap-3">
+        <h2 id="limits-heading" className="text-lg font-semibold">
+          한도 값
+        </h2>
+        <p className="text-sm text-quiet">
+          코드를 고치지 않고 바로 바뀌어요. 사진 열람 속도 제한(계정 1분 120장 · IP 1분 300장)은 Cloudflare 설정이라 여기서 바꾸지 않아요.
+        </p>
+        <LimitsForm limits={orderedLimits} />
       </section>
       <section aria-labelledby="words-heading" className="flex flex-col gap-3">
         <h2 id="words-heading" className="text-lg font-semibold">

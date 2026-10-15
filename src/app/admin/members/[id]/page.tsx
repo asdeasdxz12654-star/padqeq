@@ -31,7 +31,7 @@ export default async function AdminMemberPage({ params }: PageProps<"/admin/memb
   if (!z.uuid().safeParse(id).success) notFound();
   const supabase = await createClient();
 
-  const [{ data: member, error }, restriction, posts, reports, history, account] = await Promise.all([
+  const [{ data: member, error }, restriction, posts, reports, history, account, reporterStats] = await Promise.all([
     supabase
       .from("profiles")
       .select("id, handle, display_name, bio, role, can_upload, created_at, deletion_requested_at")
@@ -54,7 +54,10 @@ export default async function AdminMemberPage({ params }: PageProps<"/admin/memb
     supabase.rpc("member_sanction_history", { target: id }),
     // 개인정보는 가려서 (A-05 ④)
     supabase.rpc("admin_member_account", { target: id }).maybeSingle(),
+    // 이 회원이 한 신고 (허위 신고 이력)
+    supabase.rpc("admin_reporter_stats", { ids: [id] }).maybeSingle(),
   ]);
+  const madeReports = reporterStats.data;
   if (error) throw error;
   if (!member) notFound();
   if (restriction.error || posts.error || reports.error || history.error) {
@@ -103,6 +106,12 @@ export default async function AdminMemberPage({ params }: PageProps<"/admin/memb
         </dd>
         <dt className="text-quiet">로그인</dt>
         <dd>{account.data?.provider ?? "-"}</dd>
+        <dt className="text-quiet">한 신고</dt>
+        <dd className={madeReports?.unreliable ? "text-amber-300" : undefined}>
+          {madeReports
+            ? `${madeReports.total}건 · 조치 ${madeReports.actioned} · 기각 ${madeReports.dismissed}${madeReports.unreliable ? " · 신뢰 낮음 (자동 임시 비공개에 세지 않음)" : ""}`
+            : "없음"}
+        </dd>
         <dt className="text-quiet">최근 로그인</dt>
         <dd>{account.data?.last_sign_in_at ? timeFormat.format(new Date(account.data.last_sign_in_at)) : "-"}</dd>
       </dl>

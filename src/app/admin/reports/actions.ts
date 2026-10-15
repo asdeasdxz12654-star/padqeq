@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 
 const schema = z.object({
   postId: z.uuid(),
-  decision: z.enum(["dismiss", "hold", "hide", "release", "restore"]),
+  decision: z.enum(["dismiss", "hold", "hide", "release", "restore", "quarantine"]),
   note: z.string().trim().min(1, "처리 사유를 적어 주세요.").max(500),
 });
 
@@ -19,11 +19,11 @@ export async function moderate(input: z.input<typeof schema>): Promise<{ ok: boo
   if (viewer?.profile?.role !== "admin") return { ok: false, error: "운영자만 처리할 수 있어요." };
 
   const supabase = await createClient();
-  const { error } = await supabase.rpc("moderate_post", {
-    target: parsed.data.postId,
-    decision: parsed.data.decision,
-    note: parsed.data.note,
-  });
+  // 격리는 휴지통 · 차단 해시 · 보존을 함께 하는 별도 함수로 (A-04)
+  const { error } =
+    parsed.data.decision === "quarantine"
+      ? await supabase.rpc("admin_posts_action", { targets: [parsed.data.postId], action: "quarantine", note: parsed.data.note })
+      : await supabase.rpc("moderate_post", { target: parsed.data.postId, decision: parsed.data.decision, note: parsed.data.note });
   if (error) return { ok: false, error: "처리하지 못했어요." };
   revalidatePath("/admin/reports");
   revalidatePath("/");

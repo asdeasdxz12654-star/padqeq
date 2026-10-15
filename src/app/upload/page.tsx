@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { withNext } from "@/lib/auth/next-path";
 import { getViewer } from "@/lib/auth/viewer";
 import { InAppBrowserNotice } from "@/components/in-app-browser-notice";
+import { createClient } from "@/lib/supabase/server";
 import { getSiteSwitches } from "@/lib/support/switches";
 import { currentYearKst } from "@/lib/year-chips";
 import { InviteForm } from "./invite-form";
@@ -64,6 +65,10 @@ export default async function UploadPage() {
     );
   }
 
+  // 이번 달 올린 사진 수 (운영자는 제한 없음, A-05 ③)
+  const isAdmin = viewer.profile.role === "admin";
+  const quota = isAdmin ? null : (await (await createClient()).rpc("my_upload_quota").maybeSingle()).data;
+
   return (
     <div className="mx-auto max-w-5xl px-4 pt-8 pb-16 md:px-6">
       <InAppBrowserNotice purpose="upload" />
@@ -71,7 +76,12 @@ export default async function UploadPage() {
       <p className="mt-2 text-sm leading-relaxed text-quiet">
         사진은 이 브라우저에서 고화질로 변환한 뒤 올라가요. 원본 파일은 서버에 저장하지 않으니 따로 보관해 주세요.
       </p>
-      <UploadStudio isAdmin={viewer.profile.role === "admin"} viewerHandle={viewer.profile.handle} currentYear={currentYearKst()} />
+      {quota && (
+        <p className={`mt-1 text-sm ${quota.used >= quota.quota ? "text-red-300" : "text-quiet"}`}>
+          이번 달 {quota.used.toLocaleString("ko-KR")} / {quota.quota.toLocaleString("ko-KR")}장 올렸어요. 매달 1일에 다시 세요.
+        </p>
+      )}
+      <UploadStudio isAdmin={isAdmin} viewerHandle={viewer.profile.handle} currentYear={currentYearKst()} />
     </div>
   );
 }

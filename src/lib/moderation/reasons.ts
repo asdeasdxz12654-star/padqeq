@@ -48,5 +48,9 @@ export const MODERATION_DECISIONS = {
   hide: { label: "게시 중단", help: "게시물을 숨겨요. 업로더 화면에도 '게시를 중단한 글'로 보여요." },
   release: { label: "임시조치 해제", help: "숨김을 풀고 다시 공개해요. 신고 상태는 그대로 둬요." },
   restore: { label: "게시 중단 해제", help: "운영자가 중단한 게시물을 다시 공개해요." },
+  quarantine: {
+    label: "불법 촬영물 격리",
+    help: "도촬 · 딥페이크 · 미성년자 등 불법이 의심될 때. 아무도 못 보고 같은 사진을 다시 못 올려요. 원본은 수사 협조를 위해 보존돼요.",
+  },
 } as const;
 export type ModerationDecision = keyof typeof MODERATION_DECISIONS;
