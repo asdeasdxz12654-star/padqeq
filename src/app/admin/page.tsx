@@ -2,27 +2,35 @@ import { redirect } from "next/navigation";
 import { getViewer } from "@/lib/auth/viewer";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { type Dashboard, R2_FREE_BYTES, buildTodos, formatBytes, usageLevel } from "@/lib/admin/dashboard";
+import { countStuckDrafts, getBackupInfo } from "@/lib/admin/ops-status";
+import { type Dashboard, R2_FREE_BYTES, backupState, buildTodos, estimateMonthlyUsd, formatBytes, usageLevel } from "@/lib/admin/dashboard";
 import { getAdminPending } from "@/lib/admin/pending";
 import { createClient } from "@/lib/supabase/server";
 import { getSiteSwitches } from "@/lib/support/switches";
 
 export const metadata: Metadata = { title: "운영" };
 
-// 운영 첫 화면 (A-01): 오늘 지표 · 저장 용량 · 할 일 · 처리 대기 · 각 운영 화면으로
+const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+const BACKUP_LABEL = { ok: "정상", stale: "늦음", missing: "없음", unknown: "확인 못 함" } as const;
+
+// 운영 첫 화면 (A-01): 오늘 지표 · 운영 상태(백업 · 멈춘 업로드 · 예상 비용) · 저장 용량 · 할 일 · 처리 대기 · 각 운영 화면으로
 export default async function AdminHomePage() {
   // 운영 도우미의 첫 화면은 신고 처리
   if ((await getViewer())?.profile?.role !== "admin") redirect("/admin/reports");
   const supabase = await createClient();
-  const [pending, switches, dash] = await Promise.all([
+  const [pending, switches, backup, stuckDrafts, dash] = await Promise.all([
     getAdminPending(),
     getSiteSwitches(),
+    getBackupInfo(),
+    countStuckDrafts(),
     supabase.rpc("admin_dashboard").then((r) => {
       if (r.error) throw r.error;
       return r.data as unknown as Dashboard;
     }),
   ]);
-  const todos = buildTodos(dash);
+  const backupNow = backupState(backup === null ? undefined : (backup.latest?.at ?? null));
+  const todos = buildTodos(dash, undefined, { backup: backupNow, stuckDrafts });
+  const cost = estimateMonthlyUsd(dash.photo_bytes + (backup?.totalBytes ?? 0));
   const storageRatio = dash.photo_bytes / R2_FREE_BYTES;
   const storageLevel = usageLevel(storageRatio);
   const kpis: { label: string; value: number; href?: string; alert?: boolean }[] = [
@@ -146,6 +154,37 @@ export default async function AdminHomePage() {
             <p className="text-xs text-quiet">원본(마스터) 기준이에요. 70%부터 노랑, 90%부터 빨강.</p>
           </div>
         </div>
+      </section>
+
+      <section aria-labelledby="ops-heading">
+        <h2 id="ops-heading" className="mb-3 text-lg font-semibold">
+          운영 상태
+        </h2>
+        <ul className="grid gap-2 sm:grid-cols-3">
+          <li className={`flex flex-col gap-1 rounded-xl border p-4 ${backupNow === "ok" ? "border-line" : backupNow === "unknown" ? "border-line" : "border-red-400/70"}`}>
+            <span className="text-xs text-quiet">DB 백업 (매일 02:00)</span>
+            <span className={`text-xl font-bold ${backupNow === "ok" ? "" : backupNow === "unknown" ? "text-quiet" : "text-red-300"}`}>{BACKUP_LABEL[backupNow]}</span>
+            <span className="text-xs text-quiet">
+              {backup?.latest
+                ? `마지막 ${timeFormat.format(new Date(backup.latest.at))} · ${formatBytes(backup.latest.size)} · ${backup.days}일 치 보관`
+                : backup
+                  ? "아직 백업이 없어요"
+                  : "백업 저장소를 읽지 못했어요"}
+            </span>
+          </li>
+          <li className="flex flex-col gap-1 rounded-xl border border-line p-4">
+            <span className="text-xs text-quiet">올리다 멈춘 초안 (하루 넘음)</span>
+            <span className="text-xl font-bold tabular-nums">{stuckDrafts}</span>
+            <span className="text-xs text-quiet">7일이 지나면 자동으로 지워져요</span>
+          </li>
+          <li className="flex flex-col gap-1 rounded-xl border border-line p-4">
+            <span className="text-xs text-quiet">이번 달 예상 비용</span>
+            <span className="text-xl font-bold tabular-nums">${cost.total.toFixed(2)}</span>
+            <span className="text-xs text-quiet">
+              Workers ${cost.workers.toFixed(2)} + 저장 용량 ${cost.storage.toFixed(2)} · 요청 수 비용 · 환율 제외
+            </span>
+          </li>
+        </ul>
       </section>
 
       <section aria-labelledby="todo-heading">

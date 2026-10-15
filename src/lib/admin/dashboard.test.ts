@@ -54,3 +54,26 @@ describe("표시", () => {
     expect([0.5, 0.7, 0.95].map(usageLevel)).toEqual(["ok", "warn", "danger"]);
   });
 });
+
+import { backupState, estimateMonthlyUsd } from "./dashboard";
+
+describe("운영 상태", () => {
+  const now = Date.parse("2026-10-15T12:00:00Z");
+  it("백업: 26시간 안이면 정상, 넘으면 늦음, 없으면 없음, 못 읽으면 알 수 없음", () => {
+    expect(backupState("2026-10-14T17:05:00Z", now)).toBe("ok");
+    expect(backupState("2026-10-13T17:05:00Z", now)).toBe("stale");
+    expect(backupState(null, now)).toBe("missing");
+    expect(backupState(undefined, now)).toBe("unknown");
+  });
+
+  it("예상 비용: 무료 10GB까지는 Workers $5만", () => {
+    expect(estimateMonthlyUsd(5 * 1024 ** 3)).toEqual({ workers: 5, storage: 0, total: 5 });
+    expect(estimateMonthlyUsd(110 * 1024 ** 3)).toEqual({ workers: 5, storage: 1.5, total: 6.5 });
+  });
+
+  it("백업이 없거나 멈춘 초안이 있으면 할 일에", () => {
+    const todos = buildTodos(base, now, { backup: "missing", stuckDrafts: 2 });
+    expect(todos[0]).toMatchObject({ level: "긴급" });
+    expect(todos.some((t) => t.text.includes("초안 2개"))).toBe(true);
+  });
+});

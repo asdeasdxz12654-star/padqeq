@@ -1960,6 +1960,10 @@ export type Database = {
       arrange_my_photos: { Args: { keep: string[]; target: string }; Returns: undefined }
       moderate_post: { Args: { decision: string; note: string; target: string }; Returns: undefined }
       set_photo_exif: { Args: { entries: Json; target_post: string }; Returns: undefined }
+      related_tags: {
+        Args: { max_rows?: number; tag: string }
+        Returns: { id: string; kind: Database["public"]["Enums"]["tag_kind"]; name: string; slug: string; together: number }[]
+      }
       tag_popular_posts: { Args: { days?: number; max_rows?: number; tag: string }; Returns: { likes: number; post_id: string }[] }
       tag_cosers: { Args: { max_rows?: number; tag: string }; Returns: { display_name: string; handle: string; posts: number }[] }
       post_like_stats: { Args: { ids: string[] }; Returns: { liked: boolean; likes: number; post_id: string }[] }

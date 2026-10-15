@@ -32,8 +32,15 @@ export function formatBytes(bytes: number): string {
 }
 
 /** 할 일 (A-01 ⑩): 긴급 · 주의 · 안내 순서. 처리하면 저절로 사라진다. */
-export function buildTodos(d: Dashboard, now: number = Date.now()): Todo[] {
+export function buildTodos(
+  d: Dashboard,
+  now: number = Date.now(),
+  ops: { backup?: BackupState; stuckDrafts?: number } = {},
+): Todo[] {
   const todos: Todo[] = [];
+  if (ops.backup === "missing" || ops.backup === "stale") {
+    todos.push({ level: "긴급", text: "최근 26시간 안의 DB 백업이 없어요. GitHub Actions › DB 백업 실행 기록을 확인해 주세요.", href: "/admin" });
+  }
   if (d.urgent_reports > 0) {
     const hours = d.oldest_urgent_at ? Math.floor((now - Date.parse(d.oldest_urgent_at)) / 3_600_000) : 0;
     todos.push({
@@ -53,8 +60,29 @@ export function buildTodos(d: Dashboard, now: number = Date.now()): Todo[] {
   if (d.tomorrow_pick_empty && d.published > 0) {
     todos.push({ level: "주의", text: "내일 오늘의 픽 편성이 비어 있어요 (게시물 화면에서 고를 수 있어요)", href: "/admin/posts" });
   }
+  if (ops.stuckDrafts) {
+    todos.push({ level: "안내", text: `올리다 멈춘 초안 ${ops.stuckDrafts}개 (7일이 지나면 자동으로 지워져요)`, href: "/admin/posts?status=draft" });
+  }
   if (d.trash_due_week > 0) {
     todos.push({ level: "안내", text: `휴지통에서 7일 안에 영구 삭제될 게시물 ${d.trash_due_week}개`, href: "/admin/posts?view=trash" });
   }
   return todos;
+}
+
+/** 백업 (A-01 ⑨): 매일 02:00 KST에 올라온다. 26시간 넘게 새 백업이 없으면 문제. */
+export const BACKUP_MAX_AGE_MS = 26 * 3_600_000;
+export type BackupState = "ok" | "stale" | "missing" | "unknown";
+export function backupState(latest: string | null | undefined, now: number = Date.now()): BackupState {
+  if (latest === undefined) return "unknown";
+  if (latest === null) return "missing";
+  return now - Date.parse(latest) > BACKUP_MAX_AGE_MS ? "stale" : "ok";
+}
+
+/** 이번 달 예상 비용 (A-01 ⑥, 미국 달러). Workers 유료 $5 고정 + R2 무료 10GB 넘는 저장 용량 $0.015/GB. 요청 횟수 비용 · 환율은 빼고 본다. */
+export const WORKERS_MONTHLY_USD = 5;
+export const R2_USD_PER_GB = 0.015;
+export function estimateMonthlyUsd(storedBytes: number): { workers: number; storage: number; total: number } {
+  const overGb = Math.max(0, (storedBytes - R2_FREE_BYTES) / 1024 ** 3);
+  const storage = Math.round(overGb * R2_USD_PER_GB * 100) / 100;
+  return { workers: WORKERS_MONTHLY_USD, storage, total: WORKERS_MONTHLY_USD + storage };
 }

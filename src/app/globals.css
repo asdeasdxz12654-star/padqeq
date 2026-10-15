@@ -66,6 +66,16 @@ body {
   overflow-wrap: break-word;
 }
 
+/* 휴대폰 상단 바: 아래로 내리면 숨김 (header-auto-hide.tsx) */
+[data-site-header] {
+  transition: transform 200ms ease-out;
+}
+@media (max-width: 767px) {
+  :root[data-header-hidden] [data-site-header] {
+    transform: translateY(-100%);
+  }
+}
+
 /* 사진 보호: 길게 눌러 저장 · 드래그 · 선택 막기 */
 .photo-guard {
   -webkit-touch-callout: none;

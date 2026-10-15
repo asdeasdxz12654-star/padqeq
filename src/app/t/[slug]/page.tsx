@@ -17,7 +17,7 @@ import { createClient } from "@/lib/supabase/server";
 import { TAG_KIND_LABEL } from "@/lib/tags/tag-rules";
 import { buildYearChips, parseYearParam } from "@/lib/year-chips";
 
-// S-05 태그 허브: 계층(작품 › 캐릭터) · 별칭 · 캐릭터 목록 · 최신 / 인기 / 코스어 탭 · 촬영 연도.
+// S-05 태그 허브: 계층(작품 › 캐릭터) · 별칭 · 캐릭터 목록 · 관련 태그 · 최신 / 인기 / 코스어 탭 · 촬영 연도.
 // 태그 팔로우는 홈 '팔로우' 피드로 이어진다.
 
 const getTag = cache(async (rawSlug: string) => {
@@ -70,12 +70,14 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
   const view = query.view === "popular" ? "popular" : query.view === "cosers" && showCosers ? "cosers" : "latest";
   // 최신: 작품 허브에는 그 작품 캐릭터 사진도 함께
   const scope: FeedScope = { kind: "tag", tagId: tag.id, year };
-  const [years, first, viewer, popular, cosers] = await Promise.all([
+  const [years, first, viewer, popular, cosers, related] = await Promise.all([
     supabase.rpc("published_shot_years"),
     view === "latest" ? loadScopePage(scope) : Promise.resolve({ items: [], next: null }),
     getViewer(),
     view === "popular" ? popularPosts(tag.id) : Promise.resolve([]),
     view === "cosers" ? supabase.rpc("tag_cosers", { tag: tag.id }).then((r) => r.data ?? []) : Promise.resolve([]),
+    // 관련 태그 (S-04 ⑨): 같은 글에 함께 많이 붙는 태그
+    supabase.rpc("related_tags", { tag: tag.id, max_rows: 8 }).then((r) => r.data ?? []),
   ]);
   const viewHref = (v: "latest" | "popular" | "cosers") => (v === "latest" ? base : `${base}?view=${v}`);
   const following = viewer?.profile ? (await getFollowedTags(viewer.id)).some((t) => t.id === tag.id) : false;
@@ -124,6 +126,19 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
             {tag.children.map((c) => (
               <li key={c.id} className="shrink-0">
                 <TagChip tag={c} />
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
+
+      {related.length > 0 && (
+        <nav aria-label="관련 태그" className="px-4 pt-4 md:px-6">
+          <h2 className="mb-2 text-xs text-quiet">함께 많이 붙는 태그</h2>
+          <ul className="flex gap-1.5 overflow-x-auto [scrollbar-width:none]">
+            {related.map((t) => (
+              <li key={t.id} className="shrink-0">
+                <TagChip tag={t} showKind={t.kind !== "general"} />
               </li>
             ))}
           </ul>

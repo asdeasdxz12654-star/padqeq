@@ -5,6 +5,7 @@ import { getViewer } from "@/lib/auth/viewer";
 import { getUnreadCount } from "@/lib/notifications/unread";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { NAV_ITEMS } from "./nav-items";
+import { HeaderAutoHide } from "./header-auto-hide";
 import { HeaderSearch } from "./search-box";
 
 /** 상단 바. 데스크톱(768px~)에서는 GNB + 업로드 버튼 + 계정, 모바일에서는 로고와 가입 안내만. */
@@ -15,7 +16,8 @@ export async function SiteHeader() {
   const [unread, pending] = await Promise.all([getUnreadCount(viewer?.profile ? viewer.id : null), isStaff ? getAdminPending() : null]);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-line bg-bg/95 pt-[env(safe-area-inset-top)] backdrop-blur">
+    <header data-site-header className="sticky top-0 z-30 border-b border-line bg-bg/95 pt-[env(safe-area-inset-top)] backdrop-blur">
+      <HeaderAutoHide />
       <div className="mx-auto flex h-14 max-w-[1440px] items-center gap-8 px-4 md:px-6">
         <Link href="/" className="-ml-2 flex min-h-11 items-center px-2 text-lg font-bold tracking-tight">
           해담
