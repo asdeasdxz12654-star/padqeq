@@ -30,7 +30,7 @@ export default async function EventsPage({ searchParams }: PageProps<"/events">)
   const key = monthKey(current);
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pt-8 pb-16 md:px-6">
+    <div className="mx-auto max-w-3xl px-4 pt-8 pb-16 md:px-6 lg:max-w-4xl">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold">행사 캘린더</h1>
         {viewer?.profile && (

@@ -85,7 +85,7 @@ export default async function MemoriesPage({ searchParams }: PageProps<"/memorie
         <div className="px-4 py-20 text-center text-sm text-quiet md:px-6">
           <p>{week ? "그 주에도 담긴 사진이 없어요." : "예전 오늘에는 사진이 없어요."}</p>
           {!week && (
-            <Link href={href({ week: true })} className="mt-3 inline-block underline underline-offset-4">
+            <Link href={href({ week: true })} className="mt-2 inline-flex min-h-10 items-center underline underline-offset-4">
               그 주의 사진 보기
             </Link>
           )}

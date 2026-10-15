@@ -45,7 +45,7 @@ export default async function ThreadPage({ params }: PageProps<"/me/messages/[id
   const isRequest = thread.my_status === "request";
 
   return (
-    <div className="mx-auto flex max-w-xl flex-col gap-4 px-4 pt-6 pb-16 md:px-6">
+    <div className="mx-auto flex max-w-xl md:max-w-2xl flex-col gap-4 px-4 pt-6 pb-16 md:px-6">
       <MarkThreadRead threadId={id} latest={messages.at(-1)?.id ?? 0} />
       <header className="flex items-start justify-between gap-3">
         <div className="min-w-0">

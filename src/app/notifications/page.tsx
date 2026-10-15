@@ -52,7 +52,7 @@ export default async function NotificationsPage({ searchParams }: PageProps<"/no
   const chip = "rounded-full border border-line px-3 py-1.5 aria-[current=page]:border-text aria-[current=page]:bg-text aria-[current=page]:text-bg";
 
   return (
-    <div className="mx-auto max-w-xl px-4 pt-10 pb-16 md:px-6">
+    <div className="mx-auto max-w-xl md:max-w-2xl px-4 pt-10 pb-16 md:px-6">
       <h1 className="mb-4 text-2xl font-bold">알림</h1>
       {newestUnread !== undefined && <MarkRead upToId={newestUnread} />}
       <nav aria-label="알림 종류" className="-mx-4 mb-6 flex gap-2 overflow-x-auto px-4 pb-1 text-sm">

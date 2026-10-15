@@ -28,7 +28,7 @@ export default async function MessagesPage({ searchParams }: PageProps<"/me/mess
     tab === "requests" ? requests : data.filter((t) => t.my_status !== "request" && t.my_status !== "declined" && (tab === "all" || t.kind === "casting"));
 
   return (
-    <div className="mx-auto max-w-xl px-4 pt-8 pb-16 md:px-6">
+    <div className="mx-auto max-w-xl md:max-w-2xl px-4 pt-8 pb-16 md:px-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">메시지</h1>
         <Link href="/settings#messages" className="text-sm text-quiet hover:underline">

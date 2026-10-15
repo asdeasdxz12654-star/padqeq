@@ -16,14 +16,14 @@ export async function SiteHeader() {
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-bg/95 pt-[env(safe-area-inset-top)] backdrop-blur">
       <div className="mx-auto flex h-14 max-w-[1440px] items-center gap-8 px-4 md:px-6">
-        <Link href="/" className="text-lg font-bold tracking-tight">
+        <Link href="/" className="-ml-2 flex min-h-11 items-center px-2 text-lg font-bold tracking-tight">
           해담
         </Link>
         <nav aria-label="주 메뉴" className="hidden md:block">
-          <ul className="flex gap-6 text-sm text-quiet">
+          <ul className="flex gap-4 text-sm text-quiet lg:gap-6">
             {NAV_ITEMS.filter(({ href }) => href !== "/upload" && href !== "/me").map(({ href, label }) => (
               <li key={href}>
-                <Link href={href} className="hover:text-text">
+                <Link href={href} className="flex min-h-11 items-center hover:text-text">
                   {label}
                 </Link>
               </li>
@@ -40,7 +40,7 @@ export async function SiteHeader() {
             <>
               <Link
                 href="/upload"
-                className="hidden rounded-full bg-accent px-4 py-2 font-semibold text-on-accent md:inline-block"
+                className="hidden min-h-11 items-center rounded-full bg-accent px-4 font-semibold text-on-accent md:inline-flex"
               >
                 업로드
               </Link>
@@ -65,11 +65,11 @@ export async function SiteHeader() {
               )}
               {viewer?.profile && <NotificationBell unread={unread} />}
               {viewer?.profile ? (
-                <Link href={profileHref(viewer.profile.handle)} className="hidden max-w-40 truncate text-quiet hover:text-text md:block">
+                <Link href={profileHref(viewer.profile.handle)} className="hidden min-h-11 max-w-40 items-center truncate text-quiet hover:text-text md:flex">
                   @{viewer.profile.handle}
                 </Link>
               ) : (
-                <Link href="/login" className="hidden text-quiet hover:text-text md:block">
+                <Link href="/login" className="flex min-h-11 items-center px-1 text-quiet hover:text-text">
                   로그인
                 </Link>
               )}

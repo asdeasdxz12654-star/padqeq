@@ -40,13 +40,13 @@ export default async function CreatorsPage({ searchParams }: PageProps<"/creator
     const search = new URLSearchParams(Object.entries(merged).filter((e): e is [string, string] => e[1] !== null)).toString();
     return search ? `/creators?${search}` : "/creators";
   };
-  const chip = "rounded-full border border-line px-3 py-1.5 aria-[current=page]:border-text aria-[current=page]:bg-text aria-[current=page]:text-bg";
+  const chip = "inline-flex min-h-10 items-center rounded-full border border-line px-3 aria-[current=page]:border-text aria-[current=page]:bg-text aria-[current=page]:text-bg";
 
   return (
     <div className="mx-auto max-w-5xl px-4 pt-8 pb-16 md:px-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold">크리에이터</h1>
-        <Link href="/me/creator" className="text-sm text-quiet hover:underline">
+        <Link href="/me/creator" className="inline-flex min-h-10 items-center text-sm text-quiet hover:underline">
           나도 올리기
         </Link>
       </div>

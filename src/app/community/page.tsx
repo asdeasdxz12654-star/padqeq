@@ -68,10 +68,10 @@ export default async function CommunityPage({ searchParams }: PageProps<"/commun
     const search = new URLSearchParams(Object.entries(merged).filter((e): e is [string, string] => e[1] !== null)).toString();
     return search ? `/community?${search}` : "/community";
   };
-  const chip = "rounded-full border border-line px-3 py-1.5 aria-[current=page]:border-text aria-[current=page]:bg-text aria-[current=page]:text-bg";
+  const chip = "inline-flex min-h-10 items-center rounded-full border border-line px-3 aria-[current=page]:border-text aria-[current=page]:bg-text aria-[current=page]:text-bg";
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pt-8 pb-16 md:px-6">
+    <div className="mx-auto max-w-3xl px-4 pt-8 pb-16 md:px-6 lg:max-w-4xl">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold">커뮤니티</h1>
         {viewer?.profile && (

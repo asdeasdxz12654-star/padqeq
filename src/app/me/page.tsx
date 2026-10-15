@@ -79,7 +79,7 @@ export default async function MePage() {
   );
 
   return (
-    <div className="mx-auto max-w-xl px-4 pt-10 pb-16 md:px-6">
+    <div className="mx-auto max-w-xl md:max-w-2xl px-4 pt-10 pb-16 md:px-6">
       {full?.deletion_requested_at && (
         <p className="mb-6 rounded-xl border border-red-400/40 bg-red-400/10 px-4 py-3 text-sm text-red-200">
           계정 삭제가 예약돼 있어요. 다른 사람에게는 내 프로필과 게시물이 보이지 않아요.{" "}

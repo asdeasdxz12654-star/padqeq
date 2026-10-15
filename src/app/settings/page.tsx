@@ -35,7 +35,7 @@ export default async function SettingsPage() {
   const email = typeof claims?.claims.email === "string" ? claims.claims.email : null;
 
   return (
-    <div className="mx-auto flex max-w-xl flex-col gap-10 px-4 pt-10 pb-16 md:px-6">
+    <div className="mx-auto flex max-w-xl md:max-w-2xl flex-col gap-10 px-4 pt-10 pb-16 md:px-6">
       <header className="flex items-center gap-3">
         <Link href="/me" className="text-sm text-quiet hover:text-text">
           ‹ 마이

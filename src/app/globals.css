@@ -61,6 +61,9 @@ body {
   /* iOS 홈 인디케이터 · 하단 탭 겹침 방지 */
   padding-bottom: env(safe-area-inset-bottom);
   -webkit-text-size-adjust: 100%;
+  /* 한국어는 띄어쓰기 단위로 줄을 바꾼다 ("갤러 / 리" 방지). 띄어쓰기 없는 긴 글자는 넘치지 않게 끊는다. */
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 /* 사진 보호: 길게 눌러 저장 · 드래그 · 선택 막기 */

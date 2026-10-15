@@ -33,6 +33,9 @@ export const metadata: Metadata = {
   },
   twitter: { card: "summary_large_image" },
   formatDetection: { telephone: false },
+  // 홈 화면에 추가했을 때 (아이폰). 상태 표시줄 아래까지 그리고, 상단 바가 안전 영역만큼 비켜 준다.
+  appleWebApp: { capable: true, title: "해담", statusBarStyle: "black-translucent" },
+  icons: { apple: "/icons/apple-touch-icon.png" },
 };
 
 export const viewport: Viewport = {
