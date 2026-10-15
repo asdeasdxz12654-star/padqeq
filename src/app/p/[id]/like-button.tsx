@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { isKey, shortcutAllowed } from "@/lib/keyboard";
 import { DOUBLE_LIKE_EVENT } from "@/lib/posts/double-tap";
 import { setLike } from "./actions";
 
@@ -12,6 +13,7 @@ export function LikeButton({ postId, initial, count, loginHref }: { postId: stri
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const likedRef = useRef(initial);
+  const box = useRef<HTMLSpanElement>(null);
 
   const change = useCallback(
     (next: boolean) => {
@@ -37,8 +39,16 @@ export function LikeButton({ postId, initial, count, loginHref }: { postId: stri
     const onDouble = (e: Event) => {
       if ((e as CustomEvent<{ postId: string }>).detail?.postId === postId && !likedRef.current) change(true);
     };
+    // 단축키 L (S-07 ⑦): 누르기 · 취소
+    const onKey = (e: KeyboardEvent) => {
+      if (shortcutAllowed(e, box.current) && isKey(e, "l", "ㅣ")) change(!likedRef.current);
+    };
     window.addEventListener(DOUBLE_LIKE_EVENT, onDouble);
-    return () => window.removeEventListener(DOUBLE_LIKE_EVENT, onDouble);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener(DOUBLE_LIKE_EVENT, onDouble);
+      window.removeEventListener("keydown", onKey);
+    };
   }, [change, loginHref, postId]);
 
   const heart = (
@@ -60,7 +70,7 @@ export function LikeButton({ postId, initial, count, loginHref }: { postId: stri
   }
 
   return (
-    <span className="inline-flex flex-col">
+    <span ref={box} className="inline-flex flex-col">
       <button
         type="button"
         aria-pressed={liked}

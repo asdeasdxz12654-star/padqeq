@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { shortcutAllowed } from "@/lib/keyboard";
 import { DOUBLE_LIKE_EVENT, isDoubleTap, type Tap } from "@/lib/posts/double-tap";
 import type { ViewerPhoto } from "@/lib/posts/get-post";
 import { refreshPhotoSources } from "./actions";
@@ -10,7 +11,8 @@ import { refreshPhotoSources } from "./actions";
 //  · 로그인 회원에게는 보는 사람의 @핸들을 사진에 옅게 새긴다 (유출 추적)
 //  · 화면 너비 × 화소 밀도에 맞는 크기만 받는다 (1200 · 2560, 구형 기기는 JPEG)
 //  · ← → 키, 좌우로 밀기, 이전 · 다음 버튼
-//  · 두 번 톡(마우스는 더블클릭) → 좋아요 (취소는 버튼으로만)
+//  · 휴대폰: 두 번 톡 → 좋아요 (취소는 버튼으로만)
+//  · PC (S-07 ②③): 사진을 누르면 원본 크기로 확대 · 끌어서 이동 · Esc로 돌아오기, 여러 장이면 아래 썸네일 줄
 
 const MAX_CACHE = 6;
 
@@ -56,6 +58,8 @@ export function PhotoViewer({
 
   const photo = photos[index]!;
   const count = photos.length;
+  // 확대 (마우스로 누른 사진만, 사진을 넘기면 풀린다)
+  const [zoomedId, setZoomedId] = useState<string | null>(null);
   const go = useCallback((delta: number) => setIndex((i) => Math.min(count - 1, Math.max(0, i + delta))), [count]);
 
   // 보이는 영역 크기
@@ -78,17 +82,26 @@ export function PhotoViewer({
   // 키보드
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLElement && e.target.closest("input, textarea, select")) return;
+      if (!shortcutAllowed(e, root.current)) return;
       if (e.key === "ArrowLeft") go(-1);
       if (e.key === "ArrowRight") go(1);
-      if ((e.key === "f" || e.key === "F") && !e.metaKey && !e.ctrlKey && document.fullscreenEnabled) toggleFullscreen();
+      // 확대를 먼저 푼다 (겹쳐 연 화면은 이 Esc로 닫히지 않는다)
+      if (e.key === "Escape" && zoomedId) {
+        e.preventDefault();
+        setZoomedId(null);
+      }
+      if ((e.key === "f" || e.key === "F" || e.key === "ㄹ") && document.fullscreenEnabled) toggleFullscreen();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [go, toggleFullscreen]);
+  }, [go, toggleFullscreen, zoomedId]);
 
-  // 화면에 그릴 크기 (CSS px). 파노라마는 높이에 맞추고 좌우로 민다.
-  const display = box ? fit(photo, box) : null;
+  // 화면에 그릴 크기 (CSS px). 파노라마는 높이에 맞추고 좌우로 민다. 확대하면 가장 큰 변환본의 원래 크기로.
+  const fitted = box ? fit(photo, box) : null;
+  const full100 = zoomSize(photo);
+  const canZoom = !photo.isPanorama && fitted !== null && full100.width > fitted.width * 1.2;
+  const zoom = canZoom && zoomedId === photo.id;
+  const display = zoom ? full100 : fitted;
   const paintKey = display ? `${photo.id}:${display.width}x${display.height}:${retry}` : null;
   const status: Status = painted && painted.key === paintKey ? (painted.ok ? "ready" : "error") : "loading";
 
@@ -149,6 +162,16 @@ export function PhotoViewer({
 
   // 좌우로 밀기
   const swipe = useRef<number | null>(null);
+  // 마우스: 누르면 확대 · 확대한 채로 끌면 이동 (끈 경우는 누름으로 보지 않는다)
+  const drag = useRef<{ x: number; y: number; left: number; top: number; moved: boolean } | null>(null);
+  const zoomAt = useRef<{ rx: number; ry: number }>({ rx: 0.5, ry: 0.5 });
+  // 확대하면 누른 곳이 가운데 오게
+  useEffect(() => {
+    const el = frame.current;
+    if (!zoom || !el || !display) return;
+    el.scrollLeft = display.width * zoomAt.current.rx - el.clientWidth / 2;
+    el.scrollTop = display.height * zoomAt.current.ry - el.clientHeight / 2;
+  }, [zoom]); // eslint-disable-line react-hooks/exhaustive-deps -- 확대가 켜질 때 한 번만
 
   // 두 번 탭 → 좋아요 + 하트
   const lastTap = useRef<Tap | null>(null);
@@ -168,13 +191,42 @@ export function PhotoViewer({
     <div ref={root} className={`flex flex-col gap-3 ${full ? "h-full justify-center bg-black p-4" : ""}`}>
       <div
         ref={frame}
-        className={`photo-guard relative flex touch-manipulation justify-center ${photo.isPanorama ? "overflow-x-auto" : "overflow-hidden"}`}
+        className={`photo-guard relative flex touch-manipulation ${
+          zoom ? "cursor-grab justify-start overflow-auto active:cursor-grabbing" : photo.isPanorama ? "justify-center overflow-x-auto" : "justify-center overflow-hidden"
+        } ${canZoom && !zoom ? "md:cursor-zoom-in" : ""}`}
+        style={zoom && box ? { height: box.maxHeight } : undefined}
         onPointerDown={(e) => {
           pointerType.current = e.pointerType;
           if (e.pointerType !== "mouse") swipe.current = e.clientX;
+          else if (e.button === 0 && frame.current) {
+            drag.current = { x: e.clientX, y: e.clientY, left: frame.current.scrollLeft, top: frame.current.scrollTop, moved: false };
+            if (zoom) frame.current.setPointerCapture(e.pointerId);
+          }
+        }}
+        onPointerMove={(e) => {
+          const d = drag.current;
+          if (!d || e.pointerType !== "mouse" || !frame.current) return;
+          const dx = e.clientX - d.x;
+          const dy = e.clientY - d.y;
+          if (Math.abs(dx) + Math.abs(dy) > 4) d.moved = true;
+          if (zoom) {
+            frame.current.scrollLeft = d.left - dx;
+            frame.current.scrollTop = d.top - dy;
+          }
         }}
         onPointerUp={(e) => {
-          if (canLike && e.pointerType !== "mouse") {
+          if (e.pointerType === "mouse") {
+            const d = drag.current;
+            drag.current = null;
+            if (!d || d.moved || !canZoom) return;
+            if (!zoom) {
+              const rect = (e.target as HTMLElement).closest("[data-photo]")?.getBoundingClientRect();
+              zoomAt.current = rect ? { rx: (e.clientX - rect.left) / rect.width, ry: (e.clientY - rect.top) / rect.height } : { rx: 0.5, ry: 0.5 };
+            }
+            setZoomedId(zoom ? null : photo.id);
+            return;
+          }
+          if (canLike) {
             const tap = { time: e.timeStamp, x: e.clientX, y: e.clientY };
             if (isDoubleTap(lastTap.current, tap)) {
               lastTap.current = null;
@@ -186,20 +238,17 @@ export function PhotoViewer({
           swipe.current = null;
           if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
         }}
-        onDoubleClick={() => {
-          // 터치는 위에서 처리했다 (일부 브라우저는 두 번 탭에도 dblclick을 보낸다)
-          if (canLike && pointerType.current === "mouse") likeByTap();
-        }}
       >
         <div
-          className="relative shrink-0 rounded-lg bg-slot"
+          data-photo
+          className={`relative shrink-0 bg-slot ${zoom ? "" : "rounded-lg"}`}
           style={display ? { width: display.width, height: display.height } : { aspectRatio: `${photo.width} / ${photo.height}`, width: "100%" }}
         >
           <canvas
             ref={canvas}
             role="img"
             aria-label={photo.alt}
-            className={`block size-full rounded-lg ${status === "ready" ? "" : "invisible"}`}
+            className={`block size-full ${zoom ? "" : "rounded-lg"} ${status === "ready" ? "" : "invisible"}`}
           />
           {burst > 0 && (
             <svg
@@ -229,6 +278,34 @@ export function PhotoViewer({
           )}
         </div>
       </div>
+
+      {count > 1 && (
+        <ol aria-label="사진 목록" className="hidden gap-2 overflow-x-auto pb-1 md:flex [scrollbar-width:thin]">
+          {photos.map((p, i) => (
+            <li key={p.id} className="shrink-0">
+              <button
+                type="button"
+                onClick={() => setIndex(i)}
+                aria-label={`${i + 1}번째 사진`}
+                aria-current={i === index ? "true" : undefined}
+                className="photo-guard block size-16 overflow-hidden rounded-md border-2 border-transparent opacity-60 hover:opacity-100 aria-[current=true]:border-text aria-[current=true]:opacity-100"
+              >
+                <picture className="block size-full">
+                  <source type="image/avif" srcSet={p.sources.thumb} />
+                  {/* 이미지 게이트 서명 주소 (canvas가 아닌 작은 썸네일) */}
+                  <img src={p.sources.jpeg} alt="" draggable={false} loading="lazy" className="size-full object-cover" />
+                </picture>
+              </button>
+            </li>
+          ))}
+        </ol>
+      )}
+
+      <p className="hidden text-center text-xs text-quiet md:block">
+        {[count > 1 && "← → 넘기기", canZoom && (zoom ? "누르거나 Esc로 돌아오기 · 끌어서 이동" : "사진을 누르면 확대"), canLike && "L 좋아요 · S 저장"]
+          .filter(Boolean)
+          .join(" · ")}
+      </p>
 
       {(count > 1 || canFullscreen) && (
         <div className="flex items-center justify-center gap-4 text-sm">
@@ -274,6 +351,12 @@ export function PhotoViewer({
       )}
     </div>
   );
+}
+
+/** 확대: 가장 큰 변환본을 CSS 1px = 사진 1px로 */
+function zoomSize(photo: ViewerPhoto) {
+  const width = Math.min(photo.width, photo.sources.avif.at(-1)!.width);
+  return { width, height: Math.round((width * photo.height) / photo.width) };
 }
 
 function fit(photo: ViewerPhoto, box: { width: number; maxHeight: number }) {

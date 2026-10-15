@@ -48,7 +48,7 @@ export const viewport: Viewport = {
   ],
 };
 
-export default async function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children, modal }: LayoutProps<"/">) {
   // CSP nonce는 요청마다 새로 붙어야 하므로 모든 페이지를 요청 시점에 렌더링한다.
   // (정적 페이지에는 nonce가 없어 스크립트가 차단됨)
   await connection();
@@ -71,6 +71,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           {children}
           <SiteFooter />
         </main>
+        {/* 피드에서 연 게시물 (S-07 ①, app/@modal) */}
+        {modal}
         <TabBar />
         <PhotoGuard />
       </body>

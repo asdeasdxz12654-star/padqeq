@@ -49,6 +49,8 @@ export type ViewerSources = {
   avif: { width: number; url: string }[];
   /** AVIF를 못 여는 기기용 */
   jpeg: string;
+  /** 썸네일 줄 (PC, 여러 장일 때) */
+  thumb: string;
 };
 
 /** 상세 뷰어(canvas)용 서명 주소. photoSources와 마찬가지로 RLS로 읽은 행만 넘긴다. */
@@ -66,5 +68,5 @@ export async function viewerSources(photo: {
       url: await signImagePath(secret, token, name),
     })),
   );
-  return { avif, jpeg: await signImagePath(secret, token, "1600") };
+  return { avif, jpeg: await signImagePath(secret, token, "1600"), thumb: await signImagePath(secret, token, "400") };
 }
