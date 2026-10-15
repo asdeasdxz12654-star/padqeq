@@ -1282,6 +1282,20 @@ export type Database = {
           },
         ]
       }
+      member_warnings: {
+        Row: { created_at: string; created_by: string | null; id: number; member_id: string; reason: string }
+        Insert: { created_at?: string; created_by?: string | null; id?: never; member_id: string; reason: string }
+        Update: { created_at?: string; created_by?: string | null; id?: never; member_id?: string; reason?: string }
+        Relationships: [
+          {
+            foreignKeyName: "member_warnings_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       member_restrictions: {
         Row: {
           created_at: string
@@ -1642,6 +1656,9 @@ export type Database = {
       }
       posts: {
         Row: {
+          trashed_at: string | null
+          trash_prev_status: Database["public"]["Enums"]["post_status"] | null
+          trash_prev_removed_at: string | null
           show_exif: boolean
           visibility: Database["public"]["Enums"]["post_visibility"]
           scheduled_at: string | null
@@ -1664,6 +1681,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          trashed_at?: string | null
+          trash_prev_status?: Database["public"]["Enums"]["post_status"] | null
+          trash_prev_removed_at?: string | null
           show_exif?: boolean
           visibility?: Database["public"]["Enums"]["post_visibility"]
           scheduled_at?: string | null
@@ -1686,6 +1706,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          trashed_at?: string | null
+          trash_prev_status?: Database["public"]["Enums"]["post_status"] | null
+          trash_prev_removed_at?: string | null
           show_exif?: boolean
           visibility?: Database["public"]["Enums"]["post_visibility"]
           scheduled_at?: string | null
@@ -1986,6 +2009,25 @@ export type Database = {
       moderate_comment: { Args: { decision: string; note: string; target: string }; Returns: undefined }
       pin_comment: { Args: { pin: boolean; target: string }; Returns: undefined }
       answer_inquiry: { Args: { reply: string; target: string }; Returns: undefined }
+      admin_posts_action: { Args: { action: string; note: string; targets: string[] }; Returns: number }
+      admin_dashboard: { Args: never; Returns: Json }
+      admin_audit_log: {
+        Args: { before_id?: number | null; max_rows?: number; q?: string | null }
+        Returns: {
+          action: string
+          actor_handle: string | null
+          created_at: string
+          detail: Json
+          id: number
+          target_id: string | null
+          target_table: string
+        }[]
+      }
+      admin_member_account: {
+        Args: { target: string }
+        Returns: { last_sign_in_at: string | null; masked_email: string | null; provider: string | null }[]
+      }
+      admin_reveal_email: { Args: { reason: string; target: string }; Returns: string }
       set_site_switches: {
         Args: { message: string; note: string; read_only: boolean; signup_closed: boolean; uploads_closed: boolean }
         Returns: undefined
@@ -2083,6 +2125,7 @@ export type Database = {
         | "credit_claim_approved"
         | "credit_claim_rejected"
         | "member_suspended"
+        | "member_warned"
         | "suspension_lifted"
         | "upload_granted"
         | "upload_revoked"
@@ -2276,6 +2319,7 @@ export const Constants = {
         "credit_claim_approved",
         "credit_claim_rejected",
         "member_suspended",
+        "member_warned",
         "suspension_lifted",
         "upload_granted",
         "upload_revoked",

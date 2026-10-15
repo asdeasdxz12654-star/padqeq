@@ -6,6 +6,7 @@ import { REASON_LABEL, type ReportReason } from "@/lib/moderation/reasons";
 import { SANCTION_LABEL, type SanctionAction, availableActions, daysLabel, isActiveRestriction } from "@/lib/moderation/sanctions";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { createClient } from "@/lib/supabase/server";
+import { RevealEmail } from "./reveal-email";
 import { SanctionForm } from "./sanction-form";
 
 export const metadata: Metadata = { title: "회원 관리" };
@@ -30,7 +31,7 @@ export default async function AdminMemberPage({ params }: PageProps<"/admin/memb
   if (!z.uuid().safeParse(id).success) notFound();
   const supabase = await createClient();
 
-  const [{ data: member, error }, restriction, posts, reports, history] = await Promise.all([
+  const [{ data: member, error }, restriction, posts, reports, history, account] = await Promise.all([
     supabase
       .from("profiles")
       .select("id, handle, display_name, bio, role, can_upload, created_at, deletion_requested_at")
@@ -51,6 +52,8 @@ export default async function AdminMemberPage({ params }: PageProps<"/admin/memb
       .order("created_at", { ascending: false })
       .limit(50),
     supabase.rpc("member_sanction_history", { target: id }),
+    // 개인정보는 가려서 (A-05 ④)
+    supabase.rpc("admin_member_account", { target: id }).maybeSingle(),
   ]);
   if (error) throw error;
   if (!member) notFound();
@@ -92,6 +95,17 @@ export default async function AdminMemberPage({ params }: PageProps<"/admin/memb
           {timeFormat.format(new Date(suspended.suspended_until))}까지 정지 · 회원에게 보이는 사유: {suspended.reason}
         </p>
       )}
+
+      <dl className="grid grid-cols-[6rem_1fr] gap-y-2 text-sm">
+        <dt className="text-quiet">이메일</dt>
+        <dd>
+          <RevealEmail memberId={member.id} masked={account.data?.masked_email ?? null} />
+        </dd>
+        <dt className="text-quiet">로그인</dt>
+        <dd>{account.data?.provider ?? "-"}</dd>
+        <dt className="text-quiet">최근 로그인</dt>
+        <dd>{account.data?.last_sign_in_at ? timeFormat.format(new Date(account.data.last_sign_in_at)) : "-"}</dd>
+      </dl>
 
       <dl className="grid grid-cols-2 gap-2 text-center sm:grid-cols-4">
         {[

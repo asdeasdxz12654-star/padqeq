@@ -16,6 +16,7 @@ export function SanctionForm({ memberId, options }: { memberId: string; options:
   const [done, setDone] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const suspend = action === "suspend";
+  const needsReason = suspend || action === "warn";
 
   return (
     <form
@@ -31,7 +32,7 @@ export function SanctionForm({ memberId, options }: { memberId: string; options:
             action,
             note,
             days: suspend ? days : null,
-            reason: suspend ? reason : null,
+            reason: needsReason ? reason : null,
           });
           if (!result.ok) {
             setError(result.error ?? "처리하지 못했어요.");
@@ -65,7 +66,6 @@ export function SanctionForm({ memberId, options }: { memberId: string; options:
       </fieldset>
 
       {suspend && (
-        <>
           <fieldset>
             <legend className="mb-1.5 text-sm">기간</legend>
             <div className="flex flex-wrap gap-2">
@@ -80,8 +80,10 @@ export function SanctionForm({ memberId, options }: { memberId: string; options:
               ))}
             </div>
           </fieldset>
+      )}
+      {needsReason && (
           <label className="flex flex-col gap-1.5 text-sm">
-            회원에게 보여 줄 사유 <span className="text-xs text-quiet">(필수 · 정지 안내와 함께 본인에게만 보여요)</span>
+            회원에게 보여 줄 사유 <span className="text-xs text-quiet">(필수 · 본인에게만 보여요)</span>
             <input
               value={reason}
               onChange={(e) => setReason(e.target.value)}
@@ -91,7 +93,6 @@ export function SanctionForm({ memberId, options }: { memberId: string; options:
               className="min-h-11 rounded-xl border border-line bg-bg px-3 text-base"
             />
           </label>
-        </>
       )}
 
       <label className="flex flex-col gap-1.5 text-sm">
@@ -109,7 +110,7 @@ export function SanctionForm({ memberId, options }: { memberId: string; options:
       {done && <p role="status" className="text-sm text-quiet">{done}</p>}
       <button
         type="submit"
-        disabled={!action || !note.trim() || (suspend && !reason.trim()) || pending}
+        disabled={!action || !note.trim() || (needsReason && !reason.trim()) || pending}
         className="min-h-11 rounded-xl bg-accent font-semibold text-on-accent disabled:opacity-50"
       >
         {pending ? "처리 중…" : "처리 완료"}

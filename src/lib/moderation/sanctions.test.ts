@@ -15,6 +15,17 @@ describe("sanctionSchema", () => {
     expect(result).toEqual({ memberId, action: "revoke_upload", note: "메모", days: null, reason: null });
   });
 
+  it("경고는 사유가 필요하고 기간은 버린다", () => {
+    expect(sanctionSchema.safeParse({ memberId, action: "warn", note: "메모", days: null, reason: "" }).success).toBe(false);
+    expect(sanctionSchema.parse({ memberId, action: "warn", note: "메모", days: 7, reason: " 반복 " })).toEqual({
+      memberId,
+      action: "warn",
+      note: "메모",
+      days: null,
+      reason: "반복",
+    });
+  });
+
   it("내부 메모는 꼭 적는다", () => {
     expect(sanctionSchema.safeParse({ memberId, action: "lift", note: "  ", days: null, reason: null }).success).toBe(false);
   });
@@ -22,8 +33,8 @@ describe("sanctionSchema", () => {
 
 describe("availableActions", () => {
   it("상태에 맞는 조치만 보여 준다", () => {
-    expect(availableActions({ canUpload: true, suspended: false })).toEqual(["suspend", "revoke_upload"]);
-    expect(availableActions({ canUpload: false, suspended: true })).toEqual(["lift", "suspend", "grant_upload"]);
+    expect(availableActions({ canUpload: true, suspended: false })).toEqual(["warn", "suspend", "revoke_upload"]);
+    expect(availableActions({ canUpload: false, suspended: true })).toEqual(["lift", "warn", "suspend", "grant_upload"]);
   });
 });
 

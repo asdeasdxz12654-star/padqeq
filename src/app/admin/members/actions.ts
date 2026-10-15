@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import type { z } from "zod";
+import { z } from "zod";
 import { getViewer } from "@/lib/auth/viewer";
 import { sanctionErrorMessage, sanctionSchema } from "@/lib/moderation/sanctions";
 import { createClient } from "@/lib/supabase/server";
@@ -20,4 +20,18 @@ export async function sanction(input: z.input<typeof sanctionSchema>): Promise<{
   revalidatePath("/admin/members");
   revalidatePath(`/admin/members/${memberId}`);
   return { ok: true };
+}
+
+/** 이메일 원문 열람 (A-05 ④): 사유를 적어야 보이고, 열람은 감사 로그에 남는다. */
+export async function revealEmail(memberId: string, reason: string): Promise<{ ok: true; email: string } | { ok: false; error: string }> {
+  const parsedId = z.uuid().safeParse(memberId);
+  const parsedReason = z.string().trim().min(2, "열람 사유를 적어 주세요.").max(200).safeParse(reason);
+  if (!parsedId.success) return { ok: false, error: "회원을 찾지 못했어요." };
+  if (!parsedReason.success) return { ok: false, error: parsedReason.error.issues[0]?.message ?? "열람 사유를 적어 주세요." };
+  const viewer = await getViewer();
+  if (viewer?.profile?.role !== "admin") return { ok: false, error: "운영자만 볼 수 있어요." };
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("admin_reveal_email", { target: parsedId.data, reason: parsedReason.data });
+  if (error) return { ok: false, error: "열람하지 못했어요." };
+  return { ok: true, email: data };
 }

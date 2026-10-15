@@ -50,6 +50,8 @@ export function describeNotification({ kind, actorHandle, post, event = null, bo
       return { text: `${who}이 크레딧 연결 요청을 거절했어요.`, href: postHref };
     case "member_suspended":
       return { text: "운영 정책에 따라 이용이 일시 제한됐어요. 기간과 사유는 마이에서 볼 수 있어요.", href: "/me" };
+    case "member_warned":
+      return { text: "운영 정책에 따라 경고를 받았어요. 사유는 설정에서 볼 수 있어요.", href: "/settings#warnings" };
     case "suspension_lifted":
       return { text: "이용 제한이 풀렸어요. 다시 모든 기능을 쓸 수 있어요.", href: "/me" };
     case "upload_granted":

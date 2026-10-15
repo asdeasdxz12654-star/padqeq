@@ -22,11 +22,13 @@ export default async function SettingsPage() {
   if (!viewer.profile) redirect(withNext("/welcome", "/settings"));
 
   const supabase = await createClient();
-  const [{ data: claims }, { data: profile }, { data: setting }, { data: blocks }] = await Promise.all([
+  const [{ data: claims }, { data: profile }, { data: setting }, { data: blocks }, { data: warnings }] = await Promise.all([
     supabase.auth.getClaims(),
     supabase.from("profiles").select("created_at, deletion_requested_at, memory_alerts").eq("id", viewer.id).single(),
     supabase.from("message_settings").select("receive").eq("user_id", viewer.id).maybeSingle(),
     supabase.from("blocks").select("blocked:profiles!blocks_blocked_id_fkey(id, handle)").eq("blocker_id", viewer.id).limit(1000),
+    // 받은 경고 (A-05 ⑥, 본인만 본다)
+    supabase.from("member_warnings").select("id, reason, created_at").eq("member_id", viewer.id).order("created_at", { ascending: false }).limit(20),
   ]);
   const blocked = (blocks ?? []).flatMap((b) => (b.blocked ? [b.blocked] : []));
   const savedTheme = (await cookies()).get("theme")?.value;
@@ -57,6 +59,29 @@ export default async function SettingsPage() {
           <dd>{profile ? dayFormat.format(new Date(profile.created_at)) : "-"}</dd>
         </dl>
       </section>
+
+      {warnings && warnings.length > 0 && (
+        <section id="warnings" aria-labelledby="warnings-heading" className="flex scroll-mt-20 flex-col gap-3">
+          <h2 id="warnings-heading" className="text-lg font-semibold">
+            받은 경고
+          </h2>
+          <ul className="flex flex-col gap-2">
+            {warnings.map((w) => (
+              <li key={w.id} className="rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-sm">
+                <p>{w.reason}</p>
+                <p className="mt-1 text-xs text-quiet">{dayFormat.format(new Date(w.created_at))}</p>
+              </li>
+            ))}
+          </ul>
+          <p className="text-xs leading-relaxed text-quiet">
+            같은 일이 되풀이되면 업로드 권한 회수나 이용 정지로 이어질 수 있어요. 이의가 있으면{" "}
+            <Link href="/help" className="underline underline-offset-2">
+              1:1 문의
+            </Link>
+            로 알려 주세요.
+          </p>
+        </section>
+      )}
 
       <section aria-labelledby="theme-heading" className="flex flex-col gap-3">
         <h2 id="theme-heading" className="text-lg font-semibold">

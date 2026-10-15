@@ -2,10 +2,12 @@ import { z } from "zod";
 
 // 회원 제재 (A-05). 실제 규칙(운영자만 · 운영자 제외 · 기간 · 사유)은 DB 함수 sanction_member가 다시 확인한다.
 
-export const SANCTION_ACTIONS = ["suspend", "lift", "revoke_upload", "grant_upload"] as const;
+// 단계: 경고 → 업로드 권한 회수 → 기간 정지 → 무기한 정지 (A-05 ⑥)
+export const SANCTION_ACTIONS = ["warn", "suspend", "lift", "revoke_upload", "grant_upload"] as const;
 export type SanctionAction = (typeof SANCTION_ACTIONS)[number];
 
 export const SANCTION_LABEL: Record<SanctionAction, { label: string; help: string }> = {
+  warn: { label: "경고", help: "사유와 함께 알림이 가고, 회원 설정에 기록이 남아요. 이용은 그대로예요." },
   suspend: { label: "이용 정지", help: "기간 동안 올리기 · 고치기 · 신고 · 컬렉션이 막혀요. 다시 하면 새 기간으로 바뀌어요." },
   lift: { label: "정지 해제", help: "남은 기간과 상관없이 바로 풀어요." },
   revoke_upload: { label: "업로드 권한 회수", help: "이미 올린 게시물은 그대로 두고, 새로 올리지 못하게 해요." },
@@ -20,6 +22,7 @@ export const daysLabel = (days: number) => (days >= 3650 ? "무기한" : days >=
 export function availableActions(state: { canUpload: boolean; suspended: boolean }): SanctionAction[] {
   return [
     state.suspended ? "lift" : null,
+    "warn",
     "suspend",
     state.canUpload ? "revoke_upload" : "grant_upload",
   ].filter((a): a is SanctionAction => a !== null);
@@ -34,11 +37,13 @@ export const sanctionSchema = z
     reason: z.string().trim().max(200).nullable(),
   })
   .superRefine((v, ctx) => {
-    if (v.action !== "suspend") return;
-    if (v.days === null) ctx.addIssue({ code: "custom", path: ["days"], message: "정지 기간을 골라 주세요." });
+    if (v.action !== "suspend" && v.action !== "warn") return;
+    if (v.action === "suspend" && v.days === null) ctx.addIssue({ code: "custom", path: ["days"], message: "정지 기간을 골라 주세요." });
     if (!v.reason) ctx.addIssue({ code: "custom", path: ["reason"], message: "회원에게 보여 줄 사유를 적어 주세요." });
   })
-  .transform((v) => (v.action === "suspend" ? v : { ...v, days: null, reason: null }));
+  .transform((v) =>
+    v.action === "suspend" ? v : v.action === "warn" ? { ...v, days: null } : { ...v, days: null, reason: null },
+  );
 
 const DB_ERRORS: Record<string, string> = {
   target_admin: "운영자 계정은 제재할 수 없어요.",

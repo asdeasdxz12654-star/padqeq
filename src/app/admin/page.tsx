@@ -1,13 +1,40 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { type Dashboard, R2_FREE_BYTES, buildTodos, formatBytes, usageLevel } from "@/lib/admin/dashboard";
 import { getAdminPending } from "@/lib/admin/pending";
+import { createClient } from "@/lib/supabase/server";
 import { getSiteSwitches } from "@/lib/support/switches";
 
 export const metadata: Metadata = { title: "운영" };
 
-// 운영 첫 화면: 처리할 일 모아 보기 + 각 운영 화면으로
+// 운영 첫 화면 (A-01): 오늘 지표 · 저장 용량 · 할 일 · 처리 대기 · 각 운영 화면으로
 export default async function AdminHomePage() {
-  const [pending, switches] = await Promise.all([getAdminPending(), getSiteSwitches()]);
+  const supabase = await createClient();
+  const [pending, switches, dash] = await Promise.all([
+    getAdminPending(),
+    getSiteSwitches(),
+    supabase.rpc("admin_dashboard").then((r) => {
+      if (r.error) throw r.error;
+      return r.data as unknown as Dashboard;
+    }),
+  ]);
+  const todos = buildTodos(dash);
+  const storageRatio = dash.photo_bytes / R2_FREE_BYTES;
+  const storageLevel = usageLevel(storageRatio);
+  const kpis: { label: string; value: number; href?: string; alert?: boolean }[] = [
+    { label: "오늘 가입", value: dash.signups_today, href: "/admin/members" },
+    { label: "오늘 올린 사진", value: dash.photos_today, href: "/admin/posts" },
+    { label: "오늘 게시", value: dash.published_today, href: "/admin/posts?status=published" },
+    { label: "최우선 신고", value: dash.urgent_reports, href: "/admin/reports", alert: dash.urgent_reports > 0 },
+  ];
+  const totals: [string, number, string][] = [
+    ["회원", dash.members, "/admin/members"],
+    ["업로드 회원", dash.uploaders, "/admin/members?f=uploaders"],
+    ["게시물", dash.published, "/admin/posts?status=published"],
+    ["예약", dash.scheduled, "/admin/posts?status=scheduled"],
+    ["휴지통", dash.trash, "/admin/posts?view=trash"],
+    ["정지 중", dash.suspended, "/admin/members?f=suspended"],
+  ];
   const switchOn = switches.readOnly || switches.signupClosed || switches.uploadsClosed;
 
   const cards: { href: string; title: string; help: string; count: number }[] = [
@@ -37,9 +64,89 @@ export default async function AdminHomePage() {
         </p>
       )}
 
+      <section aria-labelledby="today-heading">
+        <h2 id="today-heading" className="sr-only">
+          오늘
+        </h2>
+        <ul className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+          {kpis.map((k) => (
+            <li key={k.label}>
+              <Link
+                href={k.href ?? "/admin"}
+                className={`flex h-full flex-col gap-1 rounded-xl border p-4 hover:border-quiet ${k.alert ? "border-red-400/70" : "border-line"}`}
+              >
+                <span className="text-xs text-quiet">{k.label}</span>
+                <span className={`text-2xl font-bold tabular-nums ${k.alert ? "text-red-300" : ""}`}>{k.value.toLocaleString("ko-KR")}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {todos.length > 0 && (
+        <section aria-labelledby="tasks-heading">
+          <h2 id="tasks-heading" className="mb-3 text-lg font-semibold">
+            할 일
+          </h2>
+          <ul className="flex flex-col gap-2">
+            {todos.map((t) => (
+              <li key={t.text}>
+                <Link href={t.href} className="flex items-center gap-3 rounded-xl border border-line px-4 py-3 text-sm hover:border-quiet">
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${
+                      t.level === "긴급" ? "bg-red-500/20 text-red-300" : t.level === "주의" ? "bg-amber-400/20 text-amber-200" : "border border-line text-quiet"
+                    }`}
+                  >
+                    {t.level}
+                  </span>
+                  <span className="min-w-0 flex-1">{t.text}</span>
+                  <span aria-hidden className="text-quiet">›</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <section aria-labelledby="totals-heading" className="grid gap-4 lg:grid-cols-[2fr_1fr]">
+        <div>
+          <h2 id="totals-heading" className="mb-3 text-lg font-semibold">
+            전체
+          </h2>
+          <ul className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+            {totals.map(([label, value, href]) => (
+              <li key={label}>
+                <Link href={href} className="flex flex-col rounded-xl border border-line px-3 py-2.5 hover:border-quiet">
+                  <span className="text-xs text-quiet">{label}</span>
+                  <span className="font-semibold tabular-nums">{value.toLocaleString("ko-KR")}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h2 className="mb-3 text-lg font-semibold">저장 용량</h2>
+          <div className="flex flex-col gap-2 rounded-xl border border-line p-4 text-sm">
+            <p className="flex justify-between">
+              <span>사진 (R2 무료 10GB)</span>
+              <span className="tabular-nums">
+                {formatBytes(dash.photo_bytes)} · {Math.round(storageRatio * 100)}%
+              </span>
+            </p>
+            <div className="h-2 overflow-hidden rounded-full bg-surface" role="presentation">
+              <div
+                className={`h-full ${storageLevel === "danger" ? "bg-red-400" : storageLevel === "warn" ? "bg-amber-300" : "bg-accent"}`}
+                style={{ width: `${Math.min(100, Math.max(1, storageRatio * 100))}%` }}
+              />
+            </div>
+            <p className="text-xs text-quiet">원본(마스터) 기준이에요. 70%부터 노랑, 90%부터 빨강.</p>
+          </div>
+        </div>
+      </section>
+
       <section aria-labelledby="todo-heading">
         <h2 id="todo-heading" className="mb-3 text-lg font-semibold">
-          처리할 일
+          처리 대기
         </h2>
         <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           {cards.map((c) => (
@@ -62,7 +169,10 @@ export default async function AdminHomePage() {
         </h2>
         <nav className="flex flex-wrap gap-2 text-sm">
           {[
+            ["/admin/posts", "게시물 관리"],
+            ["/admin/posts?view=trash", "휴지통"],
             ["/admin/members", "회원 관리"],
+            ["/admin/audit", "감사 로그"],
             ["/admin/events", "행사 관리"],
             ["/admin/support?tab=notices", "공지"],
             ["/admin/support?tab=system", "긴급 스위치"],
