@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/lib/supabase/database.types";
 import { isActiveRestriction } from "@/lib/moderation/sanctions";
 import { getSiteSwitches } from "@/lib/support/switches";
+import { isStaffRole } from "./roles";
 
 export type Viewer = {
   id: string;
@@ -14,7 +15,7 @@ export type Viewer = {
   /** 지금 이용 정지 중이면 기간 · 사유 (본인만 보는 정보). 정지 중에는 profile.can_upload도 false */
   restriction: { until: string; reason: string } | null;
   /**
-   * 운영자 계정이지만 이 세션이 2단계 인증을 마치지 않음(aal1).
+   * 운영자(최고 관리자 · 운영 도우미) 계정이지만 이 세션이 2단계 인증을 마치지 않음(aal1).
    * 이때 profile.role은 'member'로 내려 운영 화면 · 기능을 감춘다 (DB도 aal2가 아니면 운영자 권한을 주지 않는다).
    */
   mfaRequired: boolean;
@@ -49,7 +50,7 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
   const restricted = profile?.restriction && isActiveRestriction(profile.restriction.suspended_until) ? profile.restriction : null;
   const restriction = restricted ? { until: restricted.suspended_until, reason: restricted.reason } : null;
 
-  const mfaRequired = profile?.role === "admin" && aal !== "aal2";
+  const mfaRequired = isStaffRole(profile?.role) && aal !== "aal2";
   // 업로드 권한: 받은 권한, 또는 개방 단계(회수당하지 않은 회원). 정지 중이면 없음. (DB의 private.can_upload()와 같은 규칙)
   const stage = profile ? (await getSiteSwitches()).uploadStage : "solo";
   const canUpload = Boolean(profile) && (profile!.can_upload || (stage === "open" && !profile!.upload_revoked_at)) && !restriction;

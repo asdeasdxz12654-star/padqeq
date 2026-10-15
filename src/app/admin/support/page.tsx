@@ -1,3 +1,4 @@
+import { requireTopAdmin } from "@/lib/auth/require-admin";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
@@ -29,6 +30,7 @@ type InquiryRow = {
 };
 
 export default async function AdminSupportPage({ searchParams }: PageProps<"/admin/support">) {
+  await requireTopAdmin();
   const params = await searchParams;
   const tab: Tab = params.tab === "answered" || params.tab === "notices" || params.tab === "system" ? params.tab : "open";
   const supabase = await createClient();

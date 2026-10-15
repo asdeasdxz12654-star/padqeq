@@ -13,6 +13,7 @@ const ACTION_LABEL: Record<string, string> = {
   post_quarantine: "불법 촬영물 격리",
   post_unquarantine: "격리 해제",
   site_limit: "한도 값 변경",
+  member_role: "역할 변경",
   stale_drafts_purged: "오래된 초안 정리",
   sanction: "회원 제재",
   pii_view: "개인정보 원문 열람",

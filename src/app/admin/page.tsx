@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { getViewer } from "@/lib/auth/viewer";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { type Dashboard, R2_FREE_BYTES, buildTodos, formatBytes, usageLevel } from "@/lib/admin/dashboard";
@@ -9,6 +11,8 @@ export const metadata: Metadata = { title: "운영" };
 
 // 운영 첫 화면 (A-01): 오늘 지표 · 저장 용량 · 할 일 · 처리 대기 · 각 운영 화면으로
 export default async function AdminHomePage() {
+  // 운영 도우미의 첫 화면은 신고 처리
+  if ((await getViewer())?.profile?.role !== "admin") redirect("/admin/reports");
   const supabase = await createClient();
   const [pending, switches, dash] = await Promise.all([
     getAdminPending(),

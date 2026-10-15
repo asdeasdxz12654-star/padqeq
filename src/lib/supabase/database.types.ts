@@ -2064,6 +2064,7 @@ export type Database = {
         Returns: { actioned: number; dismissed: number; reporter_id: string; total: number; unreliable: boolean }[]
       }
       my_upload_quota: { Args: never; Returns: { quota: number; used: number }[] }
+      set_member_role: { Args: { new_role: string; note: string; target: string }; Returns: undefined }
       reserve_upload_slot: { Args: { bytes: number; height: number; width: number }; Returns: string }
       attach_upload_slots: { Args: { entries: Json; target_post: string }; Returns: number }
       discard_upload_slots: { Args: { ids: string[] }; Returns: number }
@@ -2170,7 +2171,7 @@ export type Database = {
         | "retoucher"
         | "other"
       credit_status: "pending" | "approved" | "rejected" | "external"
-      member_role: "member" | "admin"
+      member_role: "member" | "admin" | "moderator"
       notification_kind:
         | "credit_requested"
         | "credit_approved"
@@ -2364,7 +2365,7 @@ export const Constants = {
       claim_status: ["open", "approved", "rejected"],
       credit_role: ["cosplayer", "model", "photographer", "retoucher", "other"],
       credit_status: ["pending", "approved", "rejected", "external"],
-      member_role: ["member", "admin"],
+      member_role: ["member", "admin", "moderator"],
       notification_kind: [
         "credit_requested",
         "credit_approved",

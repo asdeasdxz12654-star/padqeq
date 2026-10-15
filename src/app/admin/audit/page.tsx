@@ -1,3 +1,4 @@
+import { requireTopAdmin } from "@/lib/auth/require-admin";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { auditActionLabel, auditSummary, auditTargetHref } from "@/lib/admin/audit";
@@ -11,6 +12,7 @@ const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", da
 const PAGE = 50;
 
 export default async function AdminAuditPage({ searchParams }: PageProps<"/admin/audit">) {
+  await requireTopAdmin();
   const params = await searchParams;
   const q = (typeof params.q === "string" ? params.q : "").trim().slice(0, 60);
   const before = typeof params.before === "string" && /^\d{1,18}$/.test(params.before) ? Number(params.before) : null;

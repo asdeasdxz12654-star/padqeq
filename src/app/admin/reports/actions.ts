@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { isStaffRole } from "@/lib/auth/roles";
 import { getViewer } from "@/lib/auth/viewer";
 import { createClient } from "@/lib/supabase/server";
 
@@ -11,12 +12,12 @@ const schema = z.object({
   note: z.string().trim().min(1, "처리 사유를 적어 주세요.").max(500),
 });
 
-/** 신고 처리 (A-04 ⑦ · ⑧). 권한 · 사유 필수 · 감사 로그는 DB 함수가 다시 확인한다. */
+/** 신고 처리 (A-04 ⑦ · ⑧). 운영 도우미도 (되살리기 · 휴지통 글은 제외). 권한 · 사유 필수 · 감사 로그는 DB 함수가 다시 확인한다. */
 export async function moderate(input: z.input<typeof schema>): Promise<{ ok: boolean; error?: string }> {
   const parsed = schema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "입력을 확인해 주세요." };
   const viewer = await getViewer();
-  if (viewer?.profile?.role !== "admin") return { ok: false, error: "운영자만 처리할 수 있어요." };
+  if (!isStaffRole(viewer?.profile?.role)) return { ok: false, error: "운영자만 처리할 수 있어요." };
 
   const supabase = await createClient();
   // 격리는 휴지통 · 차단 해시 · 보존을 함께 하는 별도 함수로 (A-04)
@@ -41,7 +42,7 @@ export async function moderateComment(input: z.input<typeof commentSchema>): Pro
   const parsed = commentSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "입력을 확인해 주세요." };
   const viewer = await getViewer();
-  if (viewer?.profile?.role !== "admin") return { ok: false, error: "운영자만 처리할 수 있어요." };
+  if (!isStaffRole(viewer?.profile?.role)) return { ok: false, error: "운영자만 처리할 수 있어요." };
 
   const supabase = await createClient();
   const { error } = await supabase.rpc("moderate_comment", {
@@ -66,7 +67,7 @@ export async function moderateBoard(input: z.input<typeof boardSchema>): Promise
   const parsed = boardSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "입력을 확인해 주세요." };
   const viewer = await getViewer();
-  if (viewer?.profile?.role !== "admin") return { ok: false, error: "운영자만 처리할 수 있어요." };
+  if (!isStaffRole(viewer?.profile?.role)) return { ok: false, error: "운영자만 처리할 수 있어요." };
   const supabase = await createClient();
   const { error } = await supabase.rpc("moderate_board", {
     target_post: parsed.data.postId,

@@ -1,3 +1,4 @@
+import { ROLE_LABEL } from "@/lib/auth/roles";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { isActiveRestriction } from "@/lib/moderation/sanctions";
@@ -16,7 +17,7 @@ type MemberRow = {
   id: string;
   handle: string;
   display_name: string;
-  role: "member" | "admin";
+  role: "member" | "admin" | "moderator";
   can_upload: boolean;
   created_at: string;
   deletion_requested_at: string | null;
@@ -110,7 +111,7 @@ export default async function AdminMembersPage({ searchParams }: PageProps<"/adm
                     <span className="block text-xs font-normal text-quiet">@{m.handle}</span>
                   </span>
                   <span className="ml-auto flex flex-wrap items-center gap-1.5 text-xs">
-                    {m.role === "admin" && <span className="rounded-full border border-line px-2 py-0.5">운영자</span>}
+                    {m.role !== "member" && <span className="rounded-full border border-line px-2 py-0.5">{ROLE_LABEL[m.role]}</span>}
                     {m.can_upload && <span className="rounded-full border border-line px-2 py-0.5">업로드</span>}
                     {suspended && <span className="rounded-full bg-red-500/20 px-2 py-0.5 text-red-300">정지 중</span>}
                     {m.deletion_requested_at && <span className="rounded-full border border-line px-2 py-0.5 text-quiet">탈퇴 유예</span>}

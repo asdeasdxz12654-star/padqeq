@@ -1,3 +1,4 @@
+import { requireTopAdmin } from "@/lib/auth/require-admin";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { z } from "zod";
@@ -14,6 +15,7 @@ const STATUS = { all: "전체", published: "게시됨", scheduled: "예약", dra
 type Status = keyof typeof STATUS;
 
 export default async function AdminPostsPage({ searchParams }: PageProps<"/admin/posts">) {
+  await requireTopAdmin();
   const params = await searchParams;
   const trash = params.view === "trash";
   const status: Status = typeof params.status === "string" && params.status in STATUS ? (params.status as Status) : "all";

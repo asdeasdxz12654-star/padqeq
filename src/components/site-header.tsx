@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getAdminPending } from "@/lib/admin/pending";
+import { isStaffRole } from "@/lib/auth/roles";
 import { getViewer } from "@/lib/auth/viewer";
 import { getUnreadCount } from "@/lib/notifications/unread";
 import { profileHref } from "@/lib/profiles/profile-href";
@@ -8,9 +9,9 @@ import { NAV_ITEMS } from "./nav-items";
 /** 상단 바. 데스크톱(768px~)에서는 GNB + 업로드 버튼 + 계정, 모바일에서는 로고와 가입 안내만. */
 export async function SiteHeader() {
   const viewer = await getViewer();
-  const isAdmin = viewer?.profile?.role === "admin";
+  const isStaff = isStaffRole(viewer?.profile?.role);
   const mfaRequired = viewer?.mfaRequired ?? false;
-  const [unread, pending] = await Promise.all([getUnreadCount(viewer?.profile ? viewer.id : null), isAdmin ? getAdminPending() : null]);
+  const [unread, pending] = await Promise.all([getUnreadCount(viewer?.profile ? viewer.id : null), isStaff ? getAdminPending() : null]);
 
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-bg/95 pt-[env(safe-area-inset-top)] backdrop-blur">
@@ -50,7 +51,7 @@ export async function SiteHeader() {
               )}
               {pending && (
                 <Link
-                  href="/admin"
+                  href={viewer?.profile?.role === "admin" ? "/admin" : "/admin/reports"}
                   aria-label={pending.total ? `운영, 처리할 일 ${pending.total}건` : "운영"}
                   className="flex min-h-11 items-center gap-1.5 text-quiet hover:text-text"
                 >

@@ -2,16 +2,20 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
+import { ROLE_LABEL } from "@/lib/auth/roles";
+import { getViewer } from "@/lib/auth/viewer";
 import { REASON_LABEL, type ReportReason } from "@/lib/moderation/reasons";
 import { SANCTION_LABEL, type SanctionAction, availableActions, daysLabel, isActiveRestriction } from "@/lib/moderation/sanctions";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { createClient } from "@/lib/supabase/server";
 import { RevealEmail } from "./reveal-email";
+import { RoleForm } from "./role-form";
 import { SanctionForm } from "./sanction-form";
 
 export const metadata: Metadata = { title: "회원 관리" };
 
-// A-05 회원 상세: 상태 · 게시물 · 받은 신고 · 제재 기록 · 조치
+// A-05 회원 상세: 상태 · 게시물 · 받은 신고 · 제재 기록 · 조치 · 역할
+// 운영 도우미는 경고만 하고, 계정 정보(가린 이메일 · 로그인)와 역할은 보지 못한다.
 
 const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "medium", timeStyle: "short" });
 const dateFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "medium" });
@@ -30,6 +34,7 @@ export default async function AdminMemberPage({ params }: PageProps<"/admin/memb
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) notFound();
   const supabase = await createClient();
+  const isAdmin = (await getViewer())?.profile?.role === "admin";
 
   const [{ data: member, error }, restriction, posts, reports, history, account, reporterStats] = await Promise.all([
     supabase
@@ -53,7 +58,7 @@ export default async function AdminMemberPage({ params }: PageProps<"/admin/memb
       .limit(50),
     supabase.rpc("member_sanction_history", { target: id }),
     // 개인정보는 가려서 (A-05 ④)
-    supabase.rpc("admin_member_account", { target: id }).maybeSingle(),
+    isAdmin ? supabase.rpc("admin_member_account", { target: id }).maybeSingle() : Promise.resolve({ data: null }),
     // 이 회원이 한 신고 (허위 신고 이력)
     supabase.rpc("admin_reporter_stats", { ids: [id] }).maybeSingle(),
   ]);
@@ -86,7 +91,7 @@ export default async function AdminMemberPage({ params }: PageProps<"/admin/memb
           </p>
         </div>
         <div className="flex flex-wrap gap-1.5 text-xs md:ml-auto">
-          {member.role === "admin" && <span className="rounded-full border border-line px-2 py-0.5">운영자</span>}
+          {member.role !== "member" && <span className="rounded-full border border-line px-2 py-0.5">{ROLE_LABEL[member.role]}</span>}
           <span className="rounded-full border border-line px-2 py-0.5">{member.can_upload ? "업로드 권한 있음" : "업로드 권한 없음"}</span>
           {suspended && <span className="rounded-full bg-red-500/20 px-2 py-0.5 text-red-300">정지 중</span>}
           {member.deletion_requested_at && <span className="rounded-full border border-line px-2 py-0.5 text-quiet">탈퇴 유예</span>}
@@ -100,20 +105,28 @@ export default async function AdminMemberPage({ params }: PageProps<"/admin/memb
       )}
 
       <dl className="grid grid-cols-[6rem_1fr] gap-y-2 text-sm">
-        <dt className="text-quiet">이메일</dt>
-        <dd>
-          <RevealEmail memberId={member.id} masked={account.data?.masked_email ?? null} />
-        </dd>
-        <dt className="text-quiet">로그인</dt>
-        <dd>{account.data?.provider ?? "-"}</dd>
+        {isAdmin && (
+          <>
+            <dt className="text-quiet">이메일</dt>
+            <dd>
+              <RevealEmail memberId={member.id} masked={account.data?.masked_email ?? null} />
+            </dd>
+            <dt className="text-quiet">로그인</dt>
+            <dd>{account.data?.provider ?? "-"}</dd>
+          </>
+        )}
         <dt className="text-quiet">한 신고</dt>
         <dd className={madeReports?.unreliable ? "text-amber-300" : undefined}>
           {madeReports
             ? `${madeReports.total}건 · 조치 ${madeReports.actioned} · 기각 ${madeReports.dismissed}${madeReports.unreliable ? " · 신뢰 낮음 (자동 임시 비공개에 세지 않음)" : ""}`
             : "없음"}
         </dd>
-        <dt className="text-quiet">최근 로그인</dt>
-        <dd>{account.data?.last_sign_in_at ? timeFormat.format(new Date(account.data.last_sign_in_at)) : "-"}</dd>
+        {isAdmin && (
+          <>
+            <dt className="text-quiet">최근 로그인</dt>
+            <dd>{account.data?.last_sign_in_at ? timeFormat.format(new Date(account.data.last_sign_in_at)) : "-"}</dd>
+          </>
+        )}
       </dl>
 
       <dl className="grid grid-cols-2 gap-2 text-center sm:grid-cols-4">
@@ -130,14 +143,27 @@ export default async function AdminMemberPage({ params }: PageProps<"/admin/memb
         ))}
       </dl>
 
-      {member.role === "admin" ? (
-        <p className="text-sm text-quiet">운영자 계정은 제재할 수 없어요.</p>
+      {member.role === "admin" || (!isAdmin && member.role !== "member") ? (
+        <p className="text-sm text-quiet">운영진 계정은 {isAdmin ? "최고 관리자를 " : ""}제재할 수 없어요.</p>
       ) : (
         <section aria-labelledby="sanction-heading" className="rounded-xl border border-line p-4">
           <h2 id="sanction-heading" className="mb-3 text-lg font-semibold">
             조치
           </h2>
-          <SanctionForm memberId={member.id} options={availableActions({ canUpload: member.can_upload, suspended: suspended !== null })} />
+          <SanctionForm
+            memberId={member.id}
+            options={isAdmin ? availableActions({ canUpload: member.can_upload, suspended: suspended !== null }) : ["warn"]}
+          />
+          {!isAdmin && <p className="mt-2 text-xs text-quiet">운영 도우미는 경고만 할 수 있어요. 정지 · 업로드 회수는 최고 관리자에게 알려 주세요.</p>}
+        </section>
+      )}
+
+      {isAdmin && member.role !== "admin" && (
+        <section aria-labelledby="role-heading" className="rounded-xl border border-line p-4">
+          <h2 id="role-heading" className="mb-3 text-lg font-semibold">
+            역할
+          </h2>
+          <RoleForm key={member.role} memberId={member.id} current={member.role} />
         </section>
       )}
 

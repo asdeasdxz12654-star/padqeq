@@ -1,3 +1,4 @@
+import { requireTopAdmin } from "@/lib/auth/require-admin";
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { EventDraft } from "@/components/event-form";
@@ -13,6 +14,7 @@ export const metadata: Metadata = { title: "행사 관리" };
 const daysAgo = (days: number) => new Date(Date.now() - days * 86_400_000).toISOString().slice(0, 10);
 
 export default async function AdminEventsPage({ searchParams }: PageProps<"/admin/events">) {
+  await requireTopAdmin();
   const params = await searchParams;
   const edit = typeof params.edit === "string" ? params.edit : null;
   const today = todayKst();

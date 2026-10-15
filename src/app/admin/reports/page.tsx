@@ -3,6 +3,7 @@ import Link from "next/link";
 import { REASON_LABEL, queueStatus, type ReportReason } from "@/lib/moderation/reasons";
 import { photoSources } from "@/lib/photos/server";
 import { profileHref } from "@/lib/profiles/profile-href";
+import { getViewer } from "@/lib/auth/viewer";
 import { createClient } from "@/lib/supabase/server";
 import { BlurredPreview } from "./blurred-preview";
 import { CommentDecisionForm } from "./comment-decision-form";
@@ -46,7 +47,9 @@ const REPORT_SELECT = `id, reason, detail, photo_position, status, created_at, r
 
 export default async function AdminReportsPage({ searchParams }: PageProps<"/admin/reports">) {
   const params = await searchParams;
-  const tab =
+  // 운영 도우미: 게시물 · 댓글 · 게시판 신고만 (소명 · 대화 신고 · 크레딧 연결은 최고 관리자)
+  const isAdmin = (await getViewer())?.profile?.role === "admin";
+  const requested =
     params.tab === "done" ||
     params.tab === "appeals" ||
     params.tab === "comments" ||
@@ -55,6 +58,7 @@ export default async function AdminReportsPage({ searchParams }: PageProps<"/adm
     params.tab === "claims"
       ? params.tab
       : "open";
+  const tab = !isAdmin && (requested === "appeals" || requested === "messages" || requested === "claims") ? "open" : requested;
   const selected = typeof params.post === "string" ? params.post : null;
   const supabase = await createClient();
 
@@ -169,13 +173,15 @@ export default async function AdminReportsPage({ searchParams }: PageProps<"/adm
           >
             처리 완료
           </Link>
-          <Link
-            href="/admin/reports?tab=appeals"
-            aria-current={tab === "appeals" ? "page" : undefined}
-            className="rounded-full border border-line px-3 py-1.5 aria-[current=page]:border-text aria-[current=page]:bg-text aria-[current=page]:text-bg"
-          >
-            소명 {appeals.length}
-          </Link>
+          {isAdmin && (
+            <Link
+              href="/admin/reports?tab=appeals"
+              aria-current={tab === "appeals" ? "page" : undefined}
+              className="rounded-full border border-line px-3 py-1.5 aria-[current=page]:border-text aria-[current=page]:bg-text aria-[current=page]:text-bg"
+            >
+              소명 {appeals.length}
+            </Link>
+          )}
           <Link
             href="/admin/reports?tab=comments"
             aria-current={tab === "comments" ? "page" : undefined}
@@ -190,20 +196,24 @@ export default async function AdminReportsPage({ searchParams }: PageProps<"/adm
           >
             게시판 {boardGroups.length}
           </Link>
-          <Link
-            href="/admin/reports?tab=messages"
-            aria-current={tab === "messages" ? "page" : undefined}
-            className="rounded-full border border-line px-3 py-1.5 aria-[current=page]:border-text aria-[current=page]:bg-text aria-[current=page]:text-bg"
-          >
-            메시지 {messageReports.length}
-          </Link>
-          <Link
-            href="/admin/reports?tab=claims"
-            aria-current={tab === "claims" ? "page" : undefined}
-            className="rounded-full border border-line px-3 py-1.5 aria-[current=page]:border-text aria-[current=page]:bg-text aria-[current=page]:text-bg"
-          >
-            크레딧 연결 {claims.length}
-          </Link>
+          {isAdmin && (
+            <Link
+              href="/admin/reports?tab=messages"
+              aria-current={tab === "messages" ? "page" : undefined}
+              className="rounded-full border border-line px-3 py-1.5 aria-[current=page]:border-text aria-[current=page]:bg-text aria-[current=page]:text-bg"
+            >
+              메시지 {messageReports.length}
+            </Link>
+          )}
+          {isAdmin && (
+            <Link
+              href="/admin/reports?tab=claims"
+              aria-current={tab === "claims" ? "page" : undefined}
+              className="rounded-full border border-line px-3 py-1.5 aria-[current=page]:border-text aria-[current=page]:bg-text aria-[current=page]:text-bg"
+            >
+              크레딧 연결 {claims.length}
+            </Link>
+          )}
         </nav>
       </header>
 
