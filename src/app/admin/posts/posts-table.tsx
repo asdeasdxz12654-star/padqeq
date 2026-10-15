@@ -171,7 +171,10 @@ export function PostsTable({ rows, trash, categoryLabel }: { rows: AdminPostRow[
                       {r.title}
                     </Link>
                     <span className="text-xs text-quiet">
-                      {r.photos[0]?.count ?? 0}장{VISIBILITY[r.visibility] ? ` · ${VISIBILITY[r.visibility]}` : ""}
+                      {r.photos[0]?.count ?? 0}장{VISIBILITY[r.visibility] ? ` · ${VISIBILITY[r.visibility]}` : ""} ·{" "}
+                      <Link href={`/admin/posts/${r.id}`} className="underline underline-offset-2 hover:text-text">
+                        이력
+                      </Link>
                     </span>
                   </td>
                   <td className="px-2 py-2 text-quiet">{r.author ? `@${r.author.handle}` : "-"}</td>

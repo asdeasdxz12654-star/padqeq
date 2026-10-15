@@ -75,7 +75,7 @@ export function auditSummary(detail: Json): string {
 
 export function auditTargetHref(table: string, id: string | null): string | null {
   if (!id) return null;
-  if (table === "posts") return `/admin/posts?q=${id}`;
+  if (table === "posts") return `/admin/posts/${id}`;
   if (table === "profiles") return `/admin/members/${id}`;
   if (table === "events") return `/events/${id}`;
   return null;
