@@ -6,6 +6,7 @@ import { ShareButton } from "@/components/share-button";
 import { todayKst } from "@/lib/auth/signup-input";
 import { getViewer } from "@/lib/auth/viewer";
 import { formatRange } from "@/lib/events/calendar";
+import { cosList } from "@/lib/events/cos-list";
 import { attendeeCounts, getEvent, myAttendance } from "@/lib/events/load";
 import type { FeedScope } from "@/lib/posts/feed-scope";
 import { loadScopePage } from "@/lib/posts/feed-scope-server";
@@ -45,6 +46,8 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
     scope ? loadScopePage(scope) : Promise.resolve({ items: [], next: null }),
   ]);
   const publicAttendees = (attendees.data ?? []).filter((a) => a.user);
+  // 코스 목록 (S-12 ③): 공개한 참가자의 코스 메모를 캐릭터별로
+  const costumes = cosList(publicAttendees.map((a) => ({ handle: a.user!.handle, cosNote: a.cos_note })));
 
   return (
     <div className="mx-auto max-w-[1440px] px-4 pt-8 pb-16 md:px-6">
@@ -127,6 +130,30 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
           <p className="px-4 py-24 text-center text-quiet md:px-6">아직 이 행사에서 찍은 사진이 없어요.</p>
         )}
       </section>
+
+      {official && costumes.length > 0 && (
+        <section aria-labelledby="cos-heading" className="mt-10 max-w-3xl">
+          <h2 id="cos-heading" className="mb-1 text-lg font-semibold">
+            코스 목록 <span className="text-sm font-normal text-quiet">{costumes.length}</span>
+          </h2>
+          <p className="mb-4 text-xs text-quiet">참가자가 미리 밝힌 캐릭터예요. 현장에서 같은 작품 · 캐릭터를 찾을 때 쓰세요.</p>
+          <ul className="flex flex-col divide-y divide-line rounded-xl border border-line">
+            {costumes.map((c) => (
+              <li key={c.name} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-4 py-2.5 text-sm">
+                <span className="font-semibold">{c.name}</span>
+                <span className="text-xs text-quiet">{c.handles.length}명</span>
+                <span className="flex flex-wrap gap-x-2 text-quiet">
+                  {c.handles.map((h) => (
+                    <Link key={h} href={profileHref(h)} className="hover:text-text hover:underline">
+                      @{h}
+                    </Link>
+                  ))}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {official && (
         <section aria-labelledby="attendees-heading" className="mt-10 max-w-3xl">

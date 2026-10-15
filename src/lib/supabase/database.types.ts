@@ -1790,6 +1790,7 @@ export type Database = {
       profiles: {
         Row: {
           memory_alerts: boolean
+          credit_auto_approve: boolean
           cover_post_id: string | null
           links: string[]
           pinned_post_ids: string[]
@@ -1805,6 +1806,7 @@ export type Database = {
         }
         Insert: {
           memory_alerts?: boolean
+          credit_auto_approve?: boolean
           cover_post_id?: string | null
           links?: string[]
           pinned_post_ids?: string[]
@@ -1820,6 +1822,7 @@ export type Database = {
         }
         Update: {
           memory_alerts?: boolean
+          credit_auto_approve?: boolean
           cover_post_id?: string | null
           links?: string[]
           pinned_post_ids?: string[]
@@ -2208,6 +2211,8 @@ export type Database = {
         | "message_request"
         | "post_liked"
         | "memory_today"
+        | "credit_auto_approved"
+        | "year_review"
       post_category: "cosplay" | "model" | "landscape" | "other"
       post_status: "draft" | "published" | "hidden"
       report_reason:
@@ -2402,6 +2407,8 @@ export const Constants = {
         "message_request",
         "post_liked",
         "memory_today",
+        "credit_auto_approved",
+        "year_review",
       ],
       post_category: ["cosplay", "model", "landscape", "other"],
       post_status: ["draft", "published", "hidden"],

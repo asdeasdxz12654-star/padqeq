@@ -5,8 +5,8 @@ import { withNext } from "@/lib/auth/next-path";
 import { getViewer } from "@/lib/auth/viewer";
 import { createClient } from "@/lib/supabase/server";
 import { DeletionPanel } from "./deletion-panel";
-import { MemoryAlertToggle } from "./memory-alert-toggle";
 import { MessageSettings } from "./message-settings";
+import { SettingToggle } from "./setting-toggle";
 import { type ThemeChoice, ThemeForm } from "./theme-form";
 import { cookies } from "next/headers";
 
@@ -14,7 +14,7 @@ export const metadata: Metadata = { title: "설정", robots: { index: false } };
 
 const dayFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "long" });
 
-// S-14 설정: 계정 정보 · 받은 경고 · 화면(테마) · 알림 · 메시지 받기 범위 · 차단 목록 · 내 데이터 내려받기 · 계정 삭제
+// S-14 설정: 계정 정보 · 받은 경고 · 화면(테마) · 알림 · 크레딧 자동 승인 · 메시지 받기 범위 · 차단 목록 · 내 데이터 내려받기 · 계정 삭제
 export default async function SettingsPage() {
   const viewer = await getViewer();
   if (!viewer) redirect(withNext("/login", "/settings"));
@@ -23,7 +23,7 @@ export default async function SettingsPage() {
   const supabase = await createClient();
   const [{ data: claims }, { data: profile }, { data: setting }, { data: blocks }, { data: warnings }] = await Promise.all([
     supabase.auth.getClaims(),
-    supabase.from("profiles").select("created_at, deletion_requested_at, memory_alerts").eq("id", viewer.id).single(),
+    supabase.from("profiles").select("created_at, deletion_requested_at, memory_alerts, credit_auto_approve").eq("id", viewer.id).single(),
     supabase.from("message_settings").select("receive").eq("user_id", viewer.id).maybeSingle(),
     supabase.from("blocks").select("blocked:profiles!blocks_blocked_id_fkey(id, handle)").eq("blocker_id", viewer.id).limit(1000),
     // 받은 경고 (A-05 ⑥, 본인만 본다)
@@ -93,7 +93,24 @@ export default async function SettingsPage() {
         <h2 id="alerts-heading" className="text-lg font-semibold">
           알림
         </h2>
-        <MemoryAlertToggle initial={profile?.memory_alerts ?? true} />
+        <SettingToggle
+          kind="memory"
+          initial={profile?.memory_alerts ?? true}
+          title="추억 알림"
+          help="예전 오늘 찍은 내 사진 · 크레딧된 사진이 있으면 하루 한 번, 12월에는 '나의 한 해'가 열리면 알려 드려요."
+        />
+      </section>
+
+      <section aria-labelledby="credit-heading" className="flex flex-col gap-3">
+        <h2 id="credit-heading" className="text-lg font-semibold">
+          크레딧
+        </h2>
+        <SettingToggle
+          kind="creditAuto"
+          initial={profile?.credit_auto_approve ?? false}
+          title="팔로우하는 회원의 태그는 자동 승인"
+          help="내가 팔로우하는 회원이 나를 크레딧으로 태그하면 바로 승인해요. 모르는 계정의 태그는 늘 직접 승인하고, 승인한 뒤에도 언제든 뺄 수 있어요."
+        />
       </section>
 
       <section id="messages" aria-labelledby="messages-heading" className="flex scroll-mt-20 flex-col gap-3">

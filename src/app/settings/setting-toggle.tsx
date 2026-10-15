@@ -1,14 +1,17 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { setMemoryAlerts } from "./preferences";
+import { setCreditAutoApprove, setMemoryAlerts } from "./preferences";
 
-export function MemoryAlertToggle({ initial }: { initial: boolean }) {
+const ACTIONS = { memory: setMemoryAlerts, creditAuto: setCreditAutoApprove };
+
+/** 켜기 · 끄기 설정 하나 (바로 저장, 실패하면 되돌린다) */
+export function SettingToggle({ kind, initial, title, help }: { kind: keyof typeof ACTIONS; initial: boolean; title: string; help: string }) {
   const [on, setOn] = useState(initial);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   return (
-    <label className="flex items-start gap-3 text-sm">
+    <label className="flex min-h-11 items-start gap-3 text-sm">
       <input
         type="checkbox"
         checked={on}
@@ -16,8 +19,9 @@ export function MemoryAlertToggle({ initial }: { initial: boolean }) {
         onChange={(e) => {
           const next = e.target.checked;
           setOn(next);
+          setError(null);
           startTransition(async () => {
-            const result = await setMemoryAlerts(next);
+            const result = await ACTIONS[kind](next);
             if (!result.ok) {
               setOn(!next);
               setError(result.error);
@@ -27,8 +31,8 @@ export function MemoryAlertToggle({ initial }: { initial: boolean }) {
         className="mt-0.5 size-4 accent-[var(--accent)]"
       />
       <span>
-        &lsquo;N년 전 오늘&rsquo; 알림
-        <span className="block text-xs text-quiet">예전 오늘 찍은 내 사진 · 크레딧된 사진이 있으면 하루 한 번 알려 드려요.</span>
+        {title}
+        <span className="block text-xs text-quiet">{help}</span>
         {error && <span className="block text-xs text-red-300">{error}</span>}
       </span>
     </label>
