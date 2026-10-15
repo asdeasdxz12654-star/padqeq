@@ -4,7 +4,7 @@ import { PhotoFeed } from "@/components/photo-feed";
 import { todayKst } from "@/lib/auth/signup-input";
 import { getViewer } from "@/lib/auth/viewer";
 import { getFollowedMembers } from "@/lib/follows/follows";
-import { loadFeed } from "@/lib/posts/feed";
+import { loadFeedByIds } from "@/lib/posts/feed";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "N년 전 오늘" };
@@ -48,7 +48,7 @@ export default async function MemoriesPage({ searchParams }: PageProps<"/memorie
   const requested = typeof params.scope === "string" && params.scope in SCOPES ? (params.scope as Scope) : null;
   const scope: Scope = requested ?? (viewer?.profile && ids.some(inScope.mine) ? "mine" : "all");
   const scopedIds = ids.filter(inScope[scope]);
-  const feed = scopedIds.length ? await loadFeed({ year: null, category: null, query: null, postIds: scopedIds }) : [];
+  const feed = await loadFeedByIds(scopedIds);
   const years = [...new Set(feed.map((f) => yearsAgo.get(f.id)!))].sort((a, b) => a - b);
 
   const [, month, day] = today.split("-").map(Number);

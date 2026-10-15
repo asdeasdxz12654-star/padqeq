@@ -7,7 +7,7 @@ import { TagChip } from "@/components/tag-chip";
 import { withNext } from "@/lib/auth/next-path";
 import { getViewer } from "@/lib/auth/viewer";
 import { CATEGORIES, CATEGORY_LABEL } from "@/lib/photos/post-input";
-import { type FeedItem, loadFeed } from "@/lib/posts/feed";
+import { type FeedItem, loadFeed, loadFeedByIds } from "@/lib/posts/feed";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { busiestMonth, monthBars, shareCardContent, yearReviewSchema } from "@/lib/review/year-review";
 import { createClient } from "@/lib/supabase/server";
@@ -35,7 +35,7 @@ export default async function YearReviewPage({ searchParams }: PageProps<"/me/ye
   const years = [...new Set([currentYearKst(), ...(yearRows.data ?? []).map((r) => r.shot_year)])].sort((a, b) => b - a);
   const bookends = [review.first_post, review.last_post].filter((id): id is string => id !== null);
   const covers = new Map<string, FeedItem>(
-    (bookends.length ? await loadFeed({ year: null, category: null, query: null, postIds: [...new Set(bookends)] }) : []).map((p) => [p.id, p]),
+    (await loadFeedByIds(bookends)).map((p) => [p.id, p]),
   );
   const busiest = busiestMonth(review.months);
 

@@ -1,3 +1,4 @@
+import { todayKst } from "@/lib/auth/signup-input";
 import type { Database } from "@/lib/supabase/database.types";
 
 export type NotificationKind = Database["public"]["Enums"]["notification_kind"];
@@ -113,7 +114,7 @@ export function notificationGroup(kind: NotificationKind): NotificationGroup {
 
 /** 시간 묶음 (S-10 ⑥): 오늘 · 이번 주(7일) · 이전 — 한국 날짜 기준 */
 export function timeBucket(createdAt: string, now: Date = new Date()): "오늘" | "이번 주" | "이전" {
-  const day = (d: Date) => new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Seoul" }).format(d);
+  const day = (d: Date) => todayKst(d);
   const created = new Date(createdAt);
   if (day(created) === day(now)) return "오늘";
   return now.getTime() - created.getTime() < 7 * 86_400_000 ? "이번 주" : "이전";

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { withNext } from "@/lib/auth/next-path";
+import { ROLE_LABEL, isStaffRole } from "@/lib/auth/roles";
 import { getViewer } from "@/lib/auth/viewer";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { createClient } from "@/lib/supabase/server";
@@ -28,7 +29,7 @@ export default async function MePage() {
   const supabase = await createClient();
   const [{ data: full }, openReports, creditRows, followedTags, claimRows, followedMembers, openInquiries, { data: unreadThreads }] = await Promise.all([
     supabase.from("profiles").select("bio, links, deletion_requested_at").eq("id", viewer.id).single(),
-    profile.role === "admin"
+    isStaffRole(profile.role)
       ? supabase.from("reports").select("id", { count: "exact", head: true }).eq("status", "open")
       : Promise.resolve({ count: null }),
     // 나를 태그했고 아직 답하지 않은 크레딧 (게시된 글만 보인다, RLS)
@@ -95,8 +96,8 @@ export default async function MePage() {
           <h1 className="truncate text-xl font-bold">{profile.display_name}</h1>
           <p className="text-sm text-quiet">
             @{profile.handle}
-            {profile.role === "admin" && (
-              <span className="ml-2 rounded-full border border-line px-2 py-0.5 text-xs text-text">운영자</span>
+            {profile.role !== "member" && (
+              <span className="ml-2 rounded-full border border-line px-2 py-0.5 text-xs text-text">{ROLE_LABEL[profile.role]}</span>
             )}
           </p>
         </div>
@@ -167,11 +168,13 @@ export default async function MePage() {
         <span className="text-xs text-quiet">한 해 동안 담은 사진 돌아보기 ›</span>
       </Link>
 
-      {profile.role === "admin" && (
+      {isStaffRole(profile.role) && (
         <nav aria-label="운영" className="mt-8 flex flex-wrap gap-2">
-          <Link href="/admin" className="rounded-xl border border-line px-4 py-2 text-sm font-semibold hover:border-quiet">
-            운영 홈
-          </Link>
+          {profile.role === "admin" && (
+            <Link href="/admin" className="rounded-xl border border-line px-4 py-2 text-sm font-semibold hover:border-quiet">
+              운영 홈
+            </Link>
+          )}
           <Link href="/admin/reports" className="rounded-xl border border-line px-4 py-2 text-sm hover:border-quiet">
             신고 처리
             {openReports.count ? <span className="ml-2 rounded-full bg-red-500/20 px-2 text-red-300">{openReports.count}</span> : null}
@@ -179,13 +182,23 @@ export default async function MePage() {
           <Link href="/admin/members" className="rounded-xl border border-line px-4 py-2 text-sm hover:border-quiet">
             회원 관리
           </Link>
-          <Link href="/admin/events" className="rounded-xl border border-line px-4 py-2 text-sm hover:border-quiet">
-            행사 관리
-          </Link>
-          <Link href="/admin/support" className="rounded-xl border border-line px-4 py-2 text-sm hover:border-quiet">
-            고객센터 운영
-            {openInquiries.count ? <span className="ml-2 rounded-full bg-red-500/20 px-2 text-red-300">{openInquiries.count}</span> : null}
-          </Link>
+          {profile.role === "admin" && (
+            <>
+              <Link href="/admin/posts" className="rounded-xl border border-line px-4 py-2 text-sm hover:border-quiet">
+                게시물 관리
+              </Link>
+              <Link href="/admin/events" className="rounded-xl border border-line px-4 py-2 text-sm hover:border-quiet">
+                행사 관리
+              </Link>
+              <Link href="/admin/support" className="rounded-xl border border-line px-4 py-2 text-sm hover:border-quiet">
+                고객센터 운영
+                {openInquiries.count ? <span className="ml-2 rounded-full bg-red-500/20 px-2 text-red-300">{openInquiries.count}</span> : null}
+              </Link>
+              <Link href="/admin/audit" className="rounded-xl border border-line px-4 py-2 text-sm hover:border-quiet">
+                감사 로그
+              </Link>
+            </>
+          )}
         </nav>
       )}
 

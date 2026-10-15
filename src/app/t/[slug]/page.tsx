@@ -3,19 +3,22 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { FollowButton } from "@/components/follow-button";
+import { FeedList } from "@/components/feed-list";
 import { PhotoFeed } from "@/components/photo-feed";
 import { TagChip } from "@/components/tag-chip";
 import { YearChips } from "@/components/year-chips";
 import { getViewer } from "@/lib/auth/viewer";
-import { loadFeed } from "@/lib/posts/feed";
+import { loadFeedByIds } from "@/lib/posts/feed";
+import type { FeedScope } from "@/lib/posts/feed-scope";
+import { loadScopePage } from "@/lib/posts/feed-scope-server";
 import { getFollowedTags } from "@/lib/follows/follows";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { createClient } from "@/lib/supabase/server";
 import { TAG_KIND_LABEL } from "@/lib/tags/tag-rules";
 import { buildYearChips, parseYearParam } from "@/lib/year-chips";
 
-// S-05 태그 허브 (1단계: 계층 · 별칭 · 캐릭터 목록 · 사진 · 촬영 연도).
-// 태그 팔로우는 홈 '팔로우' 피드로 이어진다. 인기/최신 탭 · 관련 태그는 반응 기능과 함께.
+// S-05 태그 허브: 계층(작품 › 캐릭터) · 별칭 · 캐릭터 목록 · 최신 / 인기 / 코스어 탭 · 촬영 연도.
+// 태그 팔로우는 홈 '팔로우' 피드로 이어진다.
 
 const getTag = cache(async (rawSlug: string) => {
   let slug: string;
@@ -62,14 +65,14 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
   const base = `/t/${encodeURIComponent(tag.slug)}`;
 
   const supabase = await createClient();
-  // 작품 허브에는 그 작품 캐릭터 사진도 함께
-  const tagIds = [tag.id, ...tag.children.map((c) => c.id)];
   // 허브 탭 (S-04 ⑧): 최신 · 인기(최근 30일 좋아요) · 코스어(작품 · 캐릭터)
   const showCosers = tag.kind === "work" || tag.kind === "character";
   const view = query.view === "popular" ? "popular" : query.view === "cosers" && showCosers ? "cosers" : "latest";
-  const [years, items, viewer, popular, cosers] = await Promise.all([
+  // 최신: 작품 허브에는 그 작품 캐릭터 사진도 함께
+  const scope: FeedScope = { kind: "tag", tagId: tag.id, year };
+  const [years, first, viewer, popular, cosers] = await Promise.all([
     supabase.rpc("published_shot_years"),
-    view === "latest" ? loadFeed({ year, category: null, query: null, tagIds }) : Promise.resolve([]),
+    view === "latest" ? loadScopePage(scope) : Promise.resolve({ items: [], next: null }),
     getViewer(),
     view === "popular" ? popularPosts(tag.id) : Promise.resolve([]),
     view === "cosers" ? supabase.rpc("tag_cosers", { tag: tag.id }).then((r) => r.data ?? []) : Promise.resolve([]),
@@ -147,8 +150,10 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
             selected={year}
             hrefFor={(y) => (y === null ? base : `${base}?year=${y}`)}
           />
-          <PhotoFeed
-            items={items}
+          <FeedList
+            key={JSON.stringify(scope)}
+            scope={scope}
+            initial={first}
             empty={year ? `${year}년의 ${tag.name} 사진이 아직 없어요.` : `${tag.name} 사진이 아직 없어요.`}
           />
         </>
@@ -190,7 +195,5 @@ async function popularPosts(tagId: string) {
   const supabase = await createClient();
   const { data } = await supabase.rpc("tag_popular_posts", { tag: tagId, days: 30, max_rows: 40 });
   if (!data?.length) return [];
-  const order = data.map((r) => r.post_id);
-  const feed = await loadFeed({ year: null, category: null, query: null, postIds: order });
-  return order.flatMap((id) => feed.filter((f) => f.id === id));
+  return loadFeedByIds(data.map((r) => r.post_id));
 }

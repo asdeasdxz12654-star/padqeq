@@ -465,6 +465,7 @@ async function AppealDetail({ appeal, post }: { appeal: AppealRow; post: NonNull
 async function ReportDetail({ group }: { group: { post: NonNullable<ReportRow["post"]>; reports: ReportRow[] } }) {
   const { post, reports } = group;
   const supabase = await createClient();
+  const isAdmin = (await getViewer())?.profile?.role === "admin";
   const reporterIds = [...new Set(reports.flatMap((r) => (r.reporter ? [r.reporter.id] : [])))];
   const [photos, consents, reporterStats] = await Promise.all([
     supabase.from("photos").select("storage_key, width, height, position").eq("post_id", post.id).order("position"),
@@ -508,7 +509,11 @@ async function ReportDetail({ group }: { group: { post: NonNullable<ReportRow["p
           </span>
           <span className="text-quiet">
             촬영 동의 기록:{" "}
-            {consents.data?.length
+            {!isAdmin
+              ? post.has_people
+                ? "최고 관리자만 볼 수 있어요"
+                : "해당 없음 (사람 없는 사진)"
+              : consents.data?.length
               ? consents.data.map((c) => `${c.subject_label} · ${c.consented_on}${c.has_minor ? " · 미성년자(보호자 동의)" : ""}`).join(", ")
               : post.has_people
                 ? "없음"

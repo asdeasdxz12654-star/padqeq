@@ -38,6 +38,9 @@ export default async function CommunityPage({ searchParams }: PageProps<"/commun
   const kind = (Constants.public.Enums.casting_kind as readonly string[]).includes(one(params.kind) ?? "") ? (one(params.kind) as CastingKind) : null;
   const terms = (Constants.public.Enums.casting_terms as readonly string[]).includes(one(params.terms) ?? "") ? (one(params.terms) as CastingTerms) : null;
   const openOnly = params.open === "1";
+  // 이어 보기: 이 시각보다 먼저 쓴 글
+  const before = typeof params.before === "string" && !Number.isNaN(Date.parse(params.before)) ? new Date(params.before).toISOString() : null;
+  const pageSize = board ? 50 : 20;
 
   const supabase = await createClient();
   let query = supabase
@@ -47,7 +50,8 @@ export default async function CommunityPage({ searchParams }: PageProps<"/commun
     )
     .is("hidden_at", null)
     .order("created_at", { ascending: false })
-    .limit(board ? 50 : 20);
+    .limit(pageSize);
+  if (before) query = query.lt("created_at", before);
   if (board) query = query.eq("board", board);
   if (region && (board === "casting" || board === "places")) query = query.eq("region", region);
   if (board === "casting") {
@@ -55,12 +59,12 @@ export default async function CommunityPage({ searchParams }: PageProps<"/commun
     if (terms) query = query.eq("casting_terms", terms);
     if (openOnly) query = query.is("closed_at", null);
   }
-  const [{ data, error }, viewer, events] = await Promise.all([query, getViewer(), board ? Promise.resolve([]) : upcomingEvents(todayKst(), 3)]);
+  const [{ data, error }, viewer, events] = await Promise.all([query, getViewer(), board || before ? Promise.resolve([]) : upcomingEvents(todayKst(), 3)]);
   if (error) throw error;
   const posts = data as unknown as Row[];
 
   const href = (next: Record<string, string | null>) => {
-    const merged = { board, region, kind, terms, open: openOnly ? "1" : null, ...next };
+    const merged = { board, region, kind, terms, open: openOnly ? "1" : null, before: null, ...next };
     const search = new URLSearchParams(Object.entries(merged).filter((e): e is [string, string] => e[1] !== null)).toString();
     return search ? `/community?${search}` : "/community";
   };
@@ -77,7 +81,7 @@ export default async function CommunityPage({ searchParams }: PageProps<"/commun
         )}
       </div>
 
-      {!board && (
+      {!board && !before && (
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
           <section aria-labelledby="events-heading" className="rounded-2xl border border-line p-4">
             <h2 id="events-heading" className="flex items-center justify-between font-semibold">
@@ -194,6 +198,13 @@ export default async function CommunityPage({ searchParams }: PageProps<"/commun
             </li>
           ))}
         </ul>
+      )}
+      {posts.length === pageSize && (
+        <div className="mt-6 flex justify-center">
+          <Link href={href({ before: posts.at(-1)!.created_at })} className="min-h-11 rounded-full border border-line px-6 py-2.5 text-sm hover:border-quiet">
+            이전 글 더 보기
+          </Link>
+        </div>
       )}
     </div>
   );

@@ -138,12 +138,18 @@ export async function createTag(input: z.input<typeof createSchema>): Promise<{ 
 
 /** 이미 올린 내 사진 중 비슷한 것 (업로드 화면 경고, A-02 ②). 들어온 순서대로 글 id 또는 null */
 export async function findSimilarPhotos(hashes: string[]): Promise<(string | null)[]> {
-  const valid = hashes.slice(0, 100).filter((h) => /^[0-9a-f]{16}$/.test(h));
-  if (!valid.length) return hashes.map(() => null);
+  const input = Array.isArray(hashes) ? hashes.slice(0, 100) : [];
+  const valid = input.flatMap((h, i) => (typeof h === "string" && /^[0-9a-f]{16}$/.test(h) ? [{ h, i }] : []));
+  const none = input.map((): string | null => null);
+  if (!valid.length) return none;
   const viewer = await getViewer();
-  if (!viewer?.profile?.can_upload) return hashes.map(() => null);
+  if (!viewer?.profile?.can_upload) return none;
   const supabase = await createClient();
-  const { data } = await supabase.rpc("my_similar_photos", { hashes: valid });
-  const byIdx = new Map((data ?? []).map((r) => [r.idx, r.post_id]));
-  return valid.map((_, i) => byIdx.get(i + 1) ?? null);
+  const { data } = await supabase.rpc("my_similar_photos", { hashes: valid.map((v) => v.h) });
+  // DB는 넘긴 배열의 위치(1부터)로 답한다 → 원래 위치로 되돌린다
+  for (const row of data ?? []) {
+    const original = valid[row.idx - 1]?.i;
+    if (original !== undefined) none[original] = row.post_id;
+  }
+  return none;
 }

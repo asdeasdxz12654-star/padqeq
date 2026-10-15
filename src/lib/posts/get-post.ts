@@ -1,10 +1,10 @@
+import { isUuid } from "@/lib/ids";
 import "server-only";
 import { type ExifInfo, exifLine } from "@/lib/photos/exif-info";
 import { cache } from "react";
 import { viewerSources, type ViewerSources } from "@/lib/photos/server";
 import { createClient } from "@/lib/supabase/server";
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 export type ViewerPhoto = {
   id: string;
@@ -20,7 +20,7 @@ export type ViewerPhoto = {
  * 없거나 볼 수 없으면 null — 존재 여부를 구분하지 않는다 (P-04).
  */
 export const getPost = cache(async (id: string) => {
-  if (!UUID.test(id)) return null;
+  if (!isUuid(id)) return null;
   const supabase = await createClient();
   const { data: post, error } = await supabase
     .from("posts")

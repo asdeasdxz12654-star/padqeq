@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { PhotoFeed } from "@/components/photo-feed";
 import { withNext } from "@/lib/auth/next-path";
 import { getViewer } from "@/lib/auth/viewer";
-import { loadFeed } from "@/lib/posts/feed";
+import { loadFeedByIds } from "@/lib/posts/feed";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "저장한 사진", robots: { index: false } };
@@ -23,12 +23,7 @@ export default async function SavedPage() {
     .order("created_at", { ascending: false })
     .limit(200);
   if (error) throw error;
-  const order = data.map((b) => b.post_id);
-  const items = order.length
-    ? (await loadFeed({ year: null, category: null, query: null, postIds: order })).toSorted(
-        (a, b) => order.indexOf(a.id) - order.indexOf(b.id),
-      )
-    : [];
+  const items = await loadFeedByIds(data.map((b) => b.post_id));
 
   return (
     <div className="mx-auto max-w-[1440px]">

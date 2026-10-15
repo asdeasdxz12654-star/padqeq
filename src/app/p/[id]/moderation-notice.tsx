@@ -2,8 +2,6 @@ import { createClient } from "@/lib/supabase/server";
 import { AppealForm } from "./appeal-form";
 
 const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "medium", timeStyle: "short" });
-
-/** 작성자에게만: 임시 비공개 · 운영자 게시 중단 안내와 소명 (이의 제기) */
 const dayFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "long" });
 const APPEAL_DAYS = 30;
 
@@ -11,6 +9,7 @@ const APPEAL_DAYS = 30;
 const appealDeadline = (actionAt: string) => new Date(Date.parse(actionAt) + APPEAL_DAYS * 86_400_000);
 const isPast = (when: Date) => when.getTime() < Date.now();
 
+/** 작성자에게만: 임시 비공개 · 운영자 게시 중단 안내와 소명 (이의 제기) */
 export async function ModerationNotice({ postId, removed, actionAt }: { postId: string; removed: boolean; actionAt: string }) {
   const supabase = await createClient();
   const { data: appeals } = await supabase

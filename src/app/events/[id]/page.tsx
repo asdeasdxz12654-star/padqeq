@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { PhotoFeed } from "@/components/photo-feed";
+import { FeedList } from "@/components/feed-list";
 import { ShareButton } from "@/components/share-button";
 import { todayKst } from "@/lib/auth/signup-input";
 import { getViewer } from "@/lib/auth/viewer";
 import { formatRange } from "@/lib/events/calendar";
 import { attendeeCounts, getEvent, myAttendance } from "@/lib/events/load";
-import { loadFeed } from "@/lib/posts/feed";
+import type { FeedScope } from "@/lib/posts/feed-scope";
+import { loadScopePage } from "@/lib/posts/feed-scope-server";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { createClient } from "@/lib/supabase/server";
 import { AttendPanel } from "../attend-panel";
@@ -27,6 +28,7 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
   const official = event.status === "official";
 
   const supabase = await createClient();
+  const scope: FeedScope | null = event.tag_id ? { kind: "tag", tagId: event.tag_id, year: null } : null;
   const [counts, mine, attendees, tag, photos] = await Promise.all([
     official ? attendeeCounts([event.id]) : Promise.resolve(new Map<string, number>()),
     viewer?.profile ? myAttendance(viewer.id, [event.id]) : Promise.resolve(new Map()),
@@ -40,7 +42,7 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
           .limit(200)
       : Promise.resolve({ data: [] }),
     event.tag_id ? supabase.from("tags").select("slug, name").eq("id", event.tag_id).maybeSingle() : Promise.resolve({ data: null }),
-    event.tag_id ? loadFeed({ year: null, category: null, query: null, tagIds: [event.tag_id] }) : Promise.resolve([]),
+    scope ? loadScopePage(scope) : Promise.resolve({ items: [], next: null }),
   ]);
   const publicAttendees = (attendees.data ?? []).filter((a) => a.user);
 
@@ -67,8 +69,8 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
             <span className="text-quiet"> · {event.venue} · {event.region}</span>
           </p>
           <p className="text-sm text-quiet">
-            {official && `참가 예정 ${counts.get(event.id) ?? 0}명 · `}사진 {photos.length}
-            {photos.length >= 40 ? "+" : ""}장
+            {official && `참가 예정 ${counts.get(event.id) ?? 0}명 · `}게시물 {photos.items.length}
+            {photos.next ? "+" : ""}개
           </p>
           <p className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
             {event.url && (
@@ -119,7 +121,11 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
         <h2 id="photos-heading" className="mb-4 text-lg font-semibold">
           사진
         </h2>
-        <PhotoFeed items={photos} empty="아직 이 행사에서 찍은 사진이 없어요." />
+        {scope ? (
+          <FeedList key={JSON.stringify(scope)} scope={scope} initial={photos} empty="아직 이 행사에서 찍은 사진이 없어요." />
+        ) : (
+          <p className="px-4 py-24 text-center text-quiet md:px-6">아직 이 행사에서 찍은 사진이 없어요.</p>
+        )}
       </section>
 
       {official && (

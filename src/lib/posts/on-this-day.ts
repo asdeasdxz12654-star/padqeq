@@ -1,7 +1,7 @@
 import "server-only";
 import { todayKst } from "@/lib/auth/signup-input";
 import { createClient } from "@/lib/supabase/server";
-import { type FeedItem, loadFeed } from "./feed";
+import { type FeedItem, loadFeedByIds } from "./feed";
 
 export type OnThisDayItem = FeedItem & { yearsAgo: number };
 
@@ -13,9 +13,6 @@ export async function loadOnThisDay(now: Date = new Date()): Promise<OnThisDayIt
   if (error || !data.length) return [];
 
   const yearsAgo = new Map(data.map((r) => [r.post_id, r.years_ago]));
-  const items = await loadFeed({ year: null, category: null, query: null, postIds: [...yearsAgo.keys()] });
-  const order = [...yearsAgo.keys()];
-  return items
-    .flatMap((item) => (yearsAgo.has(item.id) ? [{ ...item, yearsAgo: yearsAgo.get(item.id)! }] : []))
-    .sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+  const items = await loadFeedByIds([...yearsAgo.keys()]);
+  return items.map((item) => ({ ...item, yearsAgo: yearsAgo.get(item.id)! }));
 }

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { todayKst } from "@/lib/auth/signup-input";
 import { getViewer } from "@/lib/auth/viewer";
 import { EVIDENCE_TYPES, MAX_EVIDENCE_BYTES } from "@/lib/moderation/evidence";
 import { REPORT_REASONS } from "@/lib/moderation/reasons";
@@ -271,7 +272,7 @@ export async function setBookmark(postId: string, save: boolean): Promise<{ ok: 
 
 /** 좋아요 · 취소 (S-06 ②). 볼 수 있는 게시된 글 · 정지 여부는 DB가 확인한다. */
 export async function setLike(postId: string, like: boolean): Promise<{ ok: true } | { ok: false; error: string }> {
-  if (!idSchema.safeParse(postId).success) return { ok: false, error: "잘못된 요청이에요." };
+  if (!idSchema.safeParse(postId).success || typeof like !== "boolean") return { ok: false, error: "잘못된 요청이에요." };
   const viewer = await getViewer();
   if (!viewer?.profile) return { ok: false, error: "로그인이 필요해요." };
   const supabase = await createClient();
@@ -288,7 +289,9 @@ export async function setLike(postId: string, like: boolean): Promise<{ ok: true
 
 /** 작성자: 이 글을 프로필 커버로 · 고정 (S-09). 내 글인지 · 3개 제한은 DB가 확인한다. */
 export async function setProfileFeature(postId: string, kind: "cover" | "pin", on: boolean): Promise<{ ok: true } | { ok: false; error: string }> {
-  if (!idSchema.safeParse(postId).success) return { ok: false, error: "잘못된 요청이에요." };
+  if (!idSchema.safeParse(postId).success || (kind !== "cover" && kind !== "pin") || typeof on !== "boolean") {
+    return { ok: false, error: "잘못된 요청이에요." };
+  }
   const viewer = await getViewer();
   if (!viewer?.profile) return { ok: false, error: "로그인이 필요해요." };
   const supabase = await createClient();
@@ -308,11 +311,11 @@ export async function setProfileFeature(postId: string, kind: "cover" | "pin", o
 
 /** 운영자: 오늘(한국 날짜)의 픽 넣기 · 빼기. 하루 10개 제한은 DB가 확인한다. */
 export async function setDailyPick(postId: string, on: boolean): Promise<{ ok: true } | { ok: false; error: string }> {
-  if (!idSchema.safeParse(postId).success) return { ok: false, error: "잘못된 요청이에요." };
+  if (!idSchema.safeParse(postId).success || typeof on !== "boolean") return { ok: false, error: "잘못된 요청이에요." };
   const viewer = await getViewer();
   if (viewer?.profile?.role !== "admin") return { ok: false, error: "운영자만 할 수 있어요." };
   const supabase = await createClient();
-  const today = new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Seoul" }).format(new Date());
+  const today = todayKst();
   const { error } = on
     ? await supabase.from("daily_picks").insert({ pick_date: today, post_id: postId, created_by: viewer.id })
     : await supabase.from("daily_picks").delete().eq("pick_date", today).eq("post_id", postId);

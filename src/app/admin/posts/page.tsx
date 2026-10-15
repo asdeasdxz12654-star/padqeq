@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { z } from "zod";
 import { CATEGORY_LABEL } from "@/lib/photos/post-input";
+import { escapeLike } from "@/lib/posts/feed-params";
 import { createClient } from "@/lib/supabase/server";
 import { type AdminPostRow, PostsTable } from "./posts-table";
 
@@ -46,9 +47,10 @@ export default async function AdminPostsPage({ searchParams }: PageProps<"/admin
   if (year) query = query.eq("shot_year", year);
 
   if (!trash && status === "reported") {
-    const { data, error } = await supabase.from("reports").select("post_id").eq("status", "open").limit(1000);
+    // 주소 길이 제한 때문에 가장 오래된 신고 300개의 글까지 (그 이상은 신고 처리 화면에서)
+    const { data, error } = await supabase.from("reports").select("post_id").eq("status", "open").order("created_at").limit(1000);
     if (error) throw error;
-    query = query.in("id", [...new Set(data.map((r) => r.post_id))]);
+    query = query.in("id", [...new Set(data.map((r) => r.post_id))].slice(0, 300));
   }
 
   if (q) {
@@ -56,7 +58,7 @@ export default async function AdminPostsPage({ searchParams }: PageProps<"/admin
     else if (q.startsWith("@")) {
       const { data: author } = await supabase.from("profiles").select("id").eq("handle", q.slice(1).toLowerCase()).maybeSingle();
       query = query.eq("author_id", author?.id ?? "00000000-0000-0000-0000-000000000000");
-    } else query = query.ilike("title", `%${q}%`);
+    } else query = query.ilike("title", `%${escapeLike(q)}%`);
   }
 
   const [{ data, count, error }, years] = await Promise.all([query, supabase.from("posts").select("shot_year").order("shot_year", { ascending: false }).limit(1000)]);

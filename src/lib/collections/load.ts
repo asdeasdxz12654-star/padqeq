@@ -1,5 +1,5 @@
 import "server-only";
-import { type FeedItem, loadFeed } from "@/lib/posts/feed";
+import { type FeedItem, loadFeedByIds } from "@/lib/posts/feed";
 import { createClient } from "@/lib/supabase/server";
 
 export type CollectionCard = {
@@ -35,7 +35,7 @@ export async function loadCollectionCards(ownerId: string): Promise<CollectionCa
   const byCollection = Map.groupBy(items ?? [], (i) => i.collection_id);
   const coverIds = [...new Set(collections.flatMap((c) => byCollection.get(c.id)?.[0]?.post_id ?? []))];
   const covers = new Map(
-    (coverIds.length ? await loadFeed({ year: null, category: null, query: null, postIds: coverIds }) : []).map((p) => [p.id, p.cover]),
+    (await loadFeedByIds(coverIds)).map((p) => [p.id, p.cover]),
   );
 
   return collections.map((c) => {

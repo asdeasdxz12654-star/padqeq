@@ -2,9 +2,8 @@ import type { NextConfig } from "next";
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
 // CSP(nonce)는 요청마다 달라야 하므로 worker.ts에서 붙인다.
-// 여기에는 요청과 무관한 고정 보안 헤더만 둔다.
+// 여기에는 요청과 무관한 고정 보안 헤더만 둔다. HSTS도 worker.ts가 모든 응답에 붙인다.
 const securityHeaders = [
-  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },

@@ -1,3 +1,4 @@
+import { isUuid } from "@/lib/ids";
 import "server-only";
 import type { NextRequest } from "next/server";
 import { getViewer } from "@/lib/auth/viewer";
@@ -11,7 +12,6 @@ import { evidenceObjectKey, sniffEvidence } from "./evidence";
 
 export type EvidenceKind = "report" | "appeal";
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const NO_STORE = { "Cache-Control": "private, no-store" };
 const fail = (status: number, message: string) => Response.json({ error: message }, { status, headers: NO_STORE });
 
@@ -39,7 +39,7 @@ async function load(kind: EvidenceKind, id: string) {
 }
 
 export async function putEvidence(kind: EvidenceKind, request: NextRequest, id: string): Promise<Response> {
-  if (!UUID.test(id)) return fail(400, "잘못된 주소");
+  if (!isUuid(id)) return fail(400, "잘못된 주소");
   // 쿠키 인증 API이므로 같은 사이트에서 온 요청만 받는다 (CSRF 방지)
   const site = request.headers.get("sec-fetch-site");
   const origin = request.headers.get("origin");
@@ -75,7 +75,7 @@ export async function putEvidence(kind: EvidenceKind, request: NextRequest, id: 
 }
 
 export async function getEvidence(kind: EvidenceKind, id: string): Promise<Response> {
-  if (!UUID.test(id)) return fail(400, "잘못된 주소");
+  if (!isUuid(id)) return fail(400, "잘못된 주소");
   const viewer = await getViewer();
   if (viewer?.profile?.role !== "admin") return fail(404, "찾을 수 없어요");
 

@@ -2,10 +2,11 @@ import Link from "next/link";
 import { DailyPicks } from "@/components/daily-picks";
 import { OnThisDay } from "@/components/on-this-day";
 import { loadDailyPicks } from "@/lib/posts/daily-picks";
-import { PhotoFeed } from "@/components/photo-feed";
+import { FeedList } from "@/components/feed-list";
 import { YearChips } from "@/components/year-chips";
 import { getViewer } from "@/lib/auth/viewer";
-import { loadFeed } from "@/lib/posts/feed";
+import type { FeedScope } from "@/lib/posts/feed-scope";
+import { loadScopePage } from "@/lib/posts/feed-scope-server";
 import { loadOnThisDay } from "@/lib/posts/on-this-day";
 import { createClient } from "@/lib/supabase/server";
 import { followedFeed } from "@/lib/follows/follows";
@@ -22,9 +23,10 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
   const supabase = await createClient();
 
   const follows = following && viewer ? await followedFeed(viewer.id) : undefined;
-  const [years, items, memories, picks] = await Promise.all([
+  const scope: FeedScope = { kind: "home", year, following };
+  const [years, first, memories, picks] = await Promise.all([
     supabase.rpc("published_shot_years"),
-    loadFeed({ year, category: null, query: null, following: follows }),
+    loadScopePage(scope),
     // N년 전 이맘때는 전체 보기에서만
     year === null && !following ? loadOnThisDay() : Promise.resolve([]),
     // 오늘의 픽도 전체 보기에서만 (운영자 큐레이션)
@@ -80,8 +82,10 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
 에서 좋아하는 작품 · 캐릭터 · 장소 태그나 작가 · 모델을 팔로우해 보세요.
         </p>
       ) : (
-        <PhotoFeed
-          items={items}
+        <FeedList
+          key={JSON.stringify(scope)}
+          scope={scope}
+          initial={first}
           empty={
             following
               ? year

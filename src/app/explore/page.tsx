@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Form from "next/form";
 import Link from "next/link";
-import { PhotoFeed } from "@/components/photo-feed";
+import { FeedList } from "@/components/feed-list";
 import { TagChip } from "@/components/tag-chip";
 import { YearChips } from "@/components/year-chips";
 import { CATEGORIES, CATEGORY_LABEL } from "@/lib/photos/post-input";
-import { loadFeed } from "@/lib/posts/feed";
+import type { FeedScope } from "@/lib/posts/feed-scope";
+import { loadScopePage } from "@/lib/posts/feed-scope-server";
 import { escapeLike, feedHref, MAX_QUERY_LENGTH, parseCategory, parseQuery, parseSort, POPULAR_DAYS } from "@/lib/posts/feed-params";
 import { formatRange } from "@/lib/events/calendar";
 import { listEvents } from "@/lib/events/load";
@@ -32,12 +33,10 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
 
   const supabase = await createClient();
   const filtered = query !== null || category !== null || year !== null;
-  // 인기순: 최근 좋아요 순위를 먼저 받아 그 안에서 조건에 맞는 글을 고른다
-  const popular = sort === "popular" && tab === "posts" ? await supabase.rpc("popular_posts", { days: POPULAR_DAYS, max_rows: 200 }) : null;
-  if (popular?.error) throw popular.error;
-  const [years, items, trending, matchedTags, creators, events, aroundEvents] = await Promise.all([
+  const scope: FeedScope = { kind: "explore", year, category, q, sort };
+  const [years, first, trending, matchedTags, creators, events, aroundEvents] = await Promise.all([
     supabase.rpc("published_shot_years"),
-    tab !== "posts" ? Promise.resolve([]) : loadFeed({ year, category, query, ...(popular && { rankedIds: popular.data.map((r) => r.post_id) }) }),
+    tab !== "posts" ? Promise.resolve({ items: [], next: null }) : loadScopePage(scope),
     // 조건이 없을 때만: 최근 7일 많이 찍은 작품 (S-04 ③)
     filtered ? Promise.resolve(null) : supabase.rpc("trending_works", { days: 7, max_rows: 10 }),
     query?.kind === "title" ? findTags(query.text) : Promise.resolve([]),
@@ -257,7 +256,7 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
 
       {tab === "posts" && filtered && (
         <p className="flex items-center gap-3 px-4 pb-2 text-sm text-quiet md:px-6">
-          {items.length === 0 ? "찾는 사진이 없어요." : `${items.length}개${items.length >= 40 ? " 이상" : ""}`}
+          {first.items.length === 0 ? "찾는 사진이 없어요." : `${first.items.length}개${first.next ? " 이상" : ""}`}
           <Link href="/explore" className="underline underline-offset-4">
             조건 지우기
           </Link>
@@ -265,8 +264,10 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
       )}
 
       {tab === "posts" && (
-        <PhotoFeed
-          items={items}
+        <FeedList
+          key={JSON.stringify(scope)}
+          scope={scope}
+          initial={first}
           empty={
             sort === "popular"
               ? `최근 ${POPULAR_DAYS}일 동안 좋아요를 받은 사진이 없어요.`

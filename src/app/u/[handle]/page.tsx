@@ -5,21 +5,23 @@ import { BlockButton } from "@/components/block-button";
 import { CollectionCards } from "@/components/collection-cards";
 import { ShareButton } from "@/components/share-button";
 import { FollowButton } from "@/components/follow-button";
-import { PhotoFeed } from "@/components/photo-feed";
+import { FeedList } from "@/components/feed-list";
 import { ProtectedPhoto } from "@/components/protected-photo";
 import { YearChips } from "@/components/year-chips";
 import { getViewer } from "@/lib/auth/viewer";
 import { loadCollectionCards } from "@/lib/collections/load";
 import { getFollowedMembers } from "@/lib/follows/follows";
 import { CREDIT_ROLE_LABEL } from "@/lib/photos/credit-input";
-import { loadFeed } from "@/lib/posts/feed";
+import { loadFeedByIds } from "@/lib/posts/feed";
+import type { FeedScope } from "@/lib/posts/feed-scope";
+import { creditedPostIds, loadScopePage } from "@/lib/posts/feed-scope-server";
 import { getProfileByHandle } from "@/lib/profiles/get-profile";
 import { createClient } from "@/lib/supabase/server";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { parseYearParam, VISIBLE_CHIPS } from "@/lib/year-chips";
 
-// S-09 프로필 (1단계: 소개 · 작업물 · 촬영 연도). 주소는 /@handle (next.config.ts에서 연결)
-// 팔로우는 홈 '팔로우' 피드로 이어진다 (팔로워 수는 공개하지 않음). 메시지 · 섭외 문의 · 컬렉션은 해당 기능과 함께.
+// S-09 프로필: 커버 · 소개 · 링크 · 크리에이터 정보 · 작업물 / 크레딧된 작업 / 컬렉션 · 촬영 연도. 주소는 /@handle (next.config.ts에서 연결)
+// 팔로우는 홈 '팔로우' 피드로 이어진다 (팔로워 수는 공개하지 않음).
 
 const yearFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric" });
 
@@ -46,14 +48,8 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
   const following = viewer?.profile && !isMe ? (await getFollowedMembers(viewer.id)).some((m) => m.id === profile.id) : false;
 
   const supabase = await createClient();
-  const { data: credited } = await supabase
-    .from("credits")
-    .select("post_id")
-    .eq("member_id", profile.id)
-    .eq("status", "approved")
-    .limit(200);
-  const creditedIds = [...new Set((credited ?? []).map((c) => c.post_id))];
-  const [collections, { data: creator }, { data: blockRow }] = await Promise.all([
+  const [creditedIds, collections, { data: creator }, { data: blockRow }] = await Promise.all([
+    creditedPostIds(profile.id),
     loadCollectionCards(profile.id),
     supabase.from("creator_profiles").select("roles, region, active_since, works, casting_open, listed").eq("user_id", profile.id).maybeSingle(),
     viewer?.profile && !isMe
@@ -63,19 +59,12 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
   const iBlocked = Boolean(blockRow);
   // 커버 · 고정 글 (볼 수 있는 것만)
   const featuredIds = [...new Set([...(profile.cover_post_id ? [profile.cover_post_id] : []), ...profile.pinned_post_ids])];
-  const featured = featuredIds.length ? await loadFeed({ year: null, category: null, query: null, postIds: featuredIds }) : [];
+  const featured = await loadFeedByIds(featuredIds);
   const cover = featured.find((f) => f.id === profile.cover_post_id)?.cover ?? null;
   const pinned = profile.pinned_post_ids.flatMap((id) => featured.filter((f) => f.id === id));
-  const pinnedIds = new Set(pinned.map((p) => p.id));
-  const items =
-    tab === "collections"
-      ? []
-      : tab === "works"
-      ? year === null
-        ? [...pinned, ...(await loadFeed({ year, category: null, query: null, authorId: profile.id })).filter((p) => !pinnedIds.has(p.id))]
-        : await loadFeed({ year, category: null, query: null, authorId: profile.id })
-      : // 내가 올린 글에 나를 크레딧한 경우는 작업물 탭에 이미 있으므로 뺀다
-        (await loadFeed({ year: null, category: null, query: null, postIds: creditedIds })).filter((p) => p.handle !== profile.handle);
+  // 작업물: 고정 글을 맨 앞에(전체 보기일 때) · 크레딧된 작업: 남이 올린 글만
+  const scope: FeedScope = tab === "credits" ? { kind: "credits", memberId: profile.id } : { kind: "author", authorId: profile.id, year };
+  const first = tab === "collections" ? { items: [], next: null } : await loadScopePage(scope);
   const tabClass =
     "inline-flex min-h-10 items-center border-b-2 border-transparent px-1 text-sm aria-[current=page]:border-text aria-[current=page]:font-semibold";
   // 이 회원이 사진을 올린 촬영 연도만 (S-09 ⑥)
@@ -199,8 +188,11 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
           <CollectionCards items={collections} empty={isMe ? "아직 만든 컬렉션이 없어요. 마이 › 내 컬렉션에서 만들 수 있어요." : "공개한 컬렉션이 아직 없어요."} />
         </div>
       ) : (
-      <PhotoFeed
-        items={items}
+      <FeedList
+        key={JSON.stringify(scope)}
+        scope={scope}
+        initial={first}
+        lead={tab === "works" && year === null ? pinned : []}
         empty={
           tab === "credits"
             ? "크레딧된 작업이 아직 없어요."

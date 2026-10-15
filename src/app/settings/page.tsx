@@ -14,8 +14,7 @@ export const metadata: Metadata = { title: "설정", robots: { index: false } };
 
 const dayFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "long" });
 
-// S-14 설정 (1단계: 계정 정보 · 내 데이터 내려받기 · 계정 삭제)
-// 메시지 받기 범위 · 차단 목록. 콘텐츠 보기 · 업로드 기본값 · 크레딧 자동 승인은 해당 기능과 함께.
+// S-14 설정: 계정 정보 · 받은 경고 · 화면(테마) · 알림 · 메시지 받기 범위 · 차단 목록 · 내 데이터 내려받기 · 계정 삭제
 export default async function SettingsPage() {
   const viewer = await getViewer();
   if (!viewer) redirect(withNext("/login", "/settings"));

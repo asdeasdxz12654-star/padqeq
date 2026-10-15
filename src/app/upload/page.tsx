@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-// A-02 / S-08 업로드 (1차: 한 번에 게시물 하나, JPEG · PNG · WebP · AVIF)
+// A-02 / S-08 업로드: 여러 장을 촬영 시각으로 묶어 게시물 여러 개로 (한 번에 500장, JPEG · HEIC · PNG · WebP · AVIF · RAW)
 export default async function UploadPage() {
   const viewer = await getViewer();
   if (!viewer) redirect(withNext("/login", "/upload"));

@@ -4,13 +4,16 @@ import { photoSources, type PhotoSources } from "@/lib/photos/server";
 import { createClient } from "@/lib/supabase/server";
 import { type Category, escapeLike, rankPosts, type SearchQuery } from "./feed-params";
 
+/** 한 번에 불러오는 게시물 수 (더 보기 한 번) */
 export const FEED_LIMIT = 40;
+/** 글 id 목록으로 불러올 때 · 인기순 후보의 최대 수 */
+const MAX_IDS = 200;
 
 export type FeedFilter = {
   year: number | null;
   category: Category | null;
   query: SearchQuery | null;
-  /** 이 태그 중 하나라도 붙은 글 (태그 허브) */
+  /** 이 태그 중 하나라도 붙은 글 (태그 허브 · 행사 · 연관 게시물) */
   tagIds?: string[];
   /** 이 회원이 올린 글 (프로필) */
   authorId?: string;
@@ -20,8 +23,10 @@ export type FeedFilter = {
   following?: { tagIds: string[]; authorIds: string[] };
   /** 이 순서대로 (인기순). 이 글들 중 다른 조건에 맞는 것만, 순서를 지켜 돌려준다. */
   rankedIds?: string[];
-  /** 몇 개까지 (기본 FEED_LIMIT) */
+  /** 몇 개까지 (기본 · 최대 FEED_LIMIT) */
   limit?: number;
+  /** 이어서 불러올 위치 (앞 페이지가 돌려준 next) */
+  cursor?: string | null;
 };
 
 export type FeedItem = {
@@ -30,6 +35,8 @@ export type FeedItem = {
   category: Category;
   shotYear: number;
   handle: string;
+  /** 볼 수 있는 사진 장수 (2장 이상이면 타일에 표시) */
+  photoCount: number;
   cover: {
     width: number;
     height: number;
@@ -39,103 +46,165 @@ export type FeedItem = {
   } | null;
 };
 
-/** 게시된 글 목록 (홈 · 탐색). 대표 사진에는 이미지 게이트 서명 주소를 붙인다. */
-export async function loadFeed({ year, category, query, tagIds, authorId, postIds, following, rankedIds, limit = FEED_LIMIT }: FeedFilter): Promise<FeedItem[]> {
+export type FeedPage = { items: FeedItem[]; next: string | null };
+
+// 게시물 + 대표 사진 1장 + 볼 수 있는 사진 수. 태그로 거를 때는 post_tags를 함께 조인한다 (볼 수 있는 연결만, RLS).
+const SELECT =
+  "id, title, category, shot_year, published_at, author:profiles!posts_author_id_fkey(handle), photos(storage_key, width, height, alt_text, is_panorama, position), photo_count:photos(count)";
+const TAGGED_SELECT =
+  "id, title, category, shot_year, published_at, author:profiles!posts_author_id_fkey(handle), photos(storage_key, width, height, alt_text, is_panorama, position), photo_count:photos(count), post_tags!inner(tag_id)";
+
+type Row = {
+  id: string;
+  title: string;
+  category: Category;
+  shot_year: number;
+  published_at: string | null;
+  author: { handle: string } | null;
+  photos: { storage_key: string; width: number; height: number; alt_text: string; is_panorama: boolean | null; position: number }[];
+  photo_count: { count: number }[];
+};
+
+type Supabase = Awaited<ReturnType<typeof createClient>>;
+
+// 이어 불러오기 위치: 시간순은 마지막 글의 게시 시각(t:), 인기순은 순위 위치(o:)
+const timeCursor = (iso: string) => `t:${iso}`;
+const offsetCursor = (n: number) => `o:${n}`;
+function parseCursor(cursor: string | null | undefined): { before: string | null; offset: number } {
+  if (cursor?.startsWith("t:") && !Number.isNaN(Date.parse(cursor.slice(2)))) return { before: new Date(cursor.slice(2)).toISOString(), offset: 0 };
+  if (cursor?.startsWith("o:") && /^\d{1,4}$/.test(cursor.slice(2))) return { before: null, offset: Number(cursor.slice(2)) };
+  return { before: null, offset: 0 };
+}
+
+/** 게시된 글 목록 (홈 · 탐색 · 태그 · 프로필). */
+export async function loadFeed(filter: FeedFilter): Promise<FeedItem[]> {
+  return (await loadFeedPage(filter)).items;
+}
+
+/** 게시된 글 한 페이지와 다음 페이지 위치. 대표 사진에는 이미지 게이트 서명 주소를 붙인다. */
+export async function loadFeedPage(filter: FeedFilter): Promise<FeedPage> {
   const supabase = await createClient();
+  const limit = Math.min(Math.max(filter.limit ?? FEED_LIMIT, 1), FEED_LIMIT);
+  const { before, offset } = parseCursor(filter.cursor);
+  const hidden = await reportedByMe(supabase);
+  const authorIds = await authorsForQuery(supabase, filter.query);
+  if (authorIds && !authorIds.length) return { items: [], next: null };
 
-  // 팔로우: 태그로 모은 글 id 또는 팔로우한 회원의 글
-  let followFilter: string | null = null;
-  if (following) {
-    const { authorIds } = following;
-    let ids: string[] = [];
-    if (following.tagIds.length) {
-      const { data, error } = await supabase.from("post_tags").select("post_id").in("tag_id", following.tagIds).limit(200);
-      if (error) throw error;
-      ids = [...new Set(data.map((r) => r.post_id))];
-    }
-    const parts = [
-      ...(ids.length ? [`id.in.(${ids.join(",")})`] : []),
-      ...(authorIds.length ? [`author_id.in.(${authorIds.slice(0, 1000).join(",")})`] : []),
-    ];
-    if (!parts.length) return [];
-    // 값은 모두 DB에서 읽은 uuid라 필터 문법을 깨뜨릴 수 없다
-    followFilter = parts.join(",");
+  const run = (extra: { tagIds?: string[]; authorIds?: string[] }, max: number) =>
+    feedQuery(supabase, { ...filter, ...extra }, { before, hidden, queryAuthorIds: authorIds, max });
+
+  // 인기순: 조건에 맞는 후보를 모두 받아 순위대로 자른다 (서명은 보여 줄 것만)
+  if (filter.rankedIds) {
+    if (!filter.rankedIds.length) return { items: [], next: null };
+    const ranked = rankPosts(await run({}, MAX_IDS), filter.rankedIds);
+    const page = ranked.slice(offset, offset + limit);
+    return { items: await toItems(page), next: offset + limit < ranked.length ? offsetCursor(offset + limit) : null };
   }
 
-  // 태그로 좁힐 때는 먼저 글 id를 모은다 (볼 수 있는 연결만, RLS)
-  let taggedPostIds: string[] | null = null;
-  if (tagIds) {
-    if (!tagIds.length) return [];
-    const { data, error } = await supabase.from("post_tags").select("post_id").in("tag_id", tagIds).limit(200);
-    if (error) throw error;
-    taggedPostIds = [...new Set(data.map((r) => r.post_id))];
-    if (!taggedPostIds.length) return [];
+  let rows: Row[];
+  if (filter.following) {
+    // 팔로우: 팔로우한 회원의 글 + 팔로우한 태그가 붙은 글. 둘 다 시간순이라 합쳐서 앞에서부터 자른다.
+    const { tagIds, authorIds: followed } = filter.following;
+    if (!tagIds.length && !followed.length) return { items: [], next: null };
+    const [byAuthor, byTag] = await Promise.all([
+      followed.length ? run({ authorIds: followed.slice(0, 1000) }, limit + 1) : Promise.resolve([]),
+      tagIds.length ? run({ tagIds }, limit + 1) : Promise.resolve([]),
+    ]);
+    rows = [...new Map([...byAuthor, ...byTag].map((r) => [r.id, r])).values()].sort(
+      (a, b) => Date.parse(b.published_at ?? "") - Date.parse(a.published_at ?? ""),
+    );
+  } else {
+    rows = await run({}, limit + 1);
   }
 
-  let feed = supabase
+  const page = rows.slice(0, limit);
+  const last = page.at(-1);
+  return { items: await toItems(page), next: rows.length > limit && last?.published_at ? timeCursor(last.published_at) : null };
+}
+
+/** 글 id 목록을 그 순서대로 (저장 · 컬렉션 · 오늘의 픽 · 추억 등). 볼 수 있는 게시된 글만, 최대 200개. */
+export async function loadFeedByIds(ids: string[]): Promise<FeedItem[]> {
+  const unique = [...new Set(ids)].slice(0, MAX_IDS);
+  if (!unique.length) return [];
+  const supabase = await createClient();
+  const rows = await feedQuery(
+    supabase,
+    { year: null, category: null, query: null, postIds: unique },
+    { before: null, hidden: await reportedByMe(supabase), queryAuthorIds: null, max: MAX_IDS },
+  );
+  return toItems(rankPosts(rows, unique));
+}
+
+/** 회원마다 최근 글 몇 개 (크리에이터 목록 대표 사진). 한 번에 읽어 핸들별로 나눈다. */
+export async function loadRecentByAuthors(authorIds: string[], perAuthor: number): Promise<Map<string, FeedItem[]>> {
+  const ids = [...new Set(authorIds)].slice(0, 50);
+  if (!ids.length) return new Map();
+  const supabase = await createClient();
+  const rows = await feedQuery(
+    supabase,
+    { year: null, category: null, query: null, authorIds: ids },
+    { before: null, hidden: await reportedByMe(supabase), queryAuthorIds: null, max: Math.min(ids.length * perAuthor * 4, 200) },
+  );
+  const picked = [...Map.groupBy(rows, (r) => r.author?.handle ?? "").values()].flatMap((list) => list.slice(0, perAuthor));
+  return Map.groupBy(await toItems(picked), (item) => item.handle);
+}
+
+async function feedQuery(
+  supabase: Supabase,
+  f: FeedFilter & { authorIds?: string[] },
+  o: { before: string | null; hidden: string[]; queryAuthorIds: string[] | null; max: number },
+): Promise<Row[]> {
+  if (f.tagIds && !f.tagIds.length) return [];
+  if (f.postIds && !f.postIds.length) return [];
+  let q = supabase
     .from("posts")
-    .select(
-      "id, title, category, shot_year, author:profiles!posts_author_id_fkey(handle), photos(storage_key, width, height, alt_text, is_panorama, position)",
-    )
+    .select(f.tagIds ? TAGGED_SELECT : SELECT)
     .eq("status", "published")
     // 신고로 임시 비공개된 글은 작성자 · 운영자에게도 피드에서는 뺀다 (상세에서만 안내)
     .is("held_at", null)
     .order("published_at", { ascending: false })
     .order("position", { referencedTable: "photos" })
     .limit(1, { referencedTable: "photos" })
-    // 인기순은 후보를 모두 받아 순위대로 자른다
-    .limit(rankedIds ? Math.min(rankedIds.length, 200) : Math.min(limit, FEED_LIMIT));
-  if (year !== null) feed = feed.eq("shot_year", year);
-  if (category !== null) feed = feed.eq("category", category);
-  if (taggedPostIds) feed = feed.in("id", taggedPostIds);
-  if (authorId) feed = feed.eq("author_id", authorId);
-  if (followFilter) feed = feed.or(followFilter);
-  if (postIds) {
-    if (!postIds.length) return [];
-    feed = feed.in("id", postIds.slice(0, 200));
-  }
-  if (rankedIds) {
-    if (!rankedIds.length) return [];
-    feed = feed.in("id", rankedIds.slice(0, 200));
-  }
+    .limit(o.max);
+  if (f.tagIds) q = q.in("post_tags.tag_id", f.tagIds.slice(0, 1000));
+  if (f.year !== null) q = q.eq("shot_year", f.year);
+  if (f.category !== null) q = q.eq("category", f.category);
+  if (f.authorId) q = q.eq("author_id", f.authorId);
+  if (f.authorIds) q = q.in("author_id", f.authorIds);
+  if (f.postIds) q = q.in("id", f.postIds.slice(0, MAX_IDS));
+  if (f.rankedIds) q = q.in("id", f.rankedIds.slice(0, MAX_IDS));
+  if (o.before) q = q.lt("published_at", o.before);
+  // 내가 신고한 글은 내 피드에서 바로 숨긴다 (S-15 ⑧). 값은 DB에서 읽은 uuid라 필터 문법을 깨뜨릴 수 없다.
+  if (o.hidden.length) q = q.not("id", "in", `(${o.hidden.join(",")})`);
+  // 값은 PostgREST가 인코딩한다. LIKE 특수 문자만 글자 그대로 찾도록 막는다.
+  if (f.query?.kind === "title") q = q.ilike("title", `%${escapeLike(f.query.text)}%`);
+  if (o.queryAuthorIds) q = q.in("author_id", o.queryAuthorIds);
 
-  // 내가 신고한 글은 내 피드에서 바로 숨긴다 (S-15 ⑧)
-  const viewer = await getViewer();
-  if (viewer) {
-    const { data: reported } = await supabase
-      .from("reports")
-      .select("post_id")
-      .eq("reporter_id", viewer.id)
-      .eq("status", "open")
-      .limit(200);
-    const ids = (reported ?? []).map((r) => r.post_id);
-    if (ids.length) feed = feed.not("id", "in", `(${ids.join(",")})`);
-  }
-
-  if (query?.kind === "title") {
-    // 값은 PostgREST가 인코딩한다. LIKE 특수 문자만 글자 그대로 찾도록 막는다.
-    feed = feed.ilike("title", `%${escapeLike(query.text)}%`);
-  } else if (query?.kind === "handle") {
-    const { data: authors, error } = await supabase
-      .from("profiles")
-      .select("id")
-      .ilike("handle", `${escapeLike(query.text)}%`)
-      .limit(20);
-    if (error) throw error;
-    if (!authors.length) return [];
-    feed = feed.in(
-      "author_id",
-      authors.map((a) => a.id),
-    );
-  }
-
-  const { data: rows, error } = await feed;
+  const { data, error } = await q;
   if (error) throw error;
-  const data = rankedIds ? rankPosts(rows, rankedIds).slice(0, Math.min(limit, FEED_LIMIT)) : rows;
+  return data as unknown as Row[];
+}
 
-  // RLS로 읽어 온(볼 수 있는) 사진에만 서명 주소를 붙인다
+/** 내가 신고하고 아직 처리되지 않은 글 */
+async function reportedByMe(supabase: Supabase): Promise<string[]> {
+  const viewer = await getViewer();
+  if (!viewer) return [];
+  const { data } = await supabase.from("reports").select("post_id").eq("reporter_id", viewer.id).eq("status", "open").limit(200);
+  return (data ?? []).map((r) => r.post_id);
+}
+
+/** "@핸들" 검색: 핸들이 이렇게 시작하는 회원 (없으면 빈 배열, 핸들 검색이 아니면 null) */
+async function authorsForQuery(supabase: Supabase, query: SearchQuery | null): Promise<string[] | null> {
+  if (query?.kind !== "handle") return null;
+  const { data, error } = await supabase.from("profiles").select("id").ilike("handle", `${escapeLike(query.text)}%`).limit(20);
+  if (error) throw error;
+  return data.map((a) => a.id);
+}
+
+// RLS로 읽어 온(볼 수 있는) 사진에만 서명 주소를 붙인다
+function toItems(rows: Row[]): Promise<FeedItem[]> {
   return Promise.all(
-    data.map(async (post): Promise<FeedItem> => {
+    rows.map(async (post): Promise<FeedItem> => {
       const photo = post.photos[0];
       const sources = photo ? await photoSources(photo) : null;
       return {
@@ -144,6 +213,7 @@ export async function loadFeed({ year, category, query, tagIds, authorId, postId
         category: post.category,
         shotYear: post.shot_year,
         handle: post.author?.handle ?? "",
+        photoCount: post.photo_count[0]?.count ?? (photo ? 1 : 0),
         cover:
           photo && sources
             ? {

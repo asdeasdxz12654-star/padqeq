@@ -34,7 +34,7 @@ export async function saveBoardPost(id: string | null, input: z.input<typeof boa
 }
 
 export async function closeBoardPost(id: string, close: boolean): Promise<Result> {
-  if (!z.uuid().safeParse(id).success) return { ok: false, error: "잘못된 요청이에요." };
+  if (!z.uuid().safeParse(id).success || typeof close !== "boolean") return { ok: false, error: "잘못된 요청이에요." };
   const m = await member();
   if (!m) return { ok: false, error: "로그인이 필요해요." };
   const { data, error } = await m.supabase

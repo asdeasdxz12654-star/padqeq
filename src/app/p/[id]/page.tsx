@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getViewer } from "@/lib/auth/viewer";
+import { CREDIT_ROLE_LABEL } from "@/lib/photos/credit-input";
 import { CATEGORY_LABEL } from "@/lib/photos/post-input";
 import Link from "next/link";
 import { getComments } from "@/lib/comments/load";
@@ -10,6 +11,7 @@ import { OG_IMAGES } from "@/lib/og";
 import { loadFeed } from "@/lib/posts/feed";
 import { getPost } from "@/lib/posts/get-post";
 import { getSiteSwitches } from "@/lib/support/switches";
+import { todayKst } from "@/lib/auth/signup-input";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { TagChip } from "@/components/tag-chip";
 import { createClient } from "@/lib/supabase/server";
@@ -28,14 +30,6 @@ import { RepublishButton } from "./republish-button";
 import { ReportButton } from "./report-button";
 import { SaveButton } from "./save-button";
 import { WatermarkCheck } from "./watermark-check";
-
-const ROLE_LABEL = {
-  cosplayer: "코스어",
-  model: "모델",
-  photographer: "촬영",
-  retoucher: "보정",
-  other: "기타",
-} as const;
 
 const dateFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "medium" });
 const dateTimeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
@@ -58,96 +52,87 @@ export async function generateMetadata({ params }: PageProps<"/p/[id]">): Promis
   };
 }
 
-// S-06 / S-07 게시물 상세 (1차: 사진 뷰어 · 정보 · 크레딧 · 숨김)
+// S-06 / S-07 게시물 상세: 사진 뷰어 · 정보 · 반응(좋아요 · 저장 · 공유) · 크레딧 · 태그 · 촬영 정보 · 댓글 · 신고 · 소명 · 연관 게시물
 export default async function PostPage({ params }: PageProps<"/p/[id]">) {
   const [post, viewer] = await Promise.all([getPost((await params).id), getViewer()]);
   // 없는 글 · 볼 수 없는 글은 같은 화면 (존재 여부를 드러내지 않음)
   if (!post || post.photos.length === 0) notFound();
 
   const isAuthor = viewer?.id === post.author_id;
-  const canHide = post.status === "published" && (isAuthor || viewer?.profile?.role === "admin");
-  // 승인됐거나 외부 표기인 크레딧만 공개. 승인 대기는 작성자에게만 흐리게.
+  const isAdmin = viewer?.profile?.role === "admin";
+  const member = viewer?.profile ? viewer : null;
+  const published = post.status === "published";
+  const canHide = published && (isAuthor || isAdmin);
+  // 컬렉션에 담기: 내 글 · 내가 크레딧으로 승인된 글
+  const canCollect = member !== null && (isAuthor || post.credits.some((c) => c.member_id === member.id && c.status === "approved"));
+  // 저장은 게시된 글만
+  const canSave = member !== null && published;
   // 미가입 크레딧 중 내가 이미 연결을 요청한 것
   const externalIds = post.credits.filter((c) => c.status === "external").map((c) => c.id);
-  const claimed = new Set<string>();
-  if (viewer?.profile && !isAuthor && externalIds.length) {
-    const { data } = await (await createClient())
-      .from("credit_claims")
-      .select("credit_id")
-      .eq("claimant_id", viewer.id)
-      .eq("status", "open")
-      .in("credit_id", externalIds);
-    for (const row of data ?? []) claimed.add(row.credit_id);
-  }
-  // 컬렉션에 담기: 내 글 · 내가 크레딧으로 승인된 글
-  const canCollect =
-    Boolean(viewer?.profile) && (isAuthor || post.credits.some((c) => viewer !== null && c.member_id === viewer.id && c.status === "approved"));
-  let myCollections: { id: string; title: string; has: boolean }[] = [];
-  if (canCollect && viewer) {
-    const supabase = await createClient();
-    const [{ data: mine }, { data: holding }] = await Promise.all([
-      supabase.from("collections").select("id, title").eq("owner_id", viewer.id).order("updated_at", { ascending: false }).limit(100),
-      supabase.from("collection_posts").select("collection_id").eq("post_id", post.id),
-    ]);
-    const has = new Set((holding ?? []).map((h) => h.collection_id));
-    myCollections = (mine ?? []).map((c) => ({ id: c.id, title: c.title, has: has.has(c.id) }));
-  }
+  // 연관 게시물 (S-06 ⑨): 같은 캐릭터 · 행사 · 작품 → 같은 업로더 순, 최대 8개
+  const relatedTagIds = ["character", "event", "work"].flatMap((kind) => post.tags.filter((t) => t.kind === kind).map((t) => t.id));
+  const feedFilter = { year: null, category: null, query: null, limit: 9 } as const;
+  const none = Promise.resolve({ data: null });
 
-  // 저장 여부 (게시된 글만 저장할 수 있다)
-  const canSave = Boolean(viewer?.profile) && post.status === "published";
-  // 좋아요 수 · 내가 눌렀는지 (볼 수 있는 글만)
-  const { data: likeRows } = await (await createClient()).rpc("post_like_stats", { ids: [post.id] });
-  const likeStats = likeRows?.[0] ?? null;
-  const saved =
-    canSave && viewer
-      ? Boolean(
-          (await (await createClient()).from("bookmarks").select("post_id").eq("user_id", viewer.id).eq("post_id", post.id).maybeSingle())
-            .data,
-        )
-      : false;
-  // 댓글: 게시된 글 · 정지 · 읽기 전용이 아닐 때 쓸 수 있다 (DB가 다시 막는다)
-  const [{ comments, count: commentCount }, switches] = await Promise.all([getComments(post.id), getSiteSwitches()]);
-  const isAdmin = viewer?.profile?.role === "admin";
-  // 댓글 설정 (업로더가 끄거나 팔로워만으로 했으면). 작성자 · 운영자는 그대로 단다.
-  const followsAuthor =
-    post.comment_policy === "followers" && viewer?.profile && !isAuthor
-      ? (await getFollowedMembers(viewer.id)).some((m) => m.id === post.author_id)
-      : true;
+  // 서로 기다릴 필요가 없는 조회는 한 번에 (RLS가 각자 볼 수 있는 것만 돌려준다)
+  const supabase = await createClient();
+  const [
+    claimRows,
+    myCollectionRows,
+    holdingRows,
+    likeRows,
+    savedRow,
+    { comments, count: commentCount },
+    switches,
+    followsAuthor,
+    { data: authorDecor },
+    { data: pickRow },
+    byTags,
+    byAuthor,
+  ] = await Promise.all([
+    member && !isAuthor && externalIds.length
+      ? supabase.from("credit_claims").select("credit_id").eq("claimant_id", member.id).eq("status", "open").in("credit_id", externalIds)
+      : none,
+    canCollect ? supabase.from("collections").select("id, title").eq("owner_id", member!.id).order("updated_at", { ascending: false }).limit(100) : none,
+    canCollect ? supabase.from("collection_posts").select("collection_id").eq("post_id", post.id) : none,
+    // 좋아요 수 · 내가 눌렀는지 (볼 수 있는 글만)
+    supabase.rpc("post_like_stats", { ids: [post.id] }),
+    canSave ? supabase.from("bookmarks").select("post_id").eq("user_id", member!.id).eq("post_id", post.id).maybeSingle() : none,
+    getComments(post.id),
+    getSiteSwitches(),
+    // 댓글 설정이 '팔로워만'이면 내가 업로더를 팔로우하는지
+    post.comment_policy === "followers" && member && !isAuthor
+      ? getFollowedMembers(member.id).then((list) => list.some((m) => m.id === post.author_id))
+      : Promise.resolve(true),
+    isAuthor ? supabase.from("profiles").select("cover_post_id, pinned_post_ids").eq("id", post.author_id).maybeSingle() : none,
+    isAdmin ? supabase.from("daily_picks").select("post_id").eq("post_id", post.id).eq("pick_date", todayKst()).maybeSingle() : none,
+    published && relatedTagIds.length ? loadFeed({ ...feedFilter, tagIds: relatedTagIds }) : Promise.resolve([]),
+    published ? loadFeed({ ...feedFilter, authorId: post.author_id }) : Promise.resolve([]),
+  ]);
+
+  const claimed = new Set((claimRows.data ?? []).map((row) => row.credit_id));
+  const holding = new Set((holdingRows.data ?? []).map((h) => h.collection_id));
+  const myCollections = (myCollectionRows.data ?? []).map((c) => ({ id: c.id, title: c.title, has: holding.has(c.id) }));
+  const likeStats = likeRows.data?.[0] ?? null;
+  const saved = Boolean(savedRow.data);
+  const pickedToday = Boolean(pickRow);
+  const related = [...new Map([...byTags, ...byAuthor].filter((p) => p.id !== post.id).map((p) => [p.id, p])).values()].slice(0, 8);
+
+  // 댓글: 게시된 글 · 정지 · 읽기 전용이 아닐 때 쓸 수 있다 (DB가 다시 막는다). 작성자 · 운영자는 댓글 설정과 상관없이 단다.
   const commentsClosed =
-    post.status !== "published" || post.held_at
+    !published || post.held_at
       ? "게시된 글에만 댓글을 달 수 있어요."
       : !isAuthor && !isAdmin && post.comment_policy === "off"
         ? "업로더가 댓글을 껐어요."
         : !isAuthor && !isAdmin && !followsAuthor
           ? "업로더를 팔로우한 회원만 댓글을 달 수 있어요."
-      : viewer?.restriction
-        ? "이용이 제한된 기간이라 댓글을 달 수 없어요."
-        : switches.readOnly && !isAdmin
-          ? "지금은 보기만 할 수 있어요."
-          : null;
+          : viewer?.restriction
+            ? "이용이 제한된 기간이라 댓글을 달 수 없어요."
+            : switches.readOnly && !isAdmin
+              ? "지금은 보기만 할 수 있어요."
+              : null;
 
-  const [{ data: authorDecor }, { data: pickRow }] = await Promise.all([
-    isAuthor
-      ? (await createClient()).from("profiles").select("cover_post_id, pinned_post_ids").eq("id", post.author_id).maybeSingle()
-      : Promise.resolve({ data: null }),
-    isAdmin
-      ? (await createClient())
-          .from("daily_picks")
-          .select("post_id")
-          .eq("post_id", post.id)
-          .eq("pick_date", new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Seoul" }).format(new Date()))
-          .maybeSingle()
-      : Promise.resolve({ data: null }),
-  ]);
-  const pickedToday = Boolean(pickRow);
-
-  // 연관 게시물 (S-06 ⑨): 같은 캐릭터 · 행사 · 작품 → 같은 업로더 순, 최대 8개
-  const relatedTagIds = ["character", "event", "work"].flatMap((kind) => post.tags.filter((t) => t.kind === kind).map((t) => t.id));
-  const byTags = relatedTagIds.length && post.status === "published" ? await loadFeed({ year: null, category: null, query: null, tagIds: relatedTagIds, limit: 9 }) : [];
-  const byAuthor =
-    post.status === "published" && byTags.length < 9 ? await loadFeed({ year: null, category: null, query: null, authorId: post.author_id, limit: 9 }) : [];
-  const related = [...new Map([...byTags, ...byAuthor].filter((p) => p.id !== post.id).map((p) => [p.id, p])).values()].slice(0, 8);
-
+  // 승인됐거나 외부 표기인 크레딧만 공개. 승인 대기는 작성자 · 당사자에게만 흐리게.
   const credits = post.credits.filter(
     (c) => c.status === "approved" || c.status === "external" || isAuthor || (viewer !== null && c.member_id === viewer.id && c.status === "pending"),
   );
@@ -267,7 +252,7 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
               <ul className="flex flex-col gap-1.5 text-sm">
                 {credits.map((c) => (
                   <li key={c.id} className={`flex flex-wrap items-baseline gap-x-3 gap-y-1 ${c.status === "pending" ? "opacity-50" : ""}`}>
-                    <span className="w-12 shrink-0 text-quiet">{ROLE_LABEL[c.role]}</span>
+                    <span className="w-12 shrink-0 text-quiet">{CREDIT_ROLE_LABEL[c.role]}</span>
                     {c.member ? (
                       <Link href={profileHref(c.member.handle)} className="hover:underline">
                         @{c.member.handle}

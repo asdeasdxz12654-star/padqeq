@@ -23,7 +23,6 @@ export function parseQuery(value: string | string[] | undefined): SearchQuery | 
   return text.length > 0 ? { kind: "title", text } : null;
 }
 
-/** LIKE 패턴의 특수 문자(% _ \)를 글자 그대로 찾도록 */
 export type FeedSort = "latest" | "popular";
 
 /** 인기순 기준 기간 (최근 N일 동안 받은 좋아요) */
@@ -39,6 +38,7 @@ export function rankPosts<T extends { id: string }>(rows: T[], rankedIds: string
   return rows.filter((r) => rank.has(r.id)).sort((a, b) => rank.get(a.id)! - rank.get(b.id)!);
 }
 
+/** LIKE 패턴의 특수 문자(% _ \)를 글자 그대로 찾도록 */
 export function escapeLike(text: string): string {
   return text.replace(/[\\%_]/g, (c) => `\\${c}`);
 }

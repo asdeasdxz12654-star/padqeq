@@ -1,3 +1,4 @@
+import { isUuid } from "@/lib/ids";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { withNext } from "@/lib/auth/next-path";
@@ -10,12 +11,11 @@ import { EditForm } from "./edit-form";
 
 export const metadata: Metadata = { title: "게시물 편집", robots: { index: false } };
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 // S-07 ⑨ 게시물 편집 (작성자만). 사진 더하기는 게시된 글에서만 (초안은 업로드 화면에서).
 export default async function EditPostPage({ params }: PageProps<"/p/[id]/edit">) {
   const { id } = await params;
-  if (!UUID.test(id)) notFound();
+  if (!isUuid(id)) notFound();
   const viewer = await getViewer();
   if (!viewer) redirect(withNext("/login", `/p/${id}/edit`));
 

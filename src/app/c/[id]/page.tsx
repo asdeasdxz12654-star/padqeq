@@ -1,3 +1,4 @@
+import { isUuid } from "@/lib/ids";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -5,15 +6,14 @@ import { cache } from "react";
 import { CollectionForm } from "@/components/collection-form";
 import { PhotoFeed } from "@/components/photo-feed";
 import { getViewer } from "@/lib/auth/viewer";
-import { loadFeed } from "@/lib/posts/feed";
+import { loadFeedByIds } from "@/lib/posts/feed";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { createClient } from "@/lib/supabase/server";
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 // 볼 수 있는 컬렉션만 (공개 · 내 것, RLS). 없거나 볼 수 없으면 같은 화면.
 const getCollection = cache(async (id: string) => {
-  if (!UUID.test(id)) return null;
+  if (!isUuid(id)) return null;
   const supabase = await createClient();
   const { data } = await supabase
     .from("collections")
@@ -45,10 +45,7 @@ export default async function CollectionPage({ params }: PageProps<"/c/[id]">) {
     .eq("collection_id", collection.id)
     .order("added_at", { ascending: false })
     .limit(200);
-  const order = (rows ?? []).map((r) => r.post_id);
-  const items = order.length
-    ? (await loadFeed({ year: null, category: null, query: null, postIds: order })).toSorted((a, b) => order.indexOf(a.id) - order.indexOf(b.id))
-    : [];
+  const items = await loadFeedByIds((rows ?? []).map((r) => r.post_id));
 
   return (
     <div className="mx-auto max-w-[1440px] pb-16">

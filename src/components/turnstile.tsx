@@ -31,7 +31,7 @@ export function Turnstile({ siteKey, resetKey }: { siteKey: string; resetKey: nu
     }
     widget.current = window.turnstile.render(box.current, {
       sitekey: siteKey,
-      theme: "dark",
+      theme: "auto",
       language: "ko",
       "response-field-name": "cf-turnstile-response",
     });

@@ -42,7 +42,7 @@ export async function sendMessage(input: { threadId: string; body: string }): Pr
 }
 
 export async function respondThread(threadId: string, accept: boolean): Promise<Result> {
-  if (!z.uuid().safeParse(threadId).success) return { ok: false, error: "잘못된 요청이에요." };
+  if (!z.uuid().safeParse(threadId).success || typeof accept !== "boolean") return { ok: false, error: "잘못된 요청이에요." };
   const m = await member();
   if (!m) return { ok: false, error: "로그인이 필요해요." };
   const { error } = await m.supabase.rpc("respond_thread", { thread: threadId, accept });
@@ -95,7 +95,7 @@ export async function reportThread(input: z.input<typeof reportSchema>): Promise
 }
 
 export async function setBlock(userId: string, block: boolean): Promise<Result> {
-  if (!z.uuid().safeParse(userId).success) return { ok: false, error: "잘못된 요청이에요." };
+  if (!z.uuid().safeParse(userId).success || typeof block !== "boolean") return { ok: false, error: "잘못된 요청이에요." };
   const m = await member();
   if (!m) return { ok: false, error: "로그인이 필요해요." };
   const { error } = block

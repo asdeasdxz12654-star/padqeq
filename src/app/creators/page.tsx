@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ProtectedPhoto } from "@/components/protected-photo";
 import { REGIONS } from "@/lib/events/calendar";
 import { CREDIT_ROLE_LABEL } from "@/lib/photos/credit-input";
-import { loadFeed } from "@/lib/posts/feed";
+import { loadRecentByAuthors } from "@/lib/posts/feed";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { createClient } from "@/lib/supabase/server";
 
@@ -33,7 +33,7 @@ export default async function CreatorsPage({ searchParams }: PageProps<"/creator
   if (error) throw error;
   const creators = data.slice(0, PAGE);
   // 대표 사진 3장 (볼 수 있는 공개 글만)
-  const covers = await Promise.all(creators.map((c) => loadFeed({ year: null, category: null, query: null, authorId: c.user_id, limit: 3 })));
+  const covers = await loadRecentByAuthors(creators.map((c) => c.user_id), 3);
 
   const href = (next: Record<string, string | null>) => {
     const merged = { role, region, casting: casting ? "1" : null, ...next };
@@ -88,11 +88,11 @@ export default async function CreatorsPage({ searchParams }: PageProps<"/creator
         <p className="mt-8 rounded-xl border border-line p-8 text-center text-sm text-quiet">조건에 맞는 크리에이터가 아직 없어요.</p>
       ) : (
         <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {creators.map((c, i) => (
+          {creators.map((c) => (
             <li key={c.user_id} className="relative flex flex-col gap-2 rounded-xl border border-line p-3 hover:border-quiet">
               <div className="grid grid-cols-3 gap-1">
                 {[0, 1, 2].map((n) => {
-                  const cover = covers[i]?.[n]?.cover;
+                  const cover = covers.get(c.handle)?.[n]?.cover;
                   return (
                     <div key={n} className="aspect-square overflow-hidden rounded-md bg-slot">
                       {cover && (

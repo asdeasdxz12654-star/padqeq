@@ -1,11 +1,12 @@
 import Link from "next/link";
 import type { FeedItem } from "@/lib/posts/feed";
+import { CATEGORY_LABEL } from "@/lib/photos/post-input";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { ProtectedPhoto } from "./protected-photo";
 
-const CATEGORY_LABEL = { cosplay: "코스프레", model: "모델", landscape: "풍경", other: "기타" } as const;
+const badge = "pointer-events-none absolute top-1.5 rounded-full bg-black/60 px-2 py-0.5 text-[11px] font-semibold text-white";
 
-/** 사진 피드 (홈 · 탐색 공용). 열 수: 2 · 3(md) · 5(xl) */
+/** 사진 피드 (홈 · 탐색 · 태그 · 프로필 공용). 열 수: 2 · 3(md) · 5(xl). 여러 장 · 파노라마는 배지로 (S-02 ④ ⑨) */
 export function PhotoFeed({ items, empty }: { items: FeedItem[]; empty: string }) {
   if (items.length === 0) return <p className="px-4 py-24 text-center text-quiet md:px-6">{empty}</p>;
 
@@ -15,7 +16,7 @@ export function PhotoFeed({ items, empty }: { items: FeedItem[]; empty: string }
         <li key={post.id} className="mb-2 break-inside-avoid xl:mb-4">
           <article className="relative">
             {post.cover ? (
-              <div className={`overflow-hidden rounded-lg bg-slot ${post.cover.isPanorama ? "aspect-[2/1]" : ""}`}>
+              <div className={`relative overflow-hidden rounded-lg bg-slot ${post.cover.isPanorama ? "aspect-[2/1]" : ""}`}>
                 <ProtectedPhoto
                   sources={post.cover.sources}
                   alt={post.cover.alt}
@@ -25,6 +26,14 @@ export function PhotoFeed({ items, empty }: { items: FeedItem[]; empty: string }
                   priority={index < 4}
                   className={`block w-full ${post.cover.isPanorama ? "h-full object-cover" : "h-auto"}`}
                 />
+                {post.cover.isPanorama && <span className={`${badge} left-1.5`}>파노라마</span>}
+                {post.photoCount > 1 && (
+                  <span className={`${badge} right-1.5 tabular-nums`}>
+                    <span className="sr-only">사진 </span>
+                    {post.photoCount}
+                    <span className="sr-only">장</span>
+                  </span>
+                )}
               </div>
             ) : (
               <div role="img" aria-label={post.title} className="aspect-[4/5] rounded-lg bg-slot" />

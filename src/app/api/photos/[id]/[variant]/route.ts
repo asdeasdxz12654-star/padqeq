@@ -1,3 +1,4 @@
+import { isUuid } from "@/lib/ids";
 import type { NextRequest } from "next/server";
 import { getViewer } from "@/lib/auth/viewer";
 import { inspectImage } from "@/lib/photos/inspect";
@@ -19,14 +20,13 @@ import { createClient } from "@/lib/supabase/server";
 //  · 파일 내부 구조 · 형식 · 크기(px) · 용량이 DB에 적은 값과 맞는지
 //  · 메타데이터(EXIF · GPS) 잔존 여부
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 const fail = (status: number, message: string) =>
   Response.json({ error: message }, { status, headers: { "Cache-Control": "no-store" } });
 
 export async function PUT(request: NextRequest, ctx: RouteContext<"/api/photos/[id]/[variant]">) {
   const { id, variant } = await ctx.params;
-  if (!UUID.test(id) || !isVariantName(variant)) return fail(400, "잘못된 주소");
+  if (!isUuid(id) || !isVariantName(variant)) return fail(400, "잘못된 주소");
 
   // 쿠키 인증 API이므로 같은 사이트에서 온 요청만 받는다 (CSRF 방지)
   const site = request.headers.get("sec-fetch-site");
