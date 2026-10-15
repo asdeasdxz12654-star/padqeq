@@ -177,6 +177,7 @@ export default async function PostPage({ params }: PageProps<"/p/[id]">) {
           postId={post.id}
           initialPhotos={post.photos}
           watermark={viewer?.profile ? `@${viewer.profile.handle}` : null}
+          canLike={Boolean(viewer?.profile) && post.status === "published" && !post.held_at}
         />
 
         <div className="mt-6 flex flex-col gap-5 px-4 md:mt-0 md:px-0">

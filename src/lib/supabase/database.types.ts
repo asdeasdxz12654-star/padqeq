@@ -2066,6 +2066,10 @@ export type Database = {
         }
         Returns: string
       }
+      popular_posts: {
+        Args: { days?: number; max_rows?: number }
+        Returns: { likes: number; post_id: string }[]
+      }
       trending_works: {
         Args: { days?: number; max_rows?: number }
         Returns: { id: string; name: string; recent_count: number; slug: string; total_count: number }[]

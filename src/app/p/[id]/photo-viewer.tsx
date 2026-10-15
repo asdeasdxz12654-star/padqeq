@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { DOUBLE_LIKE_EVENT, isDoubleTap, type Tap } from "@/lib/posts/double-tap";
 import type { ViewerPhoto } from "@/lib/posts/get-post";
 import { refreshPhotoSources } from "./actions";
 
@@ -9,6 +10,7 @@ import { refreshPhotoSources } from "./actions";
 //  · 로그인 회원에게는 보는 사람의 @핸들을 사진에 옅게 새긴다 (유출 추적)
 //  · 화면 너비 × 화소 밀도에 맞는 크기만 받는다 (1200 · 2560, 구형 기기는 JPEG)
 //  · ← → 키, 좌우로 밀기, 이전 · 다음 버튼
+//  · 두 번 톡(마우스는 더블클릭) → 좋아요 (취소는 버튼으로만)
 
 const MAX_CACHE = 6;
 
@@ -20,10 +22,13 @@ export function PhotoViewer({
   postId,
   initialPhotos,
   watermark,
+  canLike = false,
 }: {
   postId: string;
   initialPhotos: ViewerPhoto[];
   watermark: string | null;
+  /** 두 번 탭으로 좋아요 (로그인 회원 · 게시된 글) */
+  canLike?: boolean;
 }) {
   const [photos, setPhotos] = useState(initialPhotos);
   const [index, setIndex] = useState(0);
@@ -145,19 +150,45 @@ export function PhotoViewer({
   // 좌우로 밀기
   const swipe = useRef<number | null>(null);
 
+  // 두 번 탭 → 좋아요 + 하트
+  const lastTap = useRef<Tap | null>(null);
+  const pointerType = useRef("mouse");
+  const [burst, setBurst] = useState(0);
+  const likeByTap = useCallback(() => {
+    window.dispatchEvent(new CustomEvent(DOUBLE_LIKE_EVENT, { detail: { postId } }));
+    setBurst((n) => n + 1);
+  }, [postId]);
+  useEffect(() => {
+    if (!burst) return;
+    const timer = setTimeout(() => setBurst(0), 800);
+    return () => clearTimeout(timer);
+  }, [burst]);
+
   return (
     <div ref={root} className={`flex flex-col gap-3 ${full ? "h-full justify-center bg-black p-4" : ""}`}>
       <div
         ref={frame}
-        className={`photo-guard relative flex justify-center ${photo.isPanorama ? "overflow-x-auto" : "overflow-hidden"}`}
+        className={`photo-guard relative flex touch-manipulation justify-center ${photo.isPanorama ? "overflow-x-auto" : "overflow-hidden"}`}
         onPointerDown={(e) => {
+          pointerType.current = e.pointerType;
           if (e.pointerType !== "mouse") swipe.current = e.clientX;
         }}
         onPointerUp={(e) => {
+          if (canLike && e.pointerType !== "mouse") {
+            const tap = { time: e.timeStamp, x: e.clientX, y: e.clientY };
+            if (isDoubleTap(lastTap.current, tap)) {
+              lastTap.current = null;
+              likeByTap();
+            } else lastTap.current = tap;
+          }
           if (swipe.current === null || photo.isPanorama) return;
           const dx = e.clientX - swipe.current;
           swipe.current = null;
           if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
+        }}
+        onDoubleClick={() => {
+          // 터치는 위에서 처리했다 (일부 브라우저는 두 번 탭에도 dblclick을 보낸다)
+          if (canLike && pointerType.current === "mouse") likeByTap();
         }}
       >
         <div
@@ -170,6 +201,17 @@ export function PhotoViewer({
             aria-label={photo.alt}
             className={`block size-full rounded-lg ${status === "ready" ? "" : "invisible"}`}
           />
+          {burst > 0 && (
+            <svg
+              key={burst}
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              className="like-burst pointer-events-none absolute top-1/2 left-1/2 size-24 text-white drop-shadow-lg"
+              fill="currentColor"
+            >
+              <path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z" />
+            </svg>
+          )}
           {status === "error" && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-sm text-quiet">
               사진을 불러오지 못했어요

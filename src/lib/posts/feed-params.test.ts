@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { escapeLike, feedHref, parseCategory, parseQuery } from "./feed-params";
+import { escapeLike, feedHref, parseCategory, parseQuery, parseSort, rankPosts } from "./feed-params";
 
 describe("검색어", () => {
   it("제목 검색은 공백을 정리한다", () => {
@@ -34,5 +34,24 @@ describe("카테고리 · 주소", () => {
     expect(feedHref("/explore", current, { year: null })).toBe("/explore?q=%EC%8B%A0%EC%82%AC&category=cosplay");
     expect(feedHref("/", { year: null, category: null, q: null }, { year: 2024 })).toBe("/?year=2024");
     expect(feedHref("/", { year: null, category: null, q: null }, {})).toBe("/");
+  });
+});
+
+describe("인기순", () => {
+  it("popular만 인기순, 나머지는 최신순", () => {
+    expect(parseSort("popular")).toBe("popular");
+    expect(parseSort("hot")).toBe("latest");
+    expect(parseSort(undefined)).toBe("latest");
+  });
+
+  it("주소에 정렬을 유지한다", () => {
+    const current = { year: null, category: "cosplay" as const, q: null, sort: "popular" as const };
+    expect(feedHref("/explore", current, { year: 2024 })).toBe("/explore?category=cosplay&year=2024&sort=popular");
+    expect(feedHref("/explore", current, { sort: "latest" })).toBe("/explore?category=cosplay");
+  });
+
+  it("순위대로 줄 세우고 목록에 없는 글은 뺀다", () => {
+    const rows = [{ id: "a" }, { id: "b" }, { id: "c" }];
+    expect(rankPosts(rows, ["c", "x", "a"]).map((r) => r.id)).toEqual(["c", "a"]);
   });
 });

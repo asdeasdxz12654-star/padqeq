@@ -109,3 +109,21 @@ body {
     color: #047857;
   }
 }
+
+/* 두 번 탭 좋아요 하트 (S-06 ②) */
+@keyframes like-burst {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+  25% { opacity: 0.95; transform: translate(-50%, -50%) scale(1.1); }
+  60% { opacity: 0.95; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+}
+.like-burst {
+  transform: translate(-50%, -50%);
+  animation: like-burst 800ms ease-out forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .like-burst {
+    animation-name: none;
+    opacity: 0.9;
+  }
+}

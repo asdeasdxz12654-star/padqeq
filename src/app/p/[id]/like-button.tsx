@@ -1,15 +1,45 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { DOUBLE_LIKE_EVENT } from "@/lib/posts/double-tap";
 import { setLike } from "./actions";
 
-/** 좋아요 (S-06 ②). 누르면 바로 바뀌고, 실패하면 되돌린다. */
+/** 좋아요 (S-06 ②). 누르면 바로 바뀌고, 실패하면 되돌린다. 사진을 두 번 톡 해도 누른다 (취소는 안 함). */
 export function LikeButton({ postId, initial, count, loginHref }: { postId: string; initial: boolean; count: number; loginHref: string | null }) {
   const [liked, setLiked] = useState(initial);
   const [likes, setLikes] = useState(count);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const likedRef = useRef(initial);
+
+  const change = useCallback(
+    (next: boolean) => {
+      likedRef.current = next;
+      setLiked(next);
+      setLikes((n) => n + (next ? 1 : -1));
+      setError(null);
+      startTransition(async () => {
+        const result = await setLike(postId, next);
+        if (!result.ok) {
+          likedRef.current = !next;
+          setLiked(!next);
+          setLikes((n) => n + (next ? -1 : 1));
+          setError(result.error);
+        }
+      });
+    },
+    [postId],
+  );
+
+  useEffect(() => {
+    if (loginHref) return;
+    const onDouble = (e: Event) => {
+      if ((e as CustomEvent<{ postId: string }>).detail?.postId === postId && !likedRef.current) change(true);
+    };
+    window.addEventListener(DOUBLE_LIKE_EVENT, onDouble);
+    return () => window.removeEventListener(DOUBLE_LIKE_EVENT, onDouble);
+  }, [change, loginHref, postId]);
 
   const heart = (
     <svg aria-hidden="true" viewBox="0 0 24 24" className="size-4" fill={liked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round">
@@ -35,20 +65,7 @@ export function LikeButton({ postId, initial, count, loginHref }: { postId: stri
         type="button"
         aria-pressed={liked}
         disabled={pending}
-        onClick={() => {
-          const next = !liked;
-          setLiked(next);
-          setLikes((n) => n + (next ? 1 : -1));
-          setError(null);
-          startTransition(async () => {
-            const result = await setLike(postId, next);
-            if (!result.ok) {
-              setLiked(!next);
-              setLikes((n) => n + (next ? -1 : 1));
-              setError(result.error);
-            }
-          });
-        }}
+        onClick={() => change(!liked)}
         className={className}
       >
         {heart}

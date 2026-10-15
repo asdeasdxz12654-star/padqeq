@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { busiestMonth, monthBars, yearReviewSchema } from "./year-review";
+import { busiestMonth, monthBars, shareCardContent, yearReviewSchema } from "./year-review";
 
 describe("year review", () => {
   it("DB 결과를 검증한다 (count는 숫자 · 문자열 모두)", () => {
@@ -29,5 +29,28 @@ describe("year review", () => {
   it("가장 많이 담은 달", () => {
     expect(busiestMonth({ "3": 2, "9": 2 })).toBe(3);
     expect(busiestMonth({})).toBeNull();
+  });
+
+  it("공유 카드: 많은 분야 순 3개 · 태그 4개 · 함께한 사람은 넣지 않는다", () => {
+    const card = shareCardContent(
+      yearReviewSchema.parse({
+        year: 2026,
+        posts: 9,
+        photos: 30,
+        months: { "5": 9 },
+        undated: 0,
+        categories: { landscape: 1, cosplay: 5, model: 3, other: 2 },
+        top_tags: ["가", "나", "다", "라", "마"].map((name, i) => ({ slug: `t${i}`, name, kind: "general", count: 1 })),
+        credited_in: 2,
+        partners: [{ handle: "friend1", count: 2 }],
+        first_post: null,
+        last_post: null,
+      }),
+      (c) => c,
+    );
+    expect(card.categories).toEqual(["cosplay", "model", "other"]);
+    expect(card.tags).toEqual(["#가", "#나", "#다", "#라"]);
+    expect(card.busiest).toBe("5월에 가장 많이 담았어요");
+    expect(JSON.stringify(card)).not.toContain("friend1");
   });
 });

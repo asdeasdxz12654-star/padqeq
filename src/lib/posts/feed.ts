@@ -2,7 +2,7 @@ import "server-only";
 import { getViewer } from "@/lib/auth/viewer";
 import { photoSources, type PhotoSources } from "@/lib/photos/server";
 import { createClient } from "@/lib/supabase/server";
-import { type Category, escapeLike, type SearchQuery } from "./feed-params";
+import { type Category, escapeLike, rankPosts, type SearchQuery } from "./feed-params";
 
 export const FEED_LIMIT = 40;
 
@@ -18,6 +18,8 @@ export type FeedFilter = {
   postIds?: string[];
   /** 팔로우 피드: 이 태그가 붙었거나 이 회원이 올린 글 */
   following?: { tagIds: string[]; authorIds: string[] };
+  /** 이 순서대로 (인기순). 이 글들 중 다른 조건에 맞는 것만, 순서를 지켜 돌려준다. */
+  rankedIds?: string[];
   /** 몇 개까지 (기본 FEED_LIMIT) */
   limit?: number;
 };
@@ -38,7 +40,7 @@ export type FeedItem = {
 };
 
 /** 게시된 글 목록 (홈 · 탐색). 대표 사진에는 이미지 게이트 서명 주소를 붙인다. */
-export async function loadFeed({ year, category, query, tagIds, authorId, postIds, following, limit = FEED_LIMIT }: FeedFilter): Promise<FeedItem[]> {
+export async function loadFeed({ year, category, query, tagIds, authorId, postIds, following, rankedIds, limit = FEED_LIMIT }: FeedFilter): Promise<FeedItem[]> {
   const supabase = await createClient();
 
   // 팔로우: 태그로 모은 글 id 또는 팔로우한 회원의 글
@@ -81,7 +83,8 @@ export async function loadFeed({ year, category, query, tagIds, authorId, postId
     .order("published_at", { ascending: false })
     .order("position", { referencedTable: "photos" })
     .limit(1, { referencedTable: "photos" })
-    .limit(Math.min(limit, FEED_LIMIT));
+    // 인기순은 후보를 모두 받아 순위대로 자른다
+    .limit(rankedIds ? Math.min(rankedIds.length, 200) : Math.min(limit, FEED_LIMIT));
   if (year !== null) feed = feed.eq("shot_year", year);
   if (category !== null) feed = feed.eq("category", category);
   if (taggedPostIds) feed = feed.in("id", taggedPostIds);
@@ -90,6 +93,10 @@ export async function loadFeed({ year, category, query, tagIds, authorId, postId
   if (postIds) {
     if (!postIds.length) return [];
     feed = feed.in("id", postIds.slice(0, 200));
+  }
+  if (rankedIds) {
+    if (!rankedIds.length) return [];
+    feed = feed.in("id", rankedIds.slice(0, 200));
   }
 
   // 내가 신고한 글은 내 피드에서 바로 숨긴다 (S-15 ⑧)
@@ -122,8 +129,9 @@ export async function loadFeed({ year, category, query, tagIds, authorId, postId
     );
   }
 
-  const { data, error } = await feed;
+  const { data: rows, error } = await feed;
   if (error) throw error;
+  const data = rankedIds ? rankPosts(rows, rankedIds).slice(0, Math.min(limit, FEED_LIMIT)) : rows;
 
   // RLS로 읽어 온(볼 수 있는) 사진에만 서명 주소를 붙인다
   return Promise.all(

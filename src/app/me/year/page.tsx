@@ -9,9 +9,10 @@ import { getViewer } from "@/lib/auth/viewer";
 import { CATEGORIES, CATEGORY_LABEL } from "@/lib/photos/post-input";
 import { type FeedItem, loadFeed } from "@/lib/posts/feed";
 import { profileHref } from "@/lib/profiles/profile-href";
-import { busiestMonth, monthBars, yearReviewSchema } from "@/lib/review/year-review";
+import { busiestMonth, monthBars, shareCardContent, yearReviewSchema } from "@/lib/review/year-review";
 import { createClient } from "@/lib/supabase/server";
 import { currentYearKst, parseYearParam } from "@/lib/year-chips";
+import { YearShareCard } from "./share-card";
 
 export const metadata: Metadata = { title: "나의 한 해", robots: { index: false } };
 
@@ -188,6 +189,10 @@ export default async function YearReviewPage({ searchParams }: PageProps<"/me/ye
                 ))}
               </ul>
             </section>
+          )}
+
+          {review.posts > 0 && (
+            <YearShareCard year={year} handle={viewer.profile.handle} content={shareCardContent(review, (c) => CATEGORY_LABEL[c])} />
           )}
 
           {items.length > 0 && (

@@ -34,3 +34,23 @@ export function busiestMonth(months: YearReview["months"]): number | null {
   const top = bars.reduce((best, bar) => (bar.count > best.count ? bar : best), bars[0]!);
   return top.count > 0 ? top.month : null;
 }
+
+/** 공유 카드에 넣을 것 (S-09 연말 결산 공유). 사진 · 함께한 사람의 핸들은 넣지 않는다. */
+export function shareCardContent(review: YearReview, categoryLabel: (c: (typeof CATEGORIES)[number]) => string) {
+  const month = busiestMonth(review.months);
+  const categories = CATEGORIES.filter((c) => review.categories[c])
+    .sort((a, b) => review.categories[b]! - review.categories[a]! || CATEGORIES.indexOf(a) - CATEGORIES.indexOf(b))
+    .slice(0, 3)
+    .map(categoryLabel);
+  return {
+    stats: [
+      { label: "게시물", value: review.posts },
+      { label: "사진", value: review.photos },
+      { label: "크레딧된 작업", value: review.credited_in },
+    ],
+    bars: monthBars(review.months),
+    busiest: month ? `${month}월에 가장 많이 담았어요` : null,
+    categories,
+    tags: review.top_tags.slice(0, 4).map((t) => `#${t.name}`),
+  };
+}
