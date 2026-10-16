@@ -78,8 +78,10 @@ jobs:
         run: |
           set -euo pipefail
           log="$RUNNER_TEMP/wrangler-dev.log"
-          # 대표 주소로 넘기는 규칙(SITE_HOST)을 로컬 주소로 바꿔 둔다
-          pnpm exec wrangler dev --ip 127.0.0.1 --port 8787 --var SITE_HOST:127.0.0.1 > "$log" 2>&1 &
+          # 대표 주소로 넘기는 규칙(SITE_HOST)을 로컬 주소로 바꿔 둔다.
+          # 사진 주소 서명 키는 진짜 키 대신 이번 확인에만 쓰고 버리는 임의 값 (사진이 있는 화면도 그려지게)
+          check_secret=$(openssl rand -hex 32)
+          pnpm exec wrangler dev --ip 127.0.0.1 --port 8787 --var SITE_HOST:127.0.0.1 --var "IMAGE_URL_SECRET:$check_secret" > "$log" 2>&1 &
           dev_pid=$!
           trap 'kill "$dev_pid" 2>/dev/null || true' EXIT
           # Worker가 뜰 때까지 (최대 3분)
