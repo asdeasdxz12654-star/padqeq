@@ -27,6 +27,7 @@ const ANON_READABLE = [
   "profiles",
   "site_switches",
   "tag_aliases",
+  "tag_slug_redirects",
   "tags",
 ];
 
