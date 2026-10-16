@@ -98,7 +98,7 @@ jobs:
           if [ "$failed" = 1 ]; then
             tail -n 80 "$log"
             # 로그를 내려받지 않고도 원인을 볼 수 있게 실패 알림(annotation)에 마지막 로그를 붙인다 (비밀값은 이 단계에 없다)
-            detail=$(tail -n 40 "$log" | sed 's/%/%25/g; s///g' | awk '{printf "%s%%0A", $0}')
+            detail=$(tail -n 40 "$log" | tr -d '\r' | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
             echo "::error title=배포 전 실행 확인 실패::$summary%0A$detail"
             echo "Worker가 화면을 내지 못해 배포를 멈춥니다"
             exit 1
