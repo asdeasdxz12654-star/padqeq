@@ -14,6 +14,16 @@ updates:
     cooldown:
       default-days: 7
     open-pull-requests-limit: 5
+    ignore:
+      # @types/node는 실제 실행 환경(Node 24: CI · engines)과 같은 메이저로 둔다. Node를 올릴 때 함께 올린다.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+      # Next 16.4는 OpenNext(Cloudflare)가 아직 지원하지 않는다 (preview-props.json → 모든 요청 500, 2026-10-16 배포 사고).
+      # OpenNext가 지원하면 이 두 줄을 지우고 함께 올린다.
+      - dependency-name: "next"
+        versions: [">=16.4.0"]
+      - dependency-name: "eslint-config-next"
+        versions: [">=16.4.0"]
     groups:
       minor-and-patch:
         update-types: [minor, patch]

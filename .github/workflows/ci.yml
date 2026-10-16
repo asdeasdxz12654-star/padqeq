@@ -70,6 +70,33 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Cloudflare용 빌드
         run: pnpm exec opennextjs-cloudflare build
+      # 배포 전 실행 확인: 빌드한 Worker를 로컬(workerd)로 띄워 화면이 실제로 나오는지 본다.
+      # 빌드 · 테스트는 통과해도 Worker가 시작하다 죽는 경우(2026-10-16 Next 16.4 사고)를 여기서 막는다.
+      - name: 배포 전 실행 확인
+        env:
+          WRANGLER_SEND_METRICS: "false"
+        run: |
+          set -euo pipefail
+          log="$RUNNER_TEMP/wrangler-dev.log"
+          # 대표 주소로 넘기는 규칙(SITE_HOST)을 로컬 주소로 바꿔 둔다
+          pnpm exec wrangler dev --ip 127.0.0.1 --port 8787 --var SITE_HOST:127.0.0.1 > "$log" 2>&1 &
+          dev_pid=$!
+          trap 'kill "$dev_pid" 2>/dev/null || true' EXIT
+          for _ in $(seq 1 60); do
+            curl -s -o /dev/null http://127.0.0.1:8787/terms && break
+            sleep 2
+          done
+          failed=0
+          for path in /terms / /explore /login; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:8787$path")
+            echo "$path $code"
+            [ "$code" = 200 ] || failed=1
+          done
+          if [ "$failed" = 1 ]; then
+            tail -n 80 "$log"
+            echo "Worker가 화면을 내지 못해 배포를 멈춥니다"
+            exit 1
+          fi
       - name: 배포 (비밀값은 같은 버전에 함께 올림)
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
