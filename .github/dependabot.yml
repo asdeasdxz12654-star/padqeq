@@ -14,10 +14,6 @@ updates:
     cooldown:
       default-days: 7
     open-pull-requests-limit: 5
-    ignore:
-      # @types/node는 실제 실행 환경(Node 24: CI · engines)과 같은 메이저로 둔다. Node를 올릴 때 함께 올린다.
-      - dependency-name: "@types/node"
-        update-types: ["version-update:semver-major"]
     groups:
       minor-and-patch:
         update-types: [minor, patch]
