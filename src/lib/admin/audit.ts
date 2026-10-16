@@ -11,6 +11,7 @@ const ACTION_LABEL: Record<string, string> = {
   post_untrash: "휴지통에서 복구",
   post_purge: "영구 삭제",
   post_quarantine: "불법 촬영물 격리",
+  post_veil: "가림 표시 변경",
   post_unquarantine: "격리 해제",
   site_limit: "한도 값 변경",
   member_role: "역할 변경",

@@ -23,7 +23,7 @@ export default async function EditPostPage({ params }: PageProps<"/p/[id]/edit">
   const { data: post } = await supabase
     .from("posts")
     .select(
-      `id, author_id, title, body, category, shot_year, shot_on, status, removed_at, has_people, visibility, comment_policy, scheduled_at, show_exif, photos(id, position, alt_text, width, height, storage_key, ready_at), post_tags(tag_id),
+      `id, author_id, title, body, category, shot_year, shot_on, status, removed_at, has_people, visibility, comment_policy, scheduled_at, show_exif, veil, veil_by_staff, photos(id, position, alt_text, width, height, storage_key, ready_at), post_tags(tag_id),
        credits(id, role, status, created_at, external_label, external_url, member:profiles!credits_member_id_fkey(handle))`,
     )
     .eq("id", id)
@@ -75,6 +75,8 @@ export default async function EditPostPage({ params }: PageProps<"/p/[id]/edit">
           visibility: post.visibility,
           commentPolicy: post.comment_policy,
           showExif: post.show_exif,
+          veil: post.veil,
+          veilLocked: post.veil_by_staff,
           // 아직 예약 중일 때만 시각을 바꿀 수 있다
           scheduledAt: post.scheduled_at && Date.parse(post.scheduled_at) > Date.parse(new Date().toISOString()) ? post.scheduled_at : null,
           tags: (tags ?? []).map((t) => ({

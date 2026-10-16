@@ -4,6 +4,7 @@ import { CATEGORIES, MAX_PHOTOS_PER_POST } from "@/lib/photos/post-input";
 import { MAX_TAGS_PER_POST } from "@/lib/tags/tag-rules";
 import { currentYearKst, MIN_YEAR } from "@/lib/year-chips";
 import { COMMENT_POLICIES, VISIBILITIES, scheduleInput } from "./audience";
+import { VEIL_REASONS } from "./veil";
 
 // 게시물 편집 (S-07 ⑨). 사진 추가 · 사람 포함 여부는 여기서 바꾸지 않는다.
 //  · photoOrder: 남길 사진 id를 보여 줄 순서대로 (빠진 사진은 지운다, 1장 이상)
@@ -34,6 +35,8 @@ export const editSchema = z
     visibility: z.enum(VISIBILITIES),
     commentPolicy: z.enum(COMMENT_POLICIES),
     showExif: z.boolean().default(true),
+    /** 운영자가 붙인 가림은 DB가 막는다 (undefined면 그대로) */
+    veil: z.enum(VEIL_REASONS).nullable().optional(),
     /** 예약 중인 글만 바꿀 수 있다 (undefined면 그대로) */
     scheduledAt: scheduleInput.optional(),
   })

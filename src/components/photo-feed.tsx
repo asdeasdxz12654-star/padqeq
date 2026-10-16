@@ -3,6 +3,7 @@ import type { FeedItem } from "@/lib/posts/feed";
 import { CATEGORY_LABEL } from "@/lib/photos/post-input";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { ProtectedPhoto } from "./protected-photo";
+import { Veil } from "./veil";
 
 const badge = "pointer-events-none absolute top-1.5 rounded-full bg-black/60 px-2 py-0.5 text-[11px] font-semibold text-white";
 
@@ -17,15 +18,17 @@ export function PhotoFeed({ items, empty }: { items: FeedItem[]; empty: string }
           <article className="relative">
             {post.cover ? (
               <div className={`relative overflow-hidden rounded-lg bg-slot ${post.cover.isPanorama ? "aspect-[2/1]" : ""}`}>
-                <ProtectedPhoto
-                  sources={post.cover.sources}
-                  alt={post.cover.alt}
-                  width={post.cover.width}
-                  height={post.cover.height}
-                  sizes="(min-width: 1280px) 20vw, (min-width: 768px) 33vw, 50vw"
-                  priority={index < 4}
-                  className={`block w-full ${post.cover.isPanorama ? "h-full object-cover" : "h-auto"}`}
-                />
+                <Veil postId={post.id} reason={post.cover.veil} fill={post.cover.isPanorama}>
+                  <ProtectedPhoto
+                    sources={post.cover.sources}
+                    alt={post.cover.alt}
+                    width={post.cover.width}
+                    height={post.cover.height}
+                    sizes="(min-width: 1280px) 20vw, (min-width: 768px) 33vw, 50vw"
+                    priority={index < 4}
+                    className={`block w-full ${post.cover.isPanorama ? "h-full object-cover" : "h-auto"}`}
+                  />
+                </Veil>
                 {post.cover.isPanorama && <span className={`${badge} left-1.5`}>파노라마</span>}
                 {post.photoCount > 1 && (
                   <span className={`${badge} right-1.5 tabular-nums`}>

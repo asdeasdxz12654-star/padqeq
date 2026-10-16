@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { COMMENT_POLICIES, VISIBILITIES, scheduleInput } from "@/lib/posts/audience";
+import { veilInput } from "@/lib/posts/veil";
 import { currentYearKst, MIN_YEAR } from "@/lib/year-chips";
 import { creditSchema, MAX_CREDITS_PER_POST } from "./credit-input";
 import { isPanorama, VARIANTS, variantSize } from "./variants";
@@ -72,6 +73,7 @@ export const draftSchema = z.object({
   commentPolicy: z.enum(COMMENT_POLICIES).default("everyone"),
   scheduledAt: scheduleInput.default(null),
   showExif: z.boolean().default(true),
+  veil: veilInput,
 });
 export type DraftInput = z.input<typeof draftSchema>;
 

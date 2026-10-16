@@ -11,16 +11,22 @@ export function CollectionCards({ items, empty }: { items: CollectionCard[]; emp
       {items.map((c) => (
         <li key={c.id}>
           <article className="relative">
-            <div className="aspect-square overflow-hidden rounded-xl bg-slot [&_picture]:h-full">
+            <div className="relative aspect-square overflow-hidden rounded-xl bg-slot [&_picture]:h-full">
+              {/* 가림 표시 표지는 흐리게만 (누르면 컬렉션으로) */}
               {c.cover && (
-                <ProtectedPhoto
-                  sources={c.cover.sources}
-                  alt=""
-                  width={c.cover.width}
-                  height={c.cover.height}
-                  sizes="(min-width: 1280px) 20vw, (min-width: 768px) 33vw, 50vw"
-                  className="block size-full object-cover"
-                />
+                <div className={`size-full ${c.cover.veil ? "blur-2xl brightness-75" : ""}`}>
+                  <ProtectedPhoto
+                    sources={c.cover.sources}
+                    alt=""
+                    width={c.cover.width}
+                    height={c.cover.height}
+                    sizes="(min-width: 1280px) 20vw, (min-width: 768px) 33vw, 50vw"
+                    className="block size-full object-cover"
+                  />
+                </div>
+              )}
+              {c.cover?.veil && (
+                <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-xs font-semibold text-white">가림 표시</span>
               )}
             </div>
             <h3 className="truncate px-1 pt-2 text-sm font-medium">

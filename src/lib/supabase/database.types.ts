@@ -1719,6 +1719,8 @@ export type Database = {
           trash_prev_status: Database["public"]["Enums"]["post_status"] | null
           trash_prev_removed_at: string | null
           show_exif: boolean
+          veil: Database["public"]["Enums"]["veil_reason"] | null
+          veil_by_staff: boolean
           visibility: Database["public"]["Enums"]["post_visibility"]
           scheduled_at: string | null
           comment_policy: Database["public"]["Enums"]["comment_policy"]
@@ -1745,6 +1747,8 @@ export type Database = {
           trash_prev_status?: Database["public"]["Enums"]["post_status"] | null
           trash_prev_removed_at?: string | null
           show_exif?: boolean
+          veil?: Database["public"]["Enums"]["veil_reason"] | null
+          veil_by_staff?: boolean
           visibility?: Database["public"]["Enums"]["post_visibility"]
           scheduled_at?: string | null
           comment_policy?: Database["public"]["Enums"]["comment_policy"]
@@ -1771,6 +1775,8 @@ export type Database = {
           trash_prev_status?: Database["public"]["Enums"]["post_status"] | null
           trash_prev_removed_at?: string | null
           show_exif?: boolean
+          veil?: Database["public"]["Enums"]["veil_reason"] | null
+          veil_by_staff?: boolean
           visibility?: Database["public"]["Enums"]["post_visibility"]
           scheduled_at?: string | null
           comment_policy?: Database["public"]["Enums"]["comment_policy"]
@@ -1804,6 +1810,7 @@ export type Database = {
       profiles: {
         Row: {
           memory_alerts: boolean
+          show_veiled: boolean
           credit_auto_approve: boolean
           interest_categories: Database["public"]["Enums"]["post_category"][]
           cover_post_id: string | null
@@ -1821,6 +1828,7 @@ export type Database = {
         }
         Insert: {
           memory_alerts?: boolean
+          show_veiled?: boolean
           credit_auto_approve?: boolean
           interest_categories?: Database["public"]["Enums"]["post_category"][]
           cover_post_id?: string | null
@@ -1838,6 +1846,7 @@ export type Database = {
         }
         Update: {
           memory_alerts?: boolean
+          show_veiled?: boolean
           credit_auto_approve?: boolean
           interest_categories?: Database["public"]["Enums"]["post_category"][]
           cover_post_id?: string | null
@@ -2093,6 +2102,7 @@ export type Database = {
       }
       my_upload_quota: { Args: never; Returns: { quota: number; used: number }[] }
       set_member_role: { Args: { new_role: string; note: string; target: string }; Returns: undefined }
+      staff_set_post_veil: { Args: { note: string; reason: string | null; target: string }; Returns: undefined }
       reserve_upload_slot: { Args: { bytes: number; height: number; width: number }; Returns: string }
       attach_upload_slots: { Args: { entries: Json; target_post: string }; Returns: number }
       discard_upload_slots: { Args: { ids: string[] }; Returns: number }
@@ -2184,6 +2194,7 @@ export type Database = {
       message_receive: "everyone" | "following" | "none"
       thread_kind: "direct" | "casting"
       post_visibility: "public" | "followers" | "private"
+      veil_reason: "gore" | "fear" | "phobia"
       comment_policy: "everyone" | "followers" | "off"
       upload_stage: "solo" | "invite" | "open"
       thread_member_status: "active" | "request" | "declined"
@@ -2234,6 +2245,7 @@ export type Database = {
         | "memory_today"
         | "credit_auto_approved"
         | "year_review"
+        | "post_veiled"
       post_category: "cosplay" | "model" | "landscape" | "other"
       post_status: "draft" | "published" | "hidden"
       report_reason:
@@ -2385,6 +2397,7 @@ export const Constants = {
       message_receive: ["everyone", "following", "none"],
       thread_kind: ["direct", "casting"],
       post_visibility: ["public", "followers", "private"],
+      veil_reason: ["gore", "fear", "phobia"],
       comment_policy: ["everyone", "followers", "off"],
       upload_stage: ["solo", "invite", "open"],
       thread_member_status: ["active", "request", "declined"],
@@ -2430,6 +2443,7 @@ export const Constants = {
         "memory_today",
         "credit_auto_approved",
         "year_review",
+        "post_veiled",
       ],
       post_category: ["cosplay", "model", "landscape", "other"],
       post_status: ["draft", "published", "hidden"],

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { OnThisDayItem } from "@/lib/posts/on-this-day";
 import { ProtectedPhoto } from "./protected-photo";
+import { Veil } from "./veil";
 
 /** 홈 상단 "N년 전 이맘때" (가로로 넘겨 보기). 사진이 없으면 아무것도 그리지 않는다. */
 export function OnThisDay({ items }: { items: OnThisDayItem[] }) {
@@ -20,14 +21,16 @@ export function OnThisDay({ items }: { items: OnThisDayItem[] }) {
             <article className="relative">
               <div className="aspect-[4/5] overflow-hidden rounded-lg bg-slot [&_picture]:h-full">
                 {post.cover && (
-                  <ProtectedPhoto
-                    sources={post.cover.sources}
-                    alt={post.cover.alt}
-                    width={post.cover.width}
-                    height={post.cover.height}
-                    sizes="176px"
-                    className="block size-full object-cover"
-                  />
+                  <Veil postId={post.id} reason={post.cover.veil} fill>
+                    <ProtectedPhoto
+                      sources={post.cover.sources}
+                      alt={post.cover.alt}
+                      width={post.cover.width}
+                      height={post.cover.height}
+                      sizes="176px"
+                      className="block size-full object-cover"
+                    />
+                  </Veil>
                 )}
               </div>
               <span className="absolute top-1.5 left-1.5 rounded-full bg-black/60 px-2 py-0.5 text-[11px] font-semibold text-white">

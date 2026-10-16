@@ -10,6 +10,8 @@ import { CATEGORIES, CATEGORY_LABEL } from "@/lib/photos/post-input";
 import type { PhotoSources } from "@/lib/photos/server";
 import { currentYearKst, MIN_YEAR } from "@/lib/year-chips";
 import { COMMENT_POLICIES, COMMENT_POLICY_LABEL, type CommentPolicy, VISIBILITIES, VISIBILITY_LABEL, type Visibility, toKstLocal } from "@/lib/posts/audience";
+import { VeilSelect } from "@/components/veil-select";
+import type { VeilReason } from "@/lib/posts/veil";
 import { updatePost } from "./actions";
 
 type Initial = {
@@ -26,6 +28,9 @@ type Initial = {
   visibility: Visibility;
   commentPolicy: CommentPolicy;
   showExif: boolean;
+  veil: VeilReason | null;
+  /** 운영자가 붙인 가림 (업로더는 바꿀 수 없다) */
+  veilLocked: boolean;
   /** 예약 중이면 예약 시각, 아니면 null */
   scheduledAt: string | null;
 };
@@ -44,6 +49,7 @@ export function EditForm({ initial, isAdmin, viewerHandle }: { initial: Initial;
   const [visibility, setVisibility] = useState(initial.visibility);
   const [commentPolicy, setCommentPolicy] = useState(initial.commentPolicy);
   const [showExif, setShowExif] = useState(initial.showExif);
+  const [veil, setVeil] = useState(initial.veil);
   const [scheduledAt, setScheduledAt] = useState(toKstLocal(initial.scheduledAt));
   const [alts, setAlts] = useState<Record<string, string>>(() => Object.fromEntries(initial.photos.map((p) => [p.id, p.altText])));
   // 남길 사진 (보여 줄 순서대로)
@@ -87,6 +93,7 @@ export function EditForm({ initial, isAdmin, viewerHandle }: { initial: Initial;
             visibility,
             commentPolicy,
             showExif,
+            ...(!initial.veilLocked && { veil }),
             ...(initial.scheduledAt && { scheduledAt: scheduledAt || null }),
           });
           if (!result.ok) {
@@ -206,6 +213,9 @@ export function EditForm({ initial, isAdmin, viewerHandle }: { initial: Initial;
           <input type="checkbox" checked={showExif} onChange={(e) => setShowExif(e.target.checked)} disabled={pending} className="size-4 accent-[var(--accent)]" />
           촬영 정보(카메라 · 렌즈 · 설정) 보여 주기
         </label>
+        <div className="sm:col-span-3">
+          <VeilSelect value={veil} onChange={setVeil} disabled={pending} locked={initial.veilLocked} className={field} />
+        </div>
         {initial.scheduledAt && (
           <label className="flex flex-col gap-1.5 text-sm">
             예약 시각 <span className="text-xs text-quiet">(비우면 바로 공개)</span>

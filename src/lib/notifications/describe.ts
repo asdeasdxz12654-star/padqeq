@@ -41,6 +41,8 @@ export function describeNotification({ kind, actorHandle, post, event = null, bo
       return { text: "운영 정책에 따라 내 게시물이 게시 중단됐어요. 게시물 화면에서 소명할 수 있어요.", href: postHref };
     case "post_restored":
       return { text: "검토 결과 내 게시물이 다시 게시됐어요.", href: postHref };
+    case "post_veiled":
+      return { text: "운영자가 내 게시물에 가림 표시를 붙였어요. 사진이 흐리게 가려지고, 보는 사람이 눌러야 보여요.", href: postHref };
     case "appeal_rejected":
       return { text: "소명을 검토했지만 조치를 유지하기로 했어요. 게시물 화면에서 자세히 볼 수 있어요.", href: postHref };
     case "credit_claimed":

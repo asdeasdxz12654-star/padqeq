@@ -1,6 +1,7 @@
 "use client";
 
 import type { CreditInput } from "@/lib/photos/credit-input";
+import type { VeilReason } from "@/lib/posts/veil";
 import type { ConsentInput } from "@/lib/photos/post-input";
 import type { CommentPolicy, Visibility } from "@/lib/posts/audience";
 import { VARIANT_NAMES, VARIANTS, type VariantName } from "@/lib/photos/variants";
@@ -28,6 +29,7 @@ export type BundleMeta = {
   /** 예약 시각 (한국 시간 datetime-local 값, 비었으면 바로) */
   scheduledAt: string;
   showExif: boolean;
+  veil: VeilReason | null;
 };
 
 export type Draft = { postId: string; photoIds: string[] };
@@ -53,6 +55,7 @@ export async function publishBundle(
       commentPolicy: meta.commentPolicy,
       scheduledAt: meta.scheduledAt || null,
       showExif: meta.showExif,
+      veil: meta.veil,
       photos: photos.map((p) => ({
         width: p.result!.width,
         height: p.result!.height,

@@ -19,6 +19,8 @@ export type Viewer = {
    * 이때 profile.role은 'member'로 내려 운영 화면 · 기능을 감춘다 (DB도 aal2가 아니면 운영자 권한을 주지 않는다).
    */
   mfaRequired: boolean;
+  /** 가림 표시 사진을 가리지 않고 바로 본다 (설정) */
+  showVeiled: boolean;
 };
 
 /**
@@ -34,7 +36,7 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select(
-      "handle, display_name, role, can_upload, upload_revoked_at, restriction:member_restrictions!member_restrictions_member_id_fkey(suspended_until, reason)",
+      "handle, display_name, role, can_upload, upload_revoked_at, show_veiled, restriction:member_restrictions!member_restrictions_member_id_fkey(suspended_until, reason)",
     )
     .eq("id", sub)
     .maybeSingle();
@@ -66,5 +68,6 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
     },
     restriction,
     mfaRequired,
+    showVeiled: Boolean(profile?.show_veiled),
   };
 });

@@ -27,7 +27,7 @@ export async function createDraft(input: DraftInput): Promise<Result<{ postId: s
   const viewer = await uploader();
   if (!viewer) return { ok: false, error: "업로드 권한이 없어요." };
 
-  const { title, body, category, shotYear, shotOn, hasPeople, photos, tagIds, credits, visibility, commentPolicy, scheduledAt, showExif } = parsed.data;
+  const { title, body, category, shotYear, shotOn, hasPeople, photos, tagIds, credits, visibility, commentPolicy, scheduledAt, showExif, veil } = parsed.data;
   const supabase = await createClient();
 
   const { data: post, error: postError } = await supabase
@@ -44,6 +44,7 @@ export async function createDraft(input: DraftInput): Promise<Result<{ postId: s
       comment_policy: commentPolicy,
       scheduled_at: scheduledAt,
       show_exif: showExif,
+      veil,
     })
     .select("id")
     .single();

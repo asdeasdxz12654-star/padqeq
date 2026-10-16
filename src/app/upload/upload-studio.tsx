@@ -41,6 +41,7 @@ const newBundle = (photoIds: string[], common: Common): Bundle => ({
   commentPolicy: "everyone",
   scheduledAt: "",
   showExif: true,
+  veil: null,
   draft: null,
   state: { kind: "edit" },
 });
@@ -198,6 +199,7 @@ export function UploadStudio({
           commentPolicy: bundle.commentPolicy,
           scheduledAt: bundle.scheduledAt,
           showExif: bundle.showExif,
+          veil: bundle.veil,
         },
         list,
         bundle.draft,

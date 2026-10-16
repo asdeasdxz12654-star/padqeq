@@ -3,6 +3,7 @@ import { getViewer } from "@/lib/auth/viewer";
 import { photoSources, type PhotoSources } from "@/lib/photos/server";
 import { createClient } from "@/lib/supabase/server";
 import { type Category, escapeLike, rankPosts, type SearchQuery } from "./feed-params";
+import { type VeilReason, veilFor } from "./veil";
 
 /** 한 번에 불러오는 게시물 수 (더 보기 한 번) */
 export const FEED_LIMIT = 40;
@@ -43,6 +44,8 @@ export type FeedItem = {
     alt: string;
     isPanorama: boolean;
     sources: PhotoSources;
+    /** 가림 표시 (보는 사람이 '바로 보기'를 켰으면 null) */
+    veil: VeilReason | null;
   } | null;
 };
 
@@ -50,9 +53,9 @@ export type FeedPage = { items: FeedItem[]; next: string | null };
 
 // 게시물 + 대표 사진 1장 + 볼 수 있는 사진 수. 태그로 거를 때는 post_tags를 함께 조인한다 (볼 수 있는 연결만, RLS).
 const SELECT =
-  "id, title, category, shot_year, published_at, author:profiles!posts_author_id_fkey(handle), photos(storage_key, width, height, alt_text, is_panorama, position), photo_count:photos(count)";
+  "id, title, category, shot_year, published_at, veil, author:profiles!posts_author_id_fkey(handle), photos(storage_key, width, height, alt_text, is_panorama, position), photo_count:photos(count)";
 const TAGGED_SELECT =
-  "id, title, category, shot_year, published_at, author:profiles!posts_author_id_fkey(handle), photos(storage_key, width, height, alt_text, is_panorama, position), photo_count:photos(count), post_tags!inner(tag_id)";
+  "id, title, category, shot_year, published_at, veil, author:profiles!posts_author_id_fkey(handle), photos(storage_key, width, height, alt_text, is_panorama, position), photo_count:photos(count), post_tags!inner(tag_id)";
 
 type Row = {
   id: string;
@@ -60,6 +63,7 @@ type Row = {
   category: Category;
   shot_year: number;
   published_at: string | null;
+  veil: VeilReason | null;
   author: { handle: string } | null;
   photos: { storage_key: string; width: number; height: number; alt_text: string; is_panorama: boolean | null; position: number }[];
   photo_count: { count: number }[];
@@ -202,7 +206,9 @@ async function authorsForQuery(supabase: Supabase, query: SearchQuery | null): P
 }
 
 // RLS로 읽어 온(볼 수 있는) 사진에만 서명 주소를 붙인다
-function toItems(rows: Row[]): Promise<FeedItem[]> {
+async function toItems(rows: Row[]): Promise<FeedItem[]> {
+  const viewer = await getViewer();
+  const showVeiled = Boolean(viewer?.showVeiled);
   return Promise.all(
     rows.map(async (post): Promise<FeedItem> => {
       const photo = post.photos[0];
@@ -222,6 +228,8 @@ function toItems(rows: Row[]): Promise<FeedItem[]> {
                 alt: photo.alt_text || post.title,
                 isPanorama: Boolean(photo.is_panorama),
                 sources,
+                // 내 글은 가리지 않는다
+                veil: veilFor(post.veil, showVeiled || (Boolean(viewer?.profile) && post.author?.handle === viewer?.profile?.handle)),
               }
             : null,
       };

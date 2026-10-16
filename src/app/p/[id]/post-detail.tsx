@@ -23,6 +23,8 @@ import { PickButton, ProfileFeatureButtons } from "./owner-tools";
 import { HidePostButton } from "./hide-post-button";
 import { ModerationNotice } from "./moderation-notice";
 import { PhotoViewer } from "./photo-viewer";
+import { Veil } from "@/components/veil";
+import { VEIL_LABEL, veilFor } from "@/lib/posts/veil";
 import { RemoveCreditButton } from "./remove-credit-button";
 import { RepublishButton } from "./republish-button";
 import { ReportButton } from "./report-button";
@@ -139,12 +141,15 @@ export async function PostDetail({ id }: { id: string }) {
       )}
 
       <div className="md:grid md:grid-cols-[minmax(0,1fr)_320px] md:gap-8">
-        <PhotoViewer
-          postId={post.id}
-          initialPhotos={post.photos}
-          watermark={viewer?.profile ? `@${viewer.profile.handle}` : null}
-          canLike={Boolean(viewer?.profile) && post.status === "published" && !post.held_at}
-        />
+        {/* 가림 표시: 내 글이거나 '바로 보기'를 켰으면 가리지 않는다 */}
+        <Veil postId={post.id} reason={veilFor(post.veil, isAuthor || Boolean(viewer?.showVeiled))} variant="full">
+          <PhotoViewer
+            postId={post.id}
+            initialPhotos={post.photos}
+            watermark={viewer?.profile ? `@${viewer.profile.handle}` : null}
+            canLike={Boolean(viewer?.profile) && post.status === "published" && !post.held_at}
+          />
+        </Veil>
 
         <div className="mt-6 flex flex-col gap-5 px-4 md:mt-0 md:px-0">
           <header className="flex flex-col gap-2">
@@ -168,6 +173,12 @@ export async function PostDetail({ id }: { id: string }) {
                 {post.comment_policy !== "everyone" && (
                   <span className="rounded-full border border-line px-2 py-0.5">{COMMENT_POLICY_LABEL[post.comment_policy]}</span>
                 )}
+              </p>
+            )}
+            {post.veil && (
+              <p className="text-xs text-quiet">
+                <span className="rounded-full border border-line px-2 py-0.5">가림 표시 · {VEIL_LABEL[post.veil].title}</span>
+                {isAuthor && post.veil_by_staff && <span> 운영자가 붙였어요</span>}
               </p>
             )}
             <p className="text-xs text-quiet">

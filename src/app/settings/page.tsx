@@ -25,7 +25,7 @@ export default async function SettingsPage() {
   const supabase = await createClient();
   const [{ data: claims }, { data: profile }, { data: setting }, { data: blocks }, { data: warnings }] = await Promise.all([
     supabase.auth.getClaims(),
-    supabase.from("profiles").select("created_at, deletion_requested_at, memory_alerts, credit_auto_approve, interest_categories").eq("id", viewer.id).single(),
+    supabase.from("profiles").select("created_at, deletion_requested_at, memory_alerts, credit_auto_approve, interest_categories, show_veiled").eq("id", viewer.id).single(),
     supabase.from("message_settings").select("receive").eq("user_id", viewer.id).maybeSingle(),
     supabase.from("blocks").select("blocked:profiles!blocks_blocked_id_fkey(id, handle)").eq("blocker_id", viewer.id).limit(1000),
     // 받은 경고 (A-05 ⑥, 본인만 본다)
@@ -97,6 +97,18 @@ export default async function SettingsPage() {
         </h2>
         <p className="text-sm text-quiet">고른 분야의 사진이 홈 &lsquo;추천&rsquo;에서 조금 더 위에 나와요.</p>
         <InterestPicker initial={profile?.interest_categories ?? []} />
+      </section>
+
+      <section id="viewing" aria-labelledby="viewing-heading" className="flex scroll-mt-20 flex-col gap-3">
+        <h2 id="viewing-heading" className="text-lg font-semibold">
+          사진 보기
+        </h2>
+        <SettingToggle
+          kind="showVeiled"
+          initial={profile?.show_veiled ?? false}
+          title="가림 표시 사진 바로 보기"
+          help="피 · 공포 분장처럼 업로더나 운영자가 가림 표시를 붙인 사진을 흐리게 가리지 않고 바로 보여 드려요."
+        />
       </section>
 
       <section aria-labelledby="alerts-heading" className="flex flex-col gap-3">

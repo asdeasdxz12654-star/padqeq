@@ -7,6 +7,7 @@ import { requireTopAdmin } from "@/lib/auth/require-admin";
 import { isUuid } from "@/lib/ids";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { createClient } from "@/lib/supabase/server";
+import { VeilForm } from "./veil-form";
 
 export const metadata: Metadata = { title: "게시물 처리 이력" };
 
@@ -23,7 +24,7 @@ export default async function AdminPostHistoryPage({ params }: PageProps<"/admin
   const { data: post } = await supabase
     .from("posts")
     .select(
-      "id, title, status, visibility, created_at, published_at, updated_at, scheduled_at, held_at, removed_at, trashed_at, quarantined_at, author:profiles!posts_author_id_fkey(id, handle)",
+      "id, title, status, visibility, created_at, published_at, updated_at, scheduled_at, held_at, removed_at, trashed_at, quarantined_at, veil, veil_by_staff, author:profiles!posts_author_id_fkey(id, handle)",
     )
     .eq("id", id)
     .maybeSingle();
@@ -72,6 +73,14 @@ export default async function AdminPostHistoryPage({ params }: PageProps<"/admin
           )}
         </p>
       </header>
+
+      <section aria-labelledby="veil-heading" className="flex flex-col gap-2 rounded-xl border border-line p-4">
+        <h2 id="veil-heading" className="font-semibold">
+          가림 표시
+        </h2>
+        <p className="text-xs text-quiet">피 · 공포 분장처럼 보기 불편할 수 있는 사진을 흐리게 가려요. 성인 콘텐츠는 가림이 아니라 게시 중단 대상이에요.</p>
+        <VeilForm postId={post.id} current={post.veil} byStaff={post.veil_by_staff} />
+      </section>
 
       <ol className="relative flex flex-col gap-4 border-l border-line pl-5">
         {events.map((e, i) => (

@@ -2,6 +2,8 @@
 
 import { COMMENT_POLICIES, COMMENT_POLICY_LABEL, type CommentPolicy, VISIBILITIES, VISIBILITY_LABEL, type Visibility } from "@/lib/posts/audience";
 import Link from "next/link";
+import { VeilSelect } from "@/components/veil-select";
+import type { VeilReason } from "@/lib/posts/veil";
 import { CATEGORIES, CATEGORY_LABEL, type ConsentInput } from "@/lib/photos/post-input";
 import { timeRange } from "@/lib/photos/grouping";
 import { MIN_YEAR } from "@/lib/year-chips";
@@ -37,6 +39,8 @@ export type Bundle = {
   /** 예약 (한국 시간 datetime-local, 비었으면 바로 게시) */
   scheduledAt: string;
   showExif: boolean;
+  /** 가림 표시 (보기 불편할 수 있는 사진) */
+  veil: VeilReason | null;
   draft: Draft | null;
   state: BundleState;
 };
@@ -486,7 +490,7 @@ function AudienceFields({
 }: {
   bundle: Bundle;
   disabled: boolean;
-  onChange(patch: Partial<Pick<Bundle, "visibility" | "commentPolicy" | "scheduledAt" | "showExif">>): void;
+  onChange(patch: Partial<Pick<Bundle, "visibility" | "commentPolicy" | "scheduledAt" | "showExif" | "veil">>): void;
 }) {
   const field = "min-h-11 rounded-xl border border-line bg-bg px-3 text-base";
   return (
@@ -521,6 +525,9 @@ function AudienceFields({
         <input type="checkbox" checked={bundle.showExif} onChange={(e) => onChange({ showExif: e.target.checked })} className="size-4 accent-[var(--accent)]" />
         촬영 정보(카메라 · 렌즈 · 설정) 보여 주기 <span className="text-xs text-quiet">위치는 항상 지워져요</span>
       </label>
+      <div className="sm:col-span-3">
+        <VeilSelect value={bundle.veil} onChange={(veil) => onChange({ veil })} className={field} />
+      </div>
     </fieldset>
   );
 }

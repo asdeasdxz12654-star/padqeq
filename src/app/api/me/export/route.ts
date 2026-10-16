@@ -37,7 +37,7 @@ export async function GET(request: Request) {
         supabase
           .from("posts")
           .select(
-            `id, title, body, category, status, shot_year, shot_on, has_people, visibility, comment_policy, published_at, created_at, updated_at,
+            `id, title, body, category, status, shot_year, shot_on, has_people, visibility, comment_policy, veil, published_at, created_at, updated_at,
              photos(position, width, height, alt_text, taken_at, created_at),
              post_tags(tag:tags(kind, name)),
              credits(role, status, external_label, external_url, member:profiles!credits_member_id_fkey(handle))`,

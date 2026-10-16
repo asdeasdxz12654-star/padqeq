@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { FeedItem } from "@/lib/posts/feed";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { ProtectedPhoto } from "./protected-photo";
+import { Veil } from "./veil";
 
 /** 홈 상단 "오늘의 픽" (운영자가 고른 글, 가로로 넘겨 보기). 없으면 그리지 않는다. */
 export function DailyPicks({ picks }: { picks: { date: string; items: FeedItem[] } | null }) {
@@ -17,15 +18,17 @@ export function DailyPicks({ picks }: { picks: { date: string; items: FeedItem[]
             <article className="relative">
               <div className="aspect-[4/5] overflow-hidden rounded-lg bg-slot [&_picture]:h-full">
                 {post.cover && (
-                  <ProtectedPhoto
-                    sources={post.cover.sources}
-                    alt={post.cover.alt}
-                    width={post.cover.width}
-                    height={post.cover.height}
-                    sizes="224px"
-                    priority={i < 2}
-                    className="block size-full object-cover"
-                  />
+                  <Veil postId={post.id} reason={post.cover.veil} fill>
+                    <ProtectedPhoto
+                      sources={post.cover.sources}
+                      alt={post.cover.alt}
+                      width={post.cover.width}
+                      height={post.cover.height}
+                      sizes="224px"
+                      priority={i < 2}
+                      className="block size-full object-cover"
+                    />
+                  </Veil>
                 )}
               </div>
               <h3 className="truncate px-1 pt-1.5 text-sm">
