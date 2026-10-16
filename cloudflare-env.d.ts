@@ -8,6 +8,11 @@ interface __BaseEnv_CloudflareEnv {
 	NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: string;
 	SITE_HOST: string;
 	TURNSTILE_SITE_KEY: string;
+	VAPID_PUBLIC_KEY: string;
+	PUSH_CONTACT?: string;
+	/** 비밀값 (wrangler secret) — 없으면 웹 푸시를 보내지 않는다 */
+	VAPID_PRIVATE_KEY?: string;
+	PUSH_DISPATCH_TOKEN?: string;
 	IMAGE_ACCOUNT_LIMIT: RateLimit;
 	IMAGE_IP_LIMIT: RateLimit;
 }

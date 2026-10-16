@@ -74,11 +74,19 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           IMAGE_URL_SECRET: ${{ secrets.IMAGE_URL_SECRET }}
+          # 웹 푸시 (없으면 푸시만 꺼진다)
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+          PUSH_DISPATCH_TOKEN: ${{ secrets.PUSH_DISPATCH_TOKEN }}
         run: |
           set -euo pipefail
           test "${#IMAGE_URL_SECRET}" -ge 32 || { echo "IMAGE_URL_SECRET이 없거나 짧습니다"; exit 1; }
           secrets_file="$RUNNER_TEMP/worker-secrets.env"
           umask 077
           printf 'IMAGE_URL_SECRET=%s\n' "$IMAGE_URL_SECRET" > "$secrets_file"
+          if [ -n "${VAPID_PRIVATE_KEY:-}" ] && [ -n "${PUSH_DISPATCH_TOKEN:-}" ]; then
+            printf 'VAPID_PRIVATE_KEY=%s\nPUSH_DISPATCH_TOKEN=%s\n' "$VAPID_PRIVATE_KEY" "$PUSH_DISPATCH_TOKEN" >> "$secrets_file"
+          else
+            echo "웹 푸시 비밀값이 없어 푸시는 꺼진 채로 배포합니다"
+          fi
           trap 'rm -f "$secrets_file"' EXIT
           pnpm exec wrangler deploy --secrets-file "$secrets_file"

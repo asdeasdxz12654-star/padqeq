@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { DeletionPanel } from "./deletion-panel";
 import { MessageSettings } from "./message-settings";
 import { InterestPicker } from "./interest-picker";
+import { PushSettings } from "./push-settings";
 import { SettingToggle } from "./setting-toggle";
 import { type ThemeChoice, ThemeForm } from "./theme-form";
 import { cookies } from "next/headers";
@@ -15,7 +16,7 @@ export const metadata: Metadata = { title: "설정", robots: { index: false } };
 
 const dayFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "long" });
 
-// S-14 설정: 계정 정보 · 받은 경고 · 화면(테마) · 관심 분야 · 알림 · 크레딧 자동 승인 · 메시지 받기 범위 · 차단 목록 · 내 데이터 내려받기 · 계정 삭제
+// S-14 설정: 계정 정보 · 받은 경고 · 화면(테마) · 관심 분야 · 알림 · 웹 푸시 · 크레딧 자동 승인 · 메시지 받기 범위 · 차단 목록 · 내 데이터 내려받기 · 계정 삭제
 export default async function SettingsPage() {
   const viewer = await getViewer();
   if (!viewer) redirect(withNext("/login", "/settings"));
@@ -120,6 +121,13 @@ export default async function SettingsPage() {
           title="팔로우하는 회원의 태그는 자동 승인"
           help="내가 팔로우하는 회원이 나를 크레딧으로 태그하면 바로 승인해요. 모르는 계정의 태그는 늘 직접 승인하고, 승인한 뒤에도 언제든 뺄 수 있어요."
         />
+      </section>
+
+      <section id="push" aria-labelledby="push-heading" className="flex scroll-mt-20 flex-col gap-3">
+        <h2 id="push-heading" className="text-lg font-semibold">
+          휴대폰 · 브라우저 알림
+        </h2>
+        <PushSettings publicKey={process.env.VAPID_PUBLIC_KEY || null} />
       </section>
 
       <section id="messages" aria-labelledby="messages-heading" className="flex scroll-mt-20 flex-col gap-3">

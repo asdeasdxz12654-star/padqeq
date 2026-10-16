@@ -1627,6 +1627,20 @@ export type Database = {
           },
         ]
       }
+      push_subscriptions: {
+        Row: { created_at: string; endpoint: string; id: string; user_id: string }
+        Insert: { created_at?: string; endpoint: string; id?: string; user_id: string }
+        Update: { created_at?: string; endpoint?: string; id?: string; user_id?: string }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       upload_slots: {
         Row: {
           bytes: number
@@ -1967,6 +1981,9 @@ export type Database = {
       moderate_post: { Args: { decision: string; note: string; target: string }; Returns: undefined }
       set_photo_exif: { Args: { entries: Json; target_post: string }; Returns: undefined }
       recommended_posts: { Args: { max_rows?: number }; Returns: { post_id: string; score: number }[] }
+      register_push_subscription: { Args: { endpoint: string }; Returns: undefined }
+      claim_push_batch: { Args: { max_rows?: number; token: string }; Returns: { endpoint: string; subscription_id: string }[] }
+      drop_push_subscriptions: { Args: { ids: string[]; token: string }; Returns: number }
       related_tags: {
         Args: { max_rows?: number; tag: string }
         Returns: { id: string; kind: Database["public"]["Enums"]["tag_kind"]; name: string; slug: string; together: number }[]

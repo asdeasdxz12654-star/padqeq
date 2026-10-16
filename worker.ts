@@ -2,7 +2,7 @@
 // OpenNext가 만든 Next 앱 앞에서 요청마다 다음을 처리한다.
 //  1. CSP nonce 발급 (Next가 요청 헤더의 nonce를 자기 스크립트에 붙임)
 //  2. Supabase 세션 갱신 (만료된 토큰을 새로 받아 쿠키로 돌려줌)
-//  3. 예약 작업: DB 일시정지 방지, 백업 확인
+//  3. 예약 작업: DB 일시정지 방지, 백업 확인 (매일) · 웹 푸시 보내기 (1분마다)
 //  4. 대표 주소가 아닌 주소(workers.dev 등)로 들어오면 대표 주소로 영구 이동
 //  5. 이름을 밝히고 오는 AI 학습 · 수집 크롤러는 robots.txt만 보여 주고 거절 (403)
 //  6. 사진 열람 속도 제한 (계정 · IP마다 1분) · HSTS
@@ -14,8 +14,12 @@ import { default as nextHandler } from "./.open-next/worker.js";
 import { isAiCrawler } from "./src/lib/security/ai-crawlers";
 import { sessionUserId } from "./src/lib/security/image-rate-limit";
 import { buildCsp, createNonce } from "./src/lib/security/csp";
+import { sendEmptyPush } from "./src/lib/push/vapid";
 
 const BACKUP_MAX_AGE_MS = 26 * 60 * 60 * 1000;
+// wrangler.jsonc triggers.crons와 같게
+const PUSH_CRON = "* * * * *";
+const PUSH_CONCURRENCY = 10;
 const SESSIONLESS_PREFIXES = ["/img/", "/_next/static/", "/wasm/"];
 
 export default {
@@ -68,8 +72,9 @@ export default {
     return response;
   },
 
-  async scheduled(_controller, env, ctx) {
-    ctx.waitUntil(Promise.all([keepDatabaseAwake(env), checkLatestBackup(env)]));
+  async scheduled(controller, env, ctx) {
+    if (controller.cron === PUSH_CRON) ctx.waitUntil(dispatchPush(env));
+    else ctx.waitUntil(Promise.all([keepDatabaseAwake(env), checkLatestBackup(env)]));
   },
 } satisfies ExportedHandler<CloudflareEnv>;
 
@@ -136,4 +141,41 @@ async function imageRateLimited(request: Request, env: CloudflareEnv): Promise<b
     user ? env.IMAGE_ACCOUNT_LIMIT.limit({ key: `user:${user}` }) : Promise.resolve({ success: true }),
   ]);
   return !byIp.success || !byAccount.success;
+}
+
+/**
+ * 웹 푸시 (1분마다): DB에서 새 알림을 받을 기기 목록을 받아 내용 없는 푸시를 보낸다.
+ * 푸시 전용 토큰만 쓴다 (관리자 키 없음). 비밀값이 아직 없으면 아무것도 하지 않는다.
+ */
+async function dispatchPush(env: CloudflareEnv): Promise<void> {
+  if (!env.VAPID_PRIVATE_KEY || !env.PUSH_DISPATCH_TOKEN || !env.VAPID_PUBLIC_KEY) return;
+  const rpc = (name: string, body: unknown) =>
+    fetch(`${env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/rpc/${name}`, {
+      method: "POST",
+      headers: { apikey: env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  const res = await rpc("claim_push_batch", { token: env.PUSH_DISPATCH_TOKEN, max_rows: 500 });
+  if (!res.ok) {
+    console.error("[push] claim failed", res.status);
+    return;
+  }
+  const targets = (await res.json()) as { subscription_id: string; endpoint: string }[];
+  if (!targets.length) return;
+
+  const keys = { publicKey: env.VAPID_PUBLIC_KEY, privateKey: env.VAPID_PRIVATE_KEY, subject: `mailto:${env.PUSH_CONTACT ?? "noreply@haedam.app"}` };
+  const gone: string[] = [];
+  let failed = 0;
+  const queue = [...targets];
+  await Promise.all(
+    Array.from({ length: PUSH_CONCURRENCY }, async () => {
+      for (let t = queue.shift(); t; t = queue.shift()) {
+        const result = await sendEmptyPush(t.endpoint, keys);
+        if (result === "gone") gone.push(t.subscription_id);
+        if (result === "failed") failed++;
+      }
+    }),
+  );
+  if (gone.length) await rpc("drop_push_subscriptions", { token: env.PUSH_DISPATCH_TOKEN, ids: gone });
+  if (failed) console.error("[push] failed", failed, "of", targets.length);
 }
