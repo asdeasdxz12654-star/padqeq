@@ -16,7 +16,7 @@ jobs:
   backup:
     # 비밀값을 다 넣은 뒤 저장소 변수 BACKUP_ENABLED=true 로 켠다
     if: vars.BACKUP_ENABLED == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     # 저장소 Settings › Environments › dhepa 에 비밀값을 넣는다
     environment: dhepa
