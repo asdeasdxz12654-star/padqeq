@@ -178,7 +178,7 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
         <section aria-labelledby="events-heading" className="px-4 pb-2 md:px-6">
           <h2 id="events-heading" className="flex items-center justify-between text-sm font-semibold">
             행사
-            <Link href="/events" className="text-xs font-normal text-quiet hover:underline">
+            <Link href="/events" className="-my-3.5 flex min-h-11 items-center pl-3 text-xs font-normal text-quiet hover:underline">
               캘린더 ›
             </Link>
           </h2>

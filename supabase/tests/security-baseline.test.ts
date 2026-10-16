@@ -117,3 +117,25 @@ describe("본인 설정 읽기", () => {
     await expect(asUser(db, null, (tx) => tx.query("select * from my_settings()"))).rejects.toThrow(/permission denied/);
   });
 });
+
+describe("프로필 개인 설정 열", () => {
+  it("남은 물론 본인도 직접 읽지 못하고, 공개 열은 그대로 읽는다", async () => {
+    for (const user of [null, ME, OTHER]) {
+      for (const column of ["interest_categories", "show_veiled", "memory_alerts", "credit_auto_approve", "upload_revoked_at"]) {
+        await expect(asUser(db, user, (tx) => tx.query(`select ${column} from profiles`))).rejects.toThrow(/permission denied/);
+      }
+      await expect(asUser(db, user, (tx) => tx.query("select * from profiles"))).rejects.toThrow(/permission denied/);
+      const visible = await asUser(db, user, (tx) => tx.query("select handle, display_name, role from profiles order by handle"));
+      expect(visible.rows).toHaveLength(2);
+    }
+  });
+
+  it("본인 설정은 여전히 고칠 수 있다", async () => {
+    await asUser(db, ME, async (tx) => {
+      await tx.query(`update profiles set show_veiled = false, interest_categories = '{landscape}' where id = '${ME}'`);
+      expect((await tx.query("select show_veiled, interest_categories from my_settings()")).rows).toEqual([{ show_veiled: false, interest_categories: "{landscape}" }]);
+      // 남의 설정은 바뀌지 않는다 (RLS)
+      expect((await tx.query(`update profiles set show_veiled = true where id = '${OTHER}'`)).affectedRows).toBe(0);
+    });
+  });
+});

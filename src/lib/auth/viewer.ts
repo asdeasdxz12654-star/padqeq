@@ -33,14 +33,18 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
   if (error || !data) return null;
 
   const { sub, user_metadata: meta, aal } = data.claims;
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select(
-      "handle, display_name, role, can_upload, upload_revoked_at, show_veiled, restriction:member_restrictions!member_restrictions_member_id_fkey(suspended_until, reason)",
-    )
-    .eq("id", sub)
-    .maybeSingle();
+  // 개인 설정 열은 공개 읽기가 막혀 있어 본인 전용 함수로 읽는다
+  const [{ data: profile, error: profileError }, { data: settingsRows, error: settingsError }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("handle, display_name, role, can_upload, restriction:member_restrictions!member_restrictions_member_id_fkey(suspended_until, reason)")
+      .eq("id", sub)
+      .maybeSingle(),
+    supabase.rpc("my_settings"),
+  ]);
   if (profileError) throw profileError;
+  if (settingsError) throw settingsError;
+  const settings = settingsRows[0];
 
   const suggestedName =
     [meta?.full_name, meta?.name, meta?.nickname, meta?.preferred_username]
@@ -55,7 +59,7 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
   const mfaRequired = isStaffRole(profile?.role) && aal !== "aal2";
   // 업로드 권한: 받은 권한, 또는 개방 단계(회수당하지 않은 회원). 정지 중이면 없음. (DB의 private.can_upload()와 같은 규칙)
   const stage = profile ? (await getSiteSwitches()).uploadStage : "solo";
-  const canUpload = Boolean(profile) && (profile!.can_upload || (stage === "open" && !profile!.upload_revoked_at)) && !restriction;
+  const canUpload = Boolean(profile) && (profile!.can_upload || (stage === "open" && !settings?.upload_revoked_at)) && !restriction;
 
   return {
     id: sub,
@@ -68,6 +72,6 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
     },
     restriction,
     mfaRequired,
-    showVeiled: Boolean(profile?.show_veiled),
+    showVeiled: Boolean(settings?.show_veiled),
   };
 });

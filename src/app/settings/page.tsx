@@ -23,14 +23,17 @@ export default async function SettingsPage() {
   if (!viewer.profile) redirect(withNext("/welcome", "/settings"));
 
   const supabase = await createClient();
-  const [{ data: claims }, { data: profile }, { data: setting }, { data: blocks }, { data: warnings }] = await Promise.all([
+  const [{ data: claims }, { data: account }, { data: mine }, { data: setting }, { data: blocks }, { data: warnings }] = await Promise.all([
     supabase.auth.getClaims(),
-    supabase.from("profiles").select("created_at, deletion_requested_at, memory_alerts, credit_auto_approve, interest_categories, show_veiled").eq("id", viewer.id).single(),
+    supabase.from("profiles").select("created_at, deletion_requested_at").eq("id", viewer.id).single(),
+    // 개인 설정 열은 본인 전용 함수로 읽는다
+    supabase.rpc("my_settings"),
     supabase.from("message_settings").select("receive").eq("user_id", viewer.id).maybeSingle(),
     supabase.from("blocks").select("blocked:profiles!blocks_blocked_id_fkey(id, handle)").eq("blocker_id", viewer.id).limit(1000),
     // 받은 경고 (A-05 ⑥, 본인만 본다)
     supabase.from("member_warnings").select("id, reason, created_at").eq("member_id", viewer.id).order("created_at", { ascending: false }).limit(20),
   ]);
+  const profile = account && { ...account, ...mine?.[0] };
   const blocked = (blocks ?? []).flatMap((b) => (b.blocked ? [b.blocked] : []));
   const savedTheme = (await cookies()).get("theme")?.value;
   const themeChoice: ThemeChoice = savedTheme === "light" || savedTheme === "system" ? savedTheme : "dark";

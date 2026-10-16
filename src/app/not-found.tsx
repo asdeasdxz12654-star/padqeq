@@ -1,4 +1,7 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = { title: "찾을 수 없는 페이지" };
 
 // 삭제 · 비공개 게시물도 존재 여부를 드러내지 않도록 같은 문구를 쓴다 (S-20)
 export default function NotFound() {

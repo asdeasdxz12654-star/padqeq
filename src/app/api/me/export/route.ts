@@ -55,9 +55,10 @@ export async function GET(request: Request) {
     return new Response("데이터를 모으지 못했어요.", { status: 500 });
   }
   const [posts, comments, likes, bookmarks, sentMessages] = lists;
-  const [{ data: claims }, profile, credits, reports, appeals, creditClaims, commentReports, inquiries, boardPosts, boardReplies, blocks, messageSetting, creator, attending, proposedEvents, collections, tagFollows, memberFollows, warnings] = await Promise.all([
+  const [{ data: claims }, profile, settings, credits, reports, appeals, creditClaims, commentReports, inquiries, boardPosts, boardReplies, blocks, messageSetting, creator, attending, proposedEvents, collections, tagFollows, memberFollows, warnings] = await Promise.all([
     supabase.auth.getClaims(),
-    supabase.from("profiles").select("handle, display_name, bio, links, memory_alerts, created_at, deletion_requested_at").eq("id", viewer.id).single(),
+    supabase.from("profiles").select("handle, display_name, bio, links, created_at, deletion_requested_at").eq("id", viewer.id).single(),
+    supabase.rpc("my_settings").maybeSingle(),
     supabase.from("credits").select("role, status, created_at, post:posts!credits_post_id_fkey(id, title)").eq("member_id", viewer.id),
     supabase.from("reports").select("reason, detail, status, created_at, resolved_at, post_id, evidence:report_evidence(content_type, bytes, uploaded_at)").eq("reporter_id", viewer.id),
     supabase.from("appeals").select("post_id, statement, status, created_at, resolved_at").eq("author_id", viewer.id),
@@ -76,7 +77,7 @@ export async function GET(request: Request) {
     supabase.from("member_follows").select("created_at, member:profiles!member_follows_followee_id_fkey(handle)").eq("follower_id", viewer.id),
     supabase.from("member_warnings").select("reason, created_at").eq("member_id", viewer.id),
   ]);
-  if (profile.error) return new Response("데이터를 모으지 못했어요.", { status: 500 });
+  if (profile.error || settings.error) return new Response("데이터를 모으지 못했어요.", { status: 500 });
 
   const exportedAt = new Date().toISOString();
   const body = JSON.stringify(
@@ -86,6 +87,7 @@ export async function GET(request: Request) {
       note: "원본 사진 파일은 서버에 저장하지 않아요. 게시된 사진은 화면 보기 전용 변환본만 있어요.",
       account: {
         ...profile.data,
+        ...settings.data,
         email: typeof claims?.claims.email === "string" ? claims.claims.email : null,
         login: "google",
       },

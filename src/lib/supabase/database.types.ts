@@ -2112,6 +2112,16 @@ export type Database = {
         Returns: { actioned: number; dismissed: number; reporter_id: string; total: number; unreliable: boolean }[]
       }
       my_upload_quota: { Args: never; Returns: { quota: number; used: number }[] }
+      my_settings: {
+        Args: never
+        Returns: {
+          credit_auto_approve: boolean
+          interest_categories: Database["public"]["Enums"]["post_category"][]
+          memory_alerts: boolean
+          show_veiled: boolean
+          upload_revoked_at: string | null
+        }[]
+      }
       set_member_role: { Args: { new_role: string; note: string; target: string }; Returns: undefined }
       staff_set_post_veil: { Args: { note: string; reason: string | null; target: string }; Returns: undefined }
       reserve_upload_slot: { Args: { bytes: number; height: number; width: number }; Returns: string }

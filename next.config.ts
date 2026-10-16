@@ -37,6 +37,10 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [{ source: "/@:handle", destination: "/u/:handle" }];
   },
+  // 아이콘은 app/icon.svg. 예전 방식으로 /favicon.ico를 찾는 브라우저 · 도구의 404를 없앤다.
+  async redirects() {
+    return [{ source: "/favicon.ico", destination: "/icon.svg", permanent: true }];
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

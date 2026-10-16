@@ -26,7 +26,7 @@ export default async function InterestsPage({ searchParams }: PageProps<"/welcom
     supabase.rpc("creator_directory", { max_rows: 9 }),
     getFollowedTags(viewer.id),
     getFollowedMembers(viewer.id),
-    supabase.from("profiles").select("interest_categories").eq("id", viewer.id).maybeSingle(),
+    supabase.rpc("my_settings").maybeSingle(),
   ]);
   // 요즘 담기는 작품이 없으면 공식 작품 태그를 이름순으로
   const works = trending?.length
