@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { markerRadius, parseLatLng } from "./location";
+import { formatLatLng, markerRadius, parseLatLng, pickedLatLng } from "./location";
 
 describe("좌표 읽기", () => {
   it("숫자 두 개", () => {
@@ -20,6 +20,16 @@ describe("좌표 읽기", () => {
     expect(parseLatLng("서울시청")).toBeNull();
     expect(parseLatLng("")).toBeNull();
     expect(parseLatLng("37.5")).toBeNull();
+  });
+
+  it("지도를 눌러 고른 자리", () => {
+    expect(pickedLatLng(37.566535, 126.977969)).toEqual({ lat: 37.56654, lng: 126.97797 });
+    // 지도를 한 바퀴 돌린 뒤 누른 경도
+    expect(pickedLatLng(37.5, 486.978)).toEqual({ lat: 37.5, lng: 126.978 });
+    expect(pickedLatLng(37.5, -233.022)).toEqual({ lat: 37.5, lng: 126.978 });
+    expect(pickedLatLng(91, 127)).toBeNull();
+    // 고른 자리를 입력칸에 넣으면 그대로 다시 읽힌다
+    expect(parseLatLng(formatLatLng({ lat: 37.56654, lng: 126.97797 }))).toEqual({ lat: 37.56654, lng: 126.97797 });
   });
 
   it("원 크기", () => {

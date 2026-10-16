@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FeedList } from "@/components/feed-list";
+import { MiniMap } from "@/components/mini-map";
 import { ShareButton } from "@/components/share-button";
 import { todayKst } from "@/lib/auth/signup-input";
 import { getViewer } from "@/lib/auth/viewer";
@@ -42,7 +43,7 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
           .order("created_at")
           .limit(200)
       : Promise.resolve({ data: [] }),
-    event.tag_id ? supabase.from("tags").select("slug, name").eq("id", event.tag_id).maybeSingle() : Promise.resolve({ data: null }),
+    event.tag_id ? supabase.from("tags").select("slug, name, lat, lng").eq("id", event.tag_id).maybeSingle() : Promise.resolve({ data: null }),
     scope ? loadScopePage(scope) : Promise.resolve({ items: [], next: null }),
   ]);
   const publicAttendees = (attendees.data ?? []).filter((a) => a.user);
@@ -93,6 +94,14 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
             )}
           </p>
           {event.description && <p className="mt-2 text-sm leading-relaxed whitespace-pre-line">{event.description}</p>}
+          {official && tag.data && tag.data.lat !== null && tag.data.lng !== null && (
+            <div className="mt-2 flex flex-col gap-1.5">
+              <MiniMap point={{ lat: tag.data.lat, lng: tag.data.lng }} label={`${event.venue} 위치 지도`} />
+              <Link href={`/map?focus=${encodeURIComponent(tag.data.slug)}`} className="self-start text-sm text-quiet underline underline-offset-2 hover:text-text">
+                촬영 장소 지도에서 보기
+              </Link>
+            </div>
+          )}
           {official && (
             <div className="mt-2">
               <ShareButton path={`/events/${event.id}`} title={event.name} />

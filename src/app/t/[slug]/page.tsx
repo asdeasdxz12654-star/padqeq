@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 import { FollowButton } from "@/components/follow-button";
 import { FeedList } from "@/components/feed-list";
+import { MiniMap } from "@/components/mini-map";
 import { PhotoFeed } from "@/components/photo-feed";
 import { TagChip } from "@/components/tag-chip";
 import { YearChips } from "@/components/year-chips";
@@ -120,6 +121,11 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
           <p className="text-sm text-quiet">다른 표기: {tag.tag_aliases.map((a) => a.alias).join(" · ")}</p>
         )}
         {tag.status === "pending" && <p className="text-xs text-quiet">운영자 승인 대기 중인 태그예요.</p>}
+        {tag.lat !== null && tag.lng !== null && tag.status === "official" && (
+          <div className="max-w-xl">
+            <MiniMap point={{ lat: tag.lat, lng: tag.lng }} label={`${tag.name} 위치 지도`} />
+          </div>
+        )}
         {tag.lat !== null && tag.status === "official" && (
           <p className="text-sm">
             <Link href={`/map?focus=${encodeURIComponent(tag.slug)}`} className="text-quiet underline underline-offset-2 hover:text-text">

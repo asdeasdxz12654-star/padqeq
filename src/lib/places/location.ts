@@ -9,6 +9,15 @@ export const KOREA_ZOOM = 7;
 const valid = (lat: number, lng: number) => Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
 const round = (n: number) => Math.round(n * 1e5) / 1e5;
 
+/** 지도를 눌러 고른 자리. 지도를 옆으로 돌려 경도가 ±180을 넘어도 되돌리고, 소수점 5자리까지만 남긴다. */
+export function pickedLatLng(lat: number, lng: number): LatLng | null {
+  const wrapped = ((((lng + 180) % 360) + 360) % 360) - 180;
+  return valid(lat, wrapped) ? { lat: round(lat), lng: round(wrapped) } : null;
+}
+
+/** 입력칸에 넣는 좌표 글자 */
+export const formatLatLng = (p: LatLng) => `${p.lat}, ${p.lng}`;
+
 /**
  * 운영자가 붙여 넣은 좌표를 읽는다. 소수점 5자리(약 1m)까지만 남긴다.
  *  · "37.5665, 126.9780" / "37.5665 126.9780"

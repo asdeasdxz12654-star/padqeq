@@ -4,6 +4,7 @@ import "leaflet/dist/leaflet.css";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { KOREA_CENTER, KOREA_ZOOM, markerRadius } from "@/lib/places/location";
+import { accentColor, addOsmTiles } from "./map-tiles";
 
 export type MapPlace = { id: string; slug: string; name: string; kind: "place" | "event"; lat: number; lng: number; posts: number };
 
@@ -25,15 +26,9 @@ export function PlaceMap({ places, focus }: { places: MapPlace[]; focus: string 
         KOREA_ZOOM,
       );
       cleanup = () => map.remove();
-      map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>');
-      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        // 이 사이트는 교차 출처 격리(COEP require-corp)라 지도 조각을 CORS로 받아야 한다 (OSM은 허용)
-        crossOrigin: true,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',
-      }).addTo(map);
+      addOsmTiles(L, map);
 
-      const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#e58a5a";
+      const accent = accentColor();
       const markers = new Map<string, L.CircleMarker>();
       for (const p of places) {
         // 팝업 내용은 문자열 HTML이 아닌 요소로 만든다 (태그 이름을 그대로 글자로)
@@ -84,7 +79,7 @@ export function PlaceMap({ places, focus }: { places: MapPlace[]; focus: string 
       ref={box}
       role="region"
       aria-label="촬영 장소 지도"
-      className="h-[60vh] min-h-80 w-full overflow-hidden rounded-xl border border-line bg-slot md:h-[70vh]"
+      className="isolate h-[60vh] min-h-80 w-full overflow-hidden rounded-xl border border-line bg-slot md:h-[70vh]"
     />
   );
 }
