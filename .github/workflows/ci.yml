@@ -82,21 +82,39 @@ jobs:
           pnpm exec wrangler dev --ip 127.0.0.1 --port 8787 --var SITE_HOST:127.0.0.1 > "$log" 2>&1 &
           dev_pid=$!
           trap 'kill "$dev_pid" 2>/dev/null || true' EXIT
-          for _ in $(seq 1 60); do
-            curl -s -o /dev/null http://127.0.0.1:8787/terms && break
+          # Worker가 뜰 때까지 (최대 3분)
+          for _ in $(seq 1 90); do
+            curl -s -o /dev/null --max-time 5 http://127.0.0.1:8787/terms && break
             sleep 2
           done
           failed=0
+          summary=""
           for path in /terms / /explore /login; do
-            code=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:8787$path")
+            code=$(curl -s -o /dev/null --max-time 30 -w '%{http_code}' "http://127.0.0.1:8787$path")
             echo "$path $code"
+            summary="$summary $path=$code"
             [ "$code" = 200 ] || failed=1
           done
           if [ "$failed" = 1 ]; then
             tail -n 80 "$log"
+            # 로그를 내려받지 않고도 원인을 볼 수 있게 실패 알림(annotation)에 마지막 로그를 붙인다 (비밀값은 이 단계에 없다)
+            detail=$(tail -n 40 "$log" | sed 's/%/%25/g; s///g' | awk '{printf "%s%%0A", $0}')
+            echo "::error title=배포 전 실행 확인 실패::$summary%0A$detail"
             echo "Worker가 화면을 내지 못해 배포를 멈춥니다"
             exit 1
           fi
+      # 되돌릴 곳: 지금 실제 사이트에서 돌고 있는 Worker 버전
+      - name: 지금 버전 기록
+        id: previous
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WRANGLER_SEND_METRICS: "false"
+        run: |
+          set -uo pipefail
+          version=$(pnpm exec wrangler deployments status --json 2>/dev/null | jq -r '[.versions[]? | select(.percentage == 100) | .version_id][0] // empty' || true)
+          echo "지금 버전: ${version:-(알 수 없음)}"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
       - name: 배포 (비밀값은 같은 버전에 함께 올림)
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -118,3 +136,45 @@ jobs:
           fi
           trap 'rm -f "$secrets_file"' EXIT
           pnpm exec wrangler deploy --secrets-file "$secrets_file"
+      # 배포 후 확인: 실제 주소에서 화면이 나오는지 본다. 안 나오면 직전 버전으로 바로 되돌리고 실패로 알린다.
+      # (DB 마이그레이션은 되돌리지 않는다. Worker 코드 · 비밀값만 직전 버전으로)
+      - name: 배포 후 확인 · 자동 되돌리기
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WRANGLER_SEND_METRICS: "false"
+          PREVIOUS_VERSION: ${{ steps.previous.outputs.version }}
+        run: |
+          set -uo pipefail
+          site="https://www.memories.haedam.app"
+          check() {
+            local bad=0 code path
+            for path in /terms / /explore /login; do
+              code=$(curl -s -o /dev/null -w '%{http_code}' -H 'Cache-Control: no-cache' "$site$path?deploy-check=$GITHUB_RUN_ID")
+              echo "  $path $code"
+              [ "$code" = 200 ] || bad=1
+            done
+            return $bad
+          }
+          # 새 버전이 퍼지는 시간을 두고 몇 번 더 본다
+          for attempt in 1 2 3 4 5 6; do
+            sleep 10
+            echo "확인 $attempt"
+            if check; then
+              echo "실제 사이트 정상"
+              exit 0
+            fi
+          done
+          echo "::error::배포 뒤 실제 사이트가 화면을 내지 못합니다"
+          if [ -z "${PREVIOUS_VERSION:-}" ]; then
+            echo "::error::되돌릴 버전을 몰라 자동으로 되돌리지 못했습니다. Cloudflare 대시보드 › Workers › haedam › Deployments에서 직전 버전으로 되돌려 주세요"
+            exit 1
+          fi
+          pnpm exec wrangler rollback "$PREVIOUS_VERSION" --message "자동 되돌리기: 배포 후 확인 실패 (run $GITHUB_RUN_ID)" --yes
+          sleep 15
+          if check; then
+            echo "::error::직전 버전($PREVIOUS_VERSION)으로 되돌렸고 사이트는 정상입니다. 이 커밋을 고쳐서 다시 올려 주세요"
+          else
+            echo "::error::직전 버전으로 되돌렸지만 사이트가 여전히 비정상입니다. Cloudflare 상태와 Supabase를 확인해 주세요"
+          fi
+          exit 1
