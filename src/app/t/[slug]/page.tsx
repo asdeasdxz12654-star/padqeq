@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { cache } from "react";
 import { FollowButton } from "@/components/follow-button";
 import { FeedList } from "@/components/feed-list";
@@ -17,6 +17,7 @@ import { profileHref } from "@/lib/profiles/profile-href";
 import { createClient } from "@/lib/supabase/server";
 import { isStaffRole } from "@/lib/auth/roles";
 import { LocationForm } from "./location-form";
+import { type MergeCandidate, MergeForm } from "./merge-form";
 import { TAG_KIND_LABEL } from "@/lib/tags/tag-rules";
 import { buildYearChips, parseYearParam } from "@/lib/year-chips";
 
@@ -38,7 +39,11 @@ const getTag = cache(async (rawSlug: string) => {
     .select("id, kind, slug, name, status, parent_id, lat, lng, tag_aliases(alias)")
     .eq("slug", slug)
     .maybeSingle();
-  if (!tag) return null;
+  if (!tag) {
+    // 합쳐서 없어진 태그의 예전 주소면 남은 태그로
+    const { data: moved } = await supabase.from("tag_slug_redirects").select("tag:tags(slug)").eq("old_slug", slug).maybeSingle();
+    return moved?.tag ? { moved: true as const, slug: moved.tag.slug } : null;
+  }
 
   const [parent, children] = await Promise.all([
     tag.parent_id
@@ -48,12 +53,12 @@ const getTag = cache(async (rawSlug: string) => {
       ? supabase.from("tags").select("id, slug, name, kind").eq("parent_id", tag.id).order("name").limit(100)
       : Promise.resolve({ data: [] }),
   ]);
-  return { ...tag, parent: parent.data, children: children.data ?? [] };
+  return { ...tag, moved: false as const, parent: parent.data, children: children.data ?? [] };
 });
 
 export async function generateMetadata({ params }: PageProps<"/t/[slug]">): Promise<Metadata> {
   const tag = await getTag((await params).slug);
-  if (!tag) return { title: "찾을 수 없는 태그", robots: { index: false } };
+  if (!tag || tag.moved) return { title: "찾을 수 없는 태그", robots: { index: false } };
   return {
     title: tag.parent ? `${tag.parent.name} › ${tag.name}` : tag.name,
     robots: tag.status === "official" ? undefined : { index: false },
@@ -64,6 +69,7 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
   const [{ slug }, query] = await Promise.all([params, searchParams]);
   const tag = await getTag(slug);
   if (!tag) notFound();
+  if (tag.moved) permanentRedirect(`/t/${encodeURIComponent(tag.slug)}`);
   const year = parseYearParam(query.year);
   const base = `/t/${encodeURIComponent(tag.slug)}`;
 
@@ -84,6 +90,11 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
   ]);
   const viewHref = (v: "latest" | "popular" | "cosers") => (v === "latest" ? base : `${base}?view=${v}`);
   const following = viewer?.profile ? (await getFollowedTags(viewer.id)).some((t) => t.id === tag.id) : false;
+  // 합칠 대상: 같은 종류의 공식 태그 (최고 관리자만 본다)
+  const mergeCandidates: MergeCandidate[] | null =
+    viewer?.profile?.role === "admin"
+      ? ((await supabase.from("tags").select("id, name, slug").eq("kind", tag.kind).eq("status", "official").neq("id", tag.id).order("name").limit(500)).data ?? [])
+      : null;
   if (years.error) throw years.error;
 
   return (
@@ -137,6 +148,12 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
           <details className="rounded-xl border border-line p-3 text-sm">
             <summary className="cursor-pointer font-semibold">지도 위치 (운영자)</summary>
             <LocationForm tagId={tag.id} current={tag.lat !== null && tag.lng !== null ? { lat: tag.lat, lng: tag.lng } : null} />
+          </details>
+        )}
+        {mergeCandidates && (
+          <details className="rounded-xl border border-line p-3 text-sm">
+            <summary className="cursor-pointer font-semibold">중복 태그 합치기 (최고 관리자)</summary>
+            <MergeForm tagId={tag.id} tagName={tag.name} candidates={mergeCandidates} />
           </details>
         )}
       </header>

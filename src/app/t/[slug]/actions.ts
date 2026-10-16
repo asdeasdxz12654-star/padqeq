@@ -32,3 +32,40 @@ export async function setTagLocation(input: z.input<typeof locationSchema>): Pro
   revalidatePath("/t/[slug]", "page");
   return { ok: true };
 }
+
+const mergeSchema = z.object({
+  sourceId: z.uuid(),
+  targetId: z.uuid("남길 태그를 골라 주세요."),
+  note: z.string().trim().min(1, "이유를 적어 주세요.").max(500, "이유는 500자까지예요."),
+});
+
+const MERGE_ERRORS: Record<string, string> = {
+  admin_only: "최고 관리자만 합칠 수 있어요. (2단계 인증 필요)",
+  same_tag: "같은 태그끼리는 합칠 수 없어요.",
+  kind_mismatch: "종류가 같은 태그끼리만 합칠 수 있어요.",
+  target_not_official: "남길 태그는 공식 태그여야 해요.",
+  target_is_child: "이 태그 아래에 있는 캐릭터로는 합칠 수 없어요.",
+  event_conflict: "두 태그 모두 행사에 이어져 있어요. 행사 하나를 먼저 정리해 주세요.",
+  not_found: "태그를 찾지 못했어요. 새로 고침 해 주세요.",
+};
+
+/** 중복 태그 합치기 (최고 관리자). 이 태그를 없애고 고른 태그로 옮긴다. 권한 · 감사 로그는 DB 함수가 맡는다. */
+export async function mergeTags(input: z.input<typeof mergeSchema>): Promise<{ ok: true; slug: string } | { ok: false; error: string }> {
+  const parsed = mergeSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "입력을 확인해 주세요." };
+  const viewer = await getViewer();
+  if (viewer?.profile?.role !== "admin") return { ok: false, error: MERGE_ERRORS.admin_only };
+
+  const { sourceId, targetId, note } = parsed.data;
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("merge_tags", { source: sourceId, target: targetId, note });
+  if (error) {
+    const code = Object.keys(MERGE_ERRORS).find((k) => error.message.includes(k));
+    return { ok: false, error: code ? MERGE_ERRORS[code]! : "합치지 못했어요. 잠시 뒤 다시 해 주세요." };
+  }
+  const { data: target } = await supabase.from("tags").select("slug").eq("id", targetId).single();
+  revalidatePath("/t/[slug]", "page");
+  revalidatePath("/map");
+  revalidatePath("/explore");
+  return { ok: true, slug: target?.slug ?? "" };
+}

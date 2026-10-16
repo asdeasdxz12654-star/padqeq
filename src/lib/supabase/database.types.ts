@@ -834,6 +834,20 @@ export type Database = {
           },
         ]
       }
+      tag_slug_redirects: {
+        Row: { created_at: string; old_slug: string; tag_id: string }
+        Insert: { created_at?: string; old_slug: string; tag_id: string }
+        Update: { created_at?: string; old_slug?: string; tag_id?: string }
+        Relationships: [
+          {
+            foreignKeyName: "tag_slug_redirects_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tag_aliases: {
         Row: { alias: string; tag_id: string }
         Insert: { alias: string; tag_id: string }
@@ -2003,6 +2017,7 @@ export type Database = {
         Args: { max_rows?: number }
         Returns: { id: string; kind: Database["public"]["Enums"]["tag_kind"]; lat: number; lng: number; name: string; post_count: number; slug: string }[]
       }
+      merge_tags: { Args: { note: string; source: string; target: string }; Returns: Json }
       set_tag_location: { Args: { new_lat: number | null; new_lng: number | null; note: string; target: string }; Returns: undefined }
       related_tags: {
         Args: { max_rows?: number; tag: string }
