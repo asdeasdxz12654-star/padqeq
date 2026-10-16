@@ -217,6 +217,7 @@ export default async function AdminHomePage() {
             ["/admin/members", "회원 관리"],
             ["/admin/audit", "감사 로그"],
             ["/admin/events", "행사 관리"],
+            ["/admin/tags", "태그 관리"],
             ["/admin/support?tab=notices", "공지"],
             ["/admin/support?tab=system", "긴급 스위치"],
             ["/upload", "업로드"],

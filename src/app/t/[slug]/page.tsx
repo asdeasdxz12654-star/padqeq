@@ -90,6 +90,8 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
   ]);
   const viewHref = (v: "latest" | "popular" | "cosers") => (v === "latest" ? base : `${base}?view=${v}`);
   const following = viewer?.profile ? (await getFollowedTags(viewer.id)).some((t) => t.id === tag.id) : false;
+  // 태그 관리 › 비슷한 이름에서 넘어오면 남길 태그를 미리 골라 둔다
+  const mergeTarget = typeof query.merge === "string" ? query.merge : "";
   // 합칠 대상: 같은 종류의 공식 태그 (최고 관리자만 본다)
   const mergeCandidates: MergeCandidate[] | null =
     viewer?.profile?.role === "admin"
@@ -151,9 +153,9 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
           </details>
         )}
         {mergeCandidates && (
-          <details className="rounded-xl border border-line p-3 text-sm">
+          <details id="merge" open={mergeTarget !== ""} className="scroll-mt-20 rounded-xl border border-line p-3 text-sm">
             <summary className="cursor-pointer font-semibold">중복 태그 합치기 (최고 관리자)</summary>
-            <MergeForm tagId={tag.id} tagName={tag.name} candidates={mergeCandidates} />
+            <MergeForm tagId={tag.id} tagName={tag.name} candidates={mergeCandidates} initialTargetId={mergeTarget} />
           </details>
         )}
       </header>

@@ -7,9 +7,20 @@ import { mergeTags } from "./actions";
 export type MergeCandidate = { id: string; name: string; slug: string };
 
 /** 중복 태그 합치기 (최고 관리자). 이 태그의 게시물 · 팔로우 · 별칭을 고른 태그로 옮기고 이 태그는 없앤다. */
-export function MergeForm({ tagId, tagName, candidates }: { tagId: string; tagName: string; candidates: MergeCandidate[] }) {
+export function MergeForm({
+  tagId,
+  tagName,
+  candidates,
+  initialTargetId = "",
+}: {
+  tagId: string;
+  tagName: string;
+  candidates: MergeCandidate[];
+  /** 태그 관리 › 비슷한 이름에서 넘어오면 남길 태그를 미리 골라 둔다 */
+  initialTargetId?: string;
+}) {
   const router = useRouter();
-  const [targetId, setTargetId] = useState("");
+  const [targetId, setTargetId] = useState(candidates.some((c) => c.id === initialTargetId) ? initialTargetId : "");
   const [note, setNote] = useState("");
   const [sure, setSure] = useState(false);
   const [error, setError] = useState<string | null>(null);
