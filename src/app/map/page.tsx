@@ -25,7 +25,7 @@ export default async function MapPage({ searchParams }: PageProps<"/map">) {
           {" › "}지도
         </nav>
         <h1 className="text-2xl font-bold">촬영 장소 지도</h1>
-        <p className="text-sm text-quiet">장소 · 행사 태그를 지도에서 모아 봐요. 원이 클수록 사진이 많아요. 사진에 담긴 위치 정보는 올릴 때 지워져서 쓰지 않아요.</p>
+        <p className="text-sm text-quiet">장소 · 행사 태그를 지도에서 모아 봐요. 원이 클수록 게시물이 많아요. 사진에 담긴 위치 정보는 올릴 때 지워져서 쓰지 않아요.</p>
       </header>
 
       <PlaceMap places={places} focus={typeof focus === "string" ? focus : null} />
