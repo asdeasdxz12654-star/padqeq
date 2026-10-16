@@ -887,6 +887,8 @@ export type Database = {
           created_by: string | null
           id: string
           kind: Database["public"]["Enums"]["tag_kind"]
+          lat: number | null
+          lng: number | null
           name: string
           parent_id: string | null
           slug: string
@@ -897,6 +899,8 @@ export type Database = {
           created_by?: string | null
           id?: string
           kind: Database["public"]["Enums"]["tag_kind"]
+          lat?: number | null
+          lng?: number | null
           name: string
           parent_id?: string | null
           slug: string
@@ -907,6 +911,8 @@ export type Database = {
           created_by?: string | null
           id?: string
           kind?: Database["public"]["Enums"]["tag_kind"]
+          lat?: number | null
+          lng?: number | null
           name?: string
           parent_id?: string | null
           slug?: string
@@ -1993,6 +1999,11 @@ export type Database = {
       register_push_subscription: { Args: { endpoint: string }; Returns: undefined }
       claim_push_batch: { Args: { max_rows?: number; token: string }; Returns: { endpoint: string; subscription_id: string }[] }
       drop_push_subscriptions: { Args: { ids: string[]; token: string }; Returns: number }
+      place_map: {
+        Args: { max_rows?: number }
+        Returns: { id: string; kind: Database["public"]["Enums"]["tag_kind"]; lat: number; lng: number; name: string; post_count: number; slug: string }[]
+      }
+      set_tag_location: { Args: { new_lat: number | null; new_lng: number | null; note: string; target: string }; Returns: undefined }
       related_tags: {
         Args: { max_rows?: number; tag: string }
         Returns: { id: string; kind: Database["public"]["Enums"]["tag_kind"]; name: string; slug: string; together: number }[]

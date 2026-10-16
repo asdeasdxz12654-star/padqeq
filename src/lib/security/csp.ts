@@ -32,8 +32,8 @@ export function buildCsp({
     "style-src": ["'self'", dev ? "'unsafe-inline'" : `'nonce-${nonce}'`],
     // SSR로 그려진 style 속성용. 속성 스타일은 스크립트를 실행할 수 없다.
     "style-src-attr": ["'unsafe-inline'"],
-    // 사진은 같은 출처의 이미지 게이트(/img)만. 외부 이미지 금지.
-    "img-src": ["'self'", "blob:", "data:"],
+    // 사진은 같은 출처의 이미지 게이트(/img)만. 외부 이미지는 촬영 장소 지도(/map)의 OpenStreetMap 지도 조각만.
+    "img-src": ["'self'", "blob:", "data:", "https://tile.openstreetmap.org"],
     "font-src": ["'self'"],
     "connect-src": ["'self'", supabase.origin, supabaseWs, "https://challenges.cloudflare.com"],
     // 해담 안에 다른 사이트를 넣지 않는다 (Google 로그인은 iframe이 아닌 화면 이동). 가입 봇 방지(Turnstile) 확인 창만 예외.

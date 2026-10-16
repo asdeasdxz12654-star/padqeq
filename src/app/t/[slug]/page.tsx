@@ -14,6 +14,8 @@ import { loadScopePage } from "@/lib/posts/feed-scope-server";
 import { getFollowedTags } from "@/lib/follows/follows";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { createClient } from "@/lib/supabase/server";
+import { isStaffRole } from "@/lib/auth/roles";
+import { LocationForm } from "./location-form";
 import { TAG_KIND_LABEL } from "@/lib/tags/tag-rules";
 import { buildYearChips, parseYearParam } from "@/lib/year-chips";
 
@@ -32,7 +34,7 @@ const getTag = cache(async (rawSlug: string) => {
   // 볼 수 있는 태그만 (공식 · 내 제안 · 운영자, RLS)
   const { data: tag } = await supabase
     .from("tags")
-    .select("id, kind, slug, name, status, parent_id, tag_aliases(alias)")
+    .select("id, kind, slug, name, status, parent_id, lat, lng, tag_aliases(alias)")
     .eq("slug", slug)
     .maybeSingle();
   if (!tag) return null;
@@ -118,6 +120,19 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
           <p className="text-sm text-quiet">다른 표기: {tag.tag_aliases.map((a) => a.alias).join(" · ")}</p>
         )}
         {tag.status === "pending" && <p className="text-xs text-quiet">운영자 승인 대기 중인 태그예요.</p>}
+        {tag.lat !== null && tag.status === "official" && (
+          <p className="text-sm">
+            <Link href={`/map?focus=${encodeURIComponent(tag.slug)}`} className="text-quiet underline underline-offset-2 hover:text-text">
+              지도에서 보기
+            </Link>
+          </p>
+        )}
+        {(tag.kind === "place" || tag.kind === "event") && isStaffRole(viewer?.profile?.role) && (
+          <details className="rounded-xl border border-line p-3 text-sm">
+            <summary className="cursor-pointer font-semibold">지도 위치 (운영자)</summary>
+            <LocationForm tagId={tag.id} current={tag.lat !== null && tag.lng !== null ? { lat: tag.lat, lng: tag.lng } : null} />
+          </details>
+        )}
       </header>
 
       {tag.children.length > 0 && (

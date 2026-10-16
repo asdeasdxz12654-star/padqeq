@@ -61,6 +61,13 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
           keep={{ ...(category && { category }), ...(year !== null && { year: String(year) }), ...(sort === "popular" && { sort }) }}
           autoFocus={params.focus === "1"}
         />
+        {!query && (
+          <p className="mt-2 text-right text-sm">
+            <Link href="/map" className="text-quiet hover:text-text hover:underline">
+              촬영 장소 지도 ›
+            </Link>
+          </p>
+        )}
       </div>
 
       {query && (

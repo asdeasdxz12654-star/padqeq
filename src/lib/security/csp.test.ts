@@ -24,7 +24,7 @@ describe("buildCsp", () => {
     const img = buildCsp({ nonce: "x", supabaseUrl })
       .split("; ")
       .find((d) => d.startsWith("img-src"));
-    expect(img).toBe("img-src 'self' blob: data:");
+    expect(img).toBe("img-src 'self' blob: data: https://tile.openstreetmap.org");
   });
 
   it("Supabase API와 실시간 연결만 외부 연결로 허용한다", () => {
