@@ -1,5 +1,6 @@
 "use client";
 
+import { rememberAudience } from "./audience-defaults";
 import { COMMENT_POLICIES, COMMENT_POLICY_LABEL, type CommentPolicy, VISIBILITIES, VISIBILITY_LABEL, type Visibility } from "@/lib/posts/audience";
 import Link from "next/link";
 import { VeilSelect } from "@/components/veil-select";
@@ -154,6 +155,13 @@ export function BundleCard({
         <h2 className="font-semibold">
           묶음 {index + 1} · {photos.length}장
         </h2>
+        {!locked && (
+          <span
+            className={`rounded-full px-2 py-0.5 text-xs font-bold ${problem ? "bg-amber-400/20 text-amber-200" : "bg-emerald-400/15 text-emerald-400"}`}
+          >
+            {problem ? "정보 필요" : "게시 준비됨"}
+          </span>
+        )}
         {range && (
           <span className="text-xs text-quiet">
             {timeFormat.format(new Date(range.start))}
@@ -493,41 +501,64 @@ function AudienceFields({
   onChange(patch: Partial<Pick<Bundle, "visibility" | "commentPolicy" | "scheduledAt" | "showExif" | "veil">>): void;
 }) {
   const field = "min-h-11 rounded-xl border border-line bg-bg px-3 text-base";
+  // 지난번 값으로 기억 (예약 · 가림은 글마다 다르므로 빼고)
+  const change = (patch: Parameters<typeof onChange>[0]) => {
+    onChange(patch);
+    const { visibility, commentPolicy, showExif } = patch;
+    if (visibility !== undefined || commentPolicy !== undefined || showExif !== undefined)
+      rememberAudience({ ...(visibility && { visibility }), ...(commentPolicy && { commentPolicy }), ...(showExif !== undefined && { showExif }) });
+  };
+  const summary = [
+    VISIBILITY_LABEL[bundle.visibility].title + " 공개",
+    COMMENT_POLICY_LABEL[bundle.commentPolicy],
+    bundle.scheduledAt ? "예약 게시" : "바로 게시",
+    bundle.showExif ? "촬영 정보 보임" : "촬영 정보 숨김",
+    bundle.veil ? "가림 표시" : null,
+  ].filter(Boolean);
   return (
-    <fieldset className="grid gap-3 sm:grid-cols-3" disabled={disabled}>
-      <legend className="mb-2 text-sm font-semibold">공개 설정</legend>
-      <label className="flex flex-col gap-1.5 text-sm">
-        공개 범위
-        <select value={bundle.visibility} onChange={(e) => onChange({ visibility: e.target.value as Visibility })} className={field}>
-          {VISIBILITIES.map((v) => (
-            <option key={v} value={v}>
-              {VISIBILITY_LABEL[v].title}
-            </option>
-          ))}
-        </select>
-        <span className="text-xs text-quiet">{VISIBILITY_LABEL[bundle.visibility].help}</span>
-      </label>
-      <label className="flex flex-col gap-1.5 text-sm">
-        댓글
-        <select value={bundle.commentPolicy} onChange={(e) => onChange({ commentPolicy: e.target.value as CommentPolicy })} className={field}>
-          {COMMENT_POLICIES.map((c) => (
-            <option key={c} value={c}>
-              {COMMENT_POLICY_LABEL[c]}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="flex flex-col gap-1.5 text-sm">
-        예약 게시 <span className="text-xs text-quiet">(선택 · 한국 시간 · 90일 안)</span>
-        <input type="datetime-local" value={bundle.scheduledAt} onChange={(e) => onChange({ scheduledAt: e.target.value })} className={field} />
-      </label>
-      <label className="flex items-center gap-2 text-sm sm:col-span-3">
-        <input type="checkbox" checked={bundle.showExif} onChange={(e) => onChange({ showExif: e.target.checked })} className="size-4 accent-[var(--accent)]" />
-        촬영 정보(카메라 · 렌즈 · 설정) 보여 주기 <span className="text-xs text-quiet">위치는 항상 지워져요</span>
-      </label>
-      <div className="sm:col-span-3">
-        <VeilSelect value={bundle.veil} onChange={(veil) => onChange({ veil })} className={field} />
-      </div>
-    </fieldset>
+    <details className="rounded-xl border border-line px-4 py-3">
+      <summary className="flex min-h-10 cursor-pointer list-none items-center gap-2 text-sm [&::-webkit-details-marker]:hidden">
+        <span className="font-semibold">고급 설정</span>
+        <span className="min-w-0 truncate text-xs text-quiet">{summary.join(" · ")}</span>
+        <span aria-hidden="true" className="ml-auto text-quiet">
+          ▾
+        </span>
+      </summary>
+      <fieldset className="mt-3 grid gap-3 sm:grid-cols-3" disabled={disabled}>
+        <legend className="sr-only">공개 설정</legend>
+        <label className="flex flex-col gap-1.5 text-sm">
+          공개 범위
+          <select value={bundle.visibility} onChange={(e) => change({ visibility: e.target.value as Visibility })} className={field}>
+            {VISIBILITIES.map((v) => (
+              <option key={v} value={v}>
+                {VISIBILITY_LABEL[v].title}
+              </option>
+            ))}
+          </select>
+          <span className="text-xs text-quiet">{VISIBILITY_LABEL[bundle.visibility].help}</span>
+        </label>
+        <label className="flex flex-col gap-1.5 text-sm">
+          댓글
+          <select value={bundle.commentPolicy} onChange={(e) => change({ commentPolicy: e.target.value as CommentPolicy })} className={field}>
+            {COMMENT_POLICIES.map((c) => (
+              <option key={c} value={c}>
+                {COMMENT_POLICY_LABEL[c]}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-1.5 text-sm">
+          예약 게시 <span className="text-xs text-quiet">(선택 · 한국 시간 · 90일 안)</span>
+          <input type="datetime-local" value={bundle.scheduledAt} onChange={(e) => change({ scheduledAt: e.target.value })} className={field} />
+        </label>
+        <label className="flex items-center gap-2 text-sm sm:col-span-3">
+          <input type="checkbox" checked={bundle.showExif} onChange={(e) => change({ showExif: e.target.checked })} className="size-4 accent-[var(--accent)]" />
+          촬영 정보(카메라 · 렌즈 · 설정) 보여 주기 <span className="text-xs text-quiet">위치는 항상 지워져요</span>
+        </label>
+        <div className="sm:col-span-3">
+          <VeilSelect value={bundle.veil} onChange={(veil) => change({ veil })} className={field} />
+        </div>
+      </fieldset>
+    </details>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { loadAudienceDefaults } from "./audience-defaults";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { groupByShootingTime, timeRange } from "@/lib/photos/grouping";
@@ -25,7 +26,7 @@ import { ACCEPT_INPUT, MAX_SESSION_PHOTOS, type Photo, useConverter } from "./us
 
 type Common = { category: Bundle["category"]; hasPeople: boolean; consent: ConsentInput; tags: Bundle["tags"]; credits: Bundle["credits"] };
 
-const newBundle = (photoIds: string[], common: Common): Bundle => ({
+const newBundle = (photoIds: string[], common: Common, audience = loadAudienceDefaults()): Bundle => ({
   id: crypto.randomUUID(),
   photoIds,
   title: "",
@@ -37,10 +38,11 @@ const newBundle = (photoIds: string[], common: Common): Bundle => ({
   tags: [...common.tags],
   credits: common.credits.map((c) => ({ ...c, key: crypto.randomUUID() })),
   rawConfirmed: false,
-  visibility: "public",
-  commentPolicy: "everyone",
+  // 지난번 고른 공개 범위 · 댓글 · 촬영 정보 표시를 미리 채운다
+  visibility: audience.visibility,
+  commentPolicy: audience.commentPolicy,
   scheduledAt: "",
-  showExif: true,
+  showExif: audience.showExif,
   veil: null,
   draft: null,
   state: { kind: "edit" },
@@ -248,8 +250,27 @@ export function UploadStudio({
   const ready = pending.filter((b) => bundleProblem(b, photosOf(b), isAdmin) === null);
   const hasDrafts = pending.some((b) => b.draft);
 
+  // 지금 단계: 사진 고르기 → 묶고 적기 → 게시
+  const step = bundles.length === 0 ? 1 : pending.length > 0 && ready.length === pending.length ? 3 : 2;
+
   return (
     <div className="mt-8 flex flex-col gap-6">
+      <ol aria-label="올리기 단계" className="flex flex-wrap items-center gap-2 text-sm">
+        {(["사진 고르기", "묶고 정보 적기", "게시"] as const).map((label, i) => (
+          <li key={label} className="flex items-center gap-2">
+            {i > 0 && <span aria-hidden="true" className="h-px w-6 bg-line" />}
+            <span
+              aria-current={step === i + 1 ? "step" : undefined}
+              className={`flex size-6 items-center justify-center rounded-full text-xs font-bold ${
+                step > i + 1 ? "bg-text text-bg" : step === i + 1 ? "bg-accent text-on-accent" : "border border-line text-quiet"
+              }`}
+            >
+              {step > i + 1 ? "✓" : i + 1}
+            </span>
+            <span className={step === i + 1 ? "font-bold" : "text-quiet"}>{label}</span>
+          </li>
+        ))}
+      </ol>
       <label className="flex min-h-36 cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-line px-4 text-center hover:border-accent"
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => {
