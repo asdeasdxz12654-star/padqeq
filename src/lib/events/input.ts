@@ -26,6 +26,7 @@ export const eventSchema = z
 
 export function eventErrorMessage(message: string | undefined): string {
   if (message?.includes("event_proposal_limit")) return "검토를 기다리는 제안이 5건 있어요. 결과가 나온 뒤 다시 제안해 주세요.";
+  if (message?.includes("place_invalid")) return "고른 장소 태그를 쓸 수 없어요. 다시 골라 주세요.";
   if (message?.includes("event_past")) return "이미 끝난 행사는 제안할 수 없어요.";
   if (message?.includes("member_suspended")) return "이용이 제한된 기간이에요.";
   if (message?.includes("site_read_only")) return "지금은 보기만 할 수 있어요.";

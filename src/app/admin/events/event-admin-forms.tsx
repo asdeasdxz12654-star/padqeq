@@ -35,7 +35,7 @@ export function EventAdminEditor({
         submitLabel={proposed ? "승인하고 등록" : id ? "고치기" : "등록"}
         doneHref="/admin/events"
       />
-      {id && !proposed && <EventPlaceForm key={id} eventId={id} current={placeId} places={places} />}
+      {id && <EventPlaceForm key={id} eventId={id} current={placeId} places={places} />}
       {id && proposed && (
         <form
           className="flex flex-col gap-2 rounded-xl border border-line p-4"

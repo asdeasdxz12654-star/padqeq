@@ -20,12 +20,16 @@ export default async function ProposeEventPage() {
   if (!viewer.profile) redirect(withNext("/welcome", "/events/propose"));
 
   const supabase = await createClient();
-  const { data: mine } = await supabase
-    .from("events")
-    .select("id, name, starts_on, ends_on, status, review_note")
-    .eq("proposed_by", viewer.id)
-    .order("created_at", { ascending: false })
-    .limit(30);
+  const [{ data: mine }, { data: places }] = await Promise.all([
+    supabase
+      .from("events")
+      .select("id, name, starts_on, ends_on, status, review_note")
+      .eq("proposed_by", viewer.id)
+      .order("created_at", { ascending: false })
+      .limit(30),
+    // 열리는 곳으로 고를 공식 장소 태그
+    supabase.from("tags").select("id, name").eq("kind", "place").eq("status", "official").order("name").limit(1000),
+  ]);
   const today = todayKst();
 
   return (
@@ -42,6 +46,7 @@ export default async function ProposeEventPage() {
           initial={{ name: "", startsOn: today, endsOn: today, venue: "", region: "서울", url: "", description: "" }}
           submit={proposeEvent}
           submitLabel="제안하기"
+          places={places ?? []}
           doneMessage="제안했어요. 검토 결과를 알림으로 알려 드릴게요."
         />
       </div>

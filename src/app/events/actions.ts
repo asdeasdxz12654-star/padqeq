@@ -51,9 +51,12 @@ export async function setAttendance(input: z.input<typeof attendSchema>): Promis
 }
 
 /** 행사 등록 제안 (S-12 ①). 운영자가 승인하면 공식 행사가 된다. */
-export async function proposeEvent(input: z.input<typeof eventSchema>): Promise<Result> {
+export async function proposeEvent(input: z.input<typeof eventSchema> & { placeTagId?: string | null }): Promise<Result> {
   const parsed = eventSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "입력을 확인해 주세요." };
+  // 장소 태그 (선택). 공식 장소 태그인지는 DB가 다시 확인한다.
+  const place = z.uuid().nullable().safeParse(input.placeTagId ?? null);
+  if (!place.success) return { ok: false, error: "고른 장소 태그를 쓸 수 없어요. 다시 골라 주세요." };
   const viewer = await getViewer();
   if (!viewer?.profile) return { ok: false, error: "로그인이 필요해요." };
 
@@ -68,6 +71,7 @@ export async function proposeEvent(input: z.input<typeof eventSchema>): Promise<
     url,
     description,
     proposed_by: viewer.id,
+    place_tag_id: place.data,
   });
   if (error) return { ok: false, error: eventErrorMessage(error.message) };
   revalidatePath("/events/propose");

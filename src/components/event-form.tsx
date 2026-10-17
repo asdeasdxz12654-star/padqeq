@@ -14,11 +14,14 @@ export type EventDraft = {
   description: string;
 };
 
-type Submit = (input: EventDraft & { tagSlug: string }) => Promise<{ ok: true } | { ok: false; error: string }>;
+/** 열리는 곳으로 고를 수 있는 공식 장소 태그 */
+export type EventPlaceOption = { id: string; name: string };
+
+type Submit = (input: EventDraft & { tagSlug: string; placeTagId: string | null }) => Promise<{ ok: true } | { ok: false; error: string }>;
 
 const input = "min-h-11 rounded-xl border border-line bg-bg px-3 text-base";
 
-/** 행사 입력 (회원 제안 · 운영자 등록 공용). withTagSlug면 행사 태그 주소도 받는다 (운영자). */
+/** 행사 입력 (회원 제안 · 운영자 등록 공용). withTagSlug면 행사 태그 주소도 받는다 (운영자). places를 주면 장소 태그도 고른다 (선택). */
 export function EventForm({
   initial,
   submit,
@@ -26,6 +29,7 @@ export function EventForm({
   withTagSlug = false,
   doneHref,
   doneMessage,
+  places,
 }: {
   initial: EventDraft;
   submit: Submit;
@@ -33,10 +37,12 @@ export function EventForm({
   withTagSlug?: boolean;
   doneHref?: string;
   doneMessage?: string;
+  places?: EventPlaceOption[];
 }) {
   const router = useRouter();
   const [draft, setDraft] = useState(initial);
   const [tagSlug, setTagSlug] = useState<string | null>(null);
+  const [placeId, setPlaceId] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -50,7 +56,7 @@ export function EventForm({
         e.preventDefault();
         setError(null);
         startTransition(async () => {
-          const result = await submit({ ...draft, tagSlug: slug });
+          const result = await submit({ ...draft, tagSlug: slug, placeTagId: placeId || null });
           if (!result.ok) return setError(result.error);
           setDone(true);
           if (doneHref) router.push(doneHref);
@@ -88,6 +94,29 @@ export function EventForm({
           </select>
         </label>
       </div>
+      {places && places.length > 0 && (
+        <label className="flex flex-col gap-1.5 text-sm">
+          장소 태그 <span className="text-xs text-quiet">(선택 · 고르면 행사 화면과 지도에 그 장소가 이어져요)</span>
+          <select
+            value={placeId}
+            onChange={(e) => {
+              const id = e.target.value;
+              setPlaceId(id);
+              // 장소 칸이 비어 있으면 고른 장소 이름으로 채운다
+              const place = places.find((p) => p.id === id);
+              if (place && !draft.venue.trim()) set("venue", place.name.slice(0, 80));
+            }}
+            className={input}
+          >
+            <option value="">목록에 없음 · 고르지 않음</option>
+            {places.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       <label className="flex flex-col gap-1.5 text-sm">
         공식 사이트 <span className="text-xs text-quiet">(선택 · https://)</span>
         <input type="url" value={draft.url} onChange={(e) => set("url", e.target.value)} maxLength={500} className={input} />
