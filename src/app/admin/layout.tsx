@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import Form from "next/form";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
+import { getAdminPending } from "@/lib/admin/pending";
 import { isStaffRole } from "@/lib/auth/roles";
 import { getViewer } from "@/lib/auth/viewer";
+import { AdminNav } from "./admin-nav";
 import { MfaGate } from "./mfa-gate";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
@@ -15,8 +18,16 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   // 운영자 계정이지만 2단계 인증 전이면 인증 화면만 보여 준다 (그 밖의 사람에게는 화면이 있다는 것도 숨김)
   if (viewer?.mfaRequired) return <MfaGate />;
   if (!isStaffRole(viewer?.profile?.role)) notFound();
+  const isAdmin = viewer?.profile?.role === "admin";
+  const pending = await getAdminPending();
+  // 운영 도우미가 처리하는 것: 게시물 · 댓글 · 게시판 신고
+  const inbox = isAdmin ? pending.total : pending.reports + pending.comments + pending.board;
   return (
-    <div className="mx-auto max-w-6xl px-4 pt-4 pb-16 md:px-6">
+    <div className="mx-auto max-w-7xl px-4 pt-4 pb-16 md:px-6 lg:grid lg:grid-cols-[200px_minmax(0,1fr)] lg:gap-8">
+      <Suspense>
+        <AdminNav isAdmin={isAdmin} inbox={inbox} />
+      </Suspense>
+      <div className="min-w-0">
       {/* 운영 전체 검색 (A-01 ③): 모든 운영 화면 위 */}
       <Form action="/admin/search" role="search" className="mb-6 flex gap-2 md:ml-auto md:w-96">
         <label className="sr-only" htmlFor="admin-q">
@@ -37,6 +48,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
         </button>
       </Form>
       {children}
+      </div>
     </div>
   );
 }

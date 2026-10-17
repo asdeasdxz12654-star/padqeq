@@ -11,6 +11,7 @@ export type AdminPending = {
   inquiries: number;
   events: number;
   claims: number;
+  tags: number;
   total: number;
 };
 
@@ -19,7 +20,7 @@ export const getAdminPending = cache(async (): Promise<AdminPending> => {
   const supabase = await createClient();
   const count = (table: "reports" | "appeals" | "comment_reports" | "board_reports" | "message_reports" | "inquiries" | "credit_claims") =>
     supabase.from(table).select("id", { count: "exact", head: true }).eq("status", "open").then((r) => r.count ?? 0);
-  const [reports, appeals, comments, board, messages, inquiries, events, claims] = await Promise.all([
+  const [reports, appeals, comments, board, messages, inquiries, events, claims, tags] = await Promise.all([
     count("reports"),
     count("appeals"),
     count("comment_reports"),
@@ -28,6 +29,7 @@ export const getAdminPending = cache(async (): Promise<AdminPending> => {
     count("inquiries"),
     supabase.from("events").select("id", { count: "exact", head: true }).eq("status", "proposed").then((r) => r.count ?? 0),
     count("credit_claims"),
+    supabase.from("tags").select("id", { count: "exact", head: true }).eq("status", "pending").then((r) => r.count ?? 0),
   ]);
   return {
     reports,
@@ -38,6 +40,7 @@ export const getAdminPending = cache(async (): Promise<AdminPending> => {
     inquiries,
     events,
     claims,
-    total: reports + appeals + comments + board + messages + inquiries + events + claims,
+    tags,
+    total: reports + appeals + comments + board + messages + inquiries + events + claims + tags,
   };
 });

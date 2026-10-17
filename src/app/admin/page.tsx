@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { countStuckDrafts, getBackupInfo } from "@/lib/admin/ops-status";
 import { type Dashboard, R2_FREE_BYTES, backupState, buildTodos, estimateMonthlyUsd, formatBytes, usageLevel } from "@/lib/admin/dashboard";
+import { loadInbox } from "@/lib/admin/inbox";
+import { ageLabel, INBOX_KIND_LABEL } from "@/lib/admin/inbox-rank";
 import { getAdminPending } from "@/lib/admin/pending";
 import { countTagChores, type TagChores } from "@/lib/admin/tag-chores";
 import { createClient } from "@/lib/supabase/server";
@@ -14,13 +16,14 @@ export const metadata: Metadata = { title: "운영" };
 const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
 const BACKUP_LABEL = { ok: "정상", stale: "늦음", missing: "없음", unknown: "확인 못 함" } as const;
 
-// 운영 첫 화면 (A-01): 오늘 지표 · 운영 상태(백업 · 멈춘 업로드 · 예상 비용) · 저장 용량 · 할 일 · 처리 대기 · 각 운영 화면으로
+// 운영 첫 화면 (관리자 디자인 v2): 지금 처리할 일(처리함 위 5건) → 할 일 → 오늘 지표 → 사이트 상태. 메뉴는 왼쪽.
 export default async function AdminHomePage() {
   // 운영 도우미의 첫 화면은 신고 처리
-  if ((await getViewer())?.profile?.role !== "admin") redirect("/admin/reports");
+  if ((await getViewer())?.profile?.role !== "admin") redirect("/admin/inbox");
   const supabase = await createClient();
-  const [pending, switches, backup, stuckDrafts, dash, chores] = await Promise.all([
+  const [pending, inbox, switches, backup, stuckDrafts, dash, chores] = await Promise.all([
     getAdminPending(),
+    loadInbox(true),
     getSiteSwitches(),
     getBackupInfo(),
     countStuckDrafts(),
@@ -51,17 +54,6 @@ export default async function AdminHomePage() {
   ];
   const switchOn = switches.readOnly || switches.signupClosed || switches.uploadsClosed;
 
-  const cards: { href: string; title: string; help: string; count: number }[] = [
-    { href: "/admin/reports", title: "게시물 신고", help: "급한 사유 · 오래된 순", count: pending.reports },
-    { href: "/admin/reports?tab=appeals", title: "소명", help: "조치된 글의 이의 제기", count: pending.appeals },
-    { href: "/admin/reports?tab=comments", title: "댓글 신고", help: "가리기 · 기각", count: pending.comments },
-    { href: "/admin/reports?tab=board", title: "게시판 신고", help: "글 · 답글", count: pending.board },
-    { href: "/admin/reports?tab=messages", title: "메시지 신고", help: "열람 기록이 남아요", count: pending.messages },
-    { href: "/admin/support", title: "1:1 문의", help: "답하면 회원에게 알림", count: pending.inquiries },
-    { href: "/admin/events", title: "행사 제안", help: "승인하면 행사 태그가 생겨요", count: pending.events },
-    { href: "/admin/reports?tab=claims", title: "크레딧 연결", help: "본인인지 확인하고 연결", count: pending.claims },
-  ];
-
   const choreCards: { href: string; title: string; help: string; count: number }[] = [
     { href: "/admin/tags?view=similar", title: "비슷한 태그 짝", help: "같은 대상이면 합치기", count: chores.similarPairs },
     { href: "/admin/tags?view=nolocation&kind=place", title: "위치 없는 장소", help: "주소로 찾아 지도에 올리기", count: chores.placesWithoutLocation },
@@ -85,23 +77,39 @@ export default async function AdminHomePage() {
         </p>
       )}
 
-      <section aria-labelledby="today-heading">
-        <h2 id="today-heading" className="sr-only">
-          오늘
-        </h2>
-        <ul className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-          {kpis.map((k) => (
-            <li key={k.label}>
-              <Link
-                href={k.href ?? "/admin"}
-                className={`flex h-full flex-col gap-1 rounded-xl border p-4 hover:border-quiet ${k.alert ? "border-red-400/70" : "border-line"}`}
-              >
-                <span className="text-xs text-quiet">{k.label}</span>
-                <span className={`text-2xl font-bold tabular-nums ${k.alert ? "text-red-300" : ""}`}>{k.value.toLocaleString("ko-KR")}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+      <section aria-labelledby="now-heading">
+        <div className="mb-3 flex items-baseline justify-between gap-3">
+          <h2 id="now-heading" className="text-lg font-semibold">
+            지금 처리할 일
+          </h2>
+          <Link href="/admin/inbox" className="text-sm text-quiet hover:text-text">
+            처리함 전체 {inbox.length}건 ›
+          </Link>
+        </div>
+        {inbox.length === 0 ? (
+          <p className="rounded-xl border border-line p-6 text-center text-sm text-quiet">처리할 일이 없어요.</p>
+        ) : (
+          <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-xl border border-line">
+            {inbox.slice(0, 5).map((i) => (
+              <li key={i.key}>
+                <Link href={i.href} prefetch={false} className="flex items-center gap-3 px-4 py-3 hover:bg-surface">
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-bold ${
+                      i.level === "긴급" ? "bg-accent text-on-accent" : i.level === "주의" ? "bg-accent-soft text-accent" : "border border-line text-quiet"
+                    }`}
+                  >
+                    {i.level}
+                  </span>
+                  <span className="flex min-w-0 flex-1 flex-col">
+                    <span className="truncate text-sm font-semibold">{i.title}</span>
+                    <span className="truncate text-xs text-quiet">{INBOX_KIND_LABEL[i.kind]}</span>
+                  </span>
+                  <span className="shrink-0 text-xs text-quiet tabular-nums">{ageLabel(i.hours)} 전</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       {todos.length > 0 && (
@@ -128,6 +136,25 @@ export default async function AdminHomePage() {
           </ul>
         </section>
       )}
+
+      <section aria-labelledby="today-heading">
+        <h2 id="today-heading" className="sr-only">
+          오늘
+        </h2>
+        <ul className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+          {kpis.map((k) => (
+            <li key={k.label}>
+              <Link
+                href={k.href ?? "/admin"}
+                className={`flex h-full flex-col gap-1 rounded-xl border p-4 hover:border-quiet ${k.alert ? "border-red-400/70" : "border-line"}`}
+              >
+                <span className="text-xs text-quiet">{k.label}</span>
+                <span className={`text-2xl font-bold tabular-nums ${k.alert ? "text-red-300" : ""}`}>{k.value.toLocaleString("ko-KR")}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <section aria-labelledby="totals-heading" className="grid gap-4 lg:grid-cols-[2fr_1fr]">
         <div>
@@ -196,25 +223,6 @@ export default async function AdminHomePage() {
         </ul>
       </section>
 
-      <section aria-labelledby="todo-heading">
-        <h2 id="todo-heading" className="mb-3 text-lg font-semibold">
-          처리 대기
-        </h2>
-        <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-          {cards.map((c) => (
-            <li key={c.href}>
-              <Link href={c.href} className="flex h-full flex-col gap-1 rounded-xl border border-line p-4 hover:border-quiet">
-                <span className="flex items-center justify-between font-semibold">
-                  {c.title}
-                  <span className={`rounded-full px-2 text-sm ${c.count ? "bg-red-500/20 text-red-300" : "text-quiet"}`}>{c.count}</span>
-                </span>
-                <span className="text-xs text-quiet">{c.help}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
-
       <section aria-labelledby="chores-heading">
         <h2 id="chores-heading" className="mb-1 text-lg font-semibold">
           태그 · 지도 정리
@@ -235,28 +243,6 @@ export default async function AdminHomePage() {
         </ul>
       </section>
 
-      <section aria-labelledby="tools-heading">
-        <h2 id="tools-heading" className="mb-3 text-lg font-semibold">
-          관리
-        </h2>
-        <nav className="flex flex-wrap gap-2 text-sm">
-          {[
-            ["/admin/posts", "게시물 관리"],
-            ["/admin/posts?view=trash", "휴지통"],
-            ["/admin/members", "회원 관리"],
-            ["/admin/audit", "감사 로그"],
-            ["/admin/events", "행사 관리"],
-            ["/admin/tags", "태그 관리"],
-            ["/admin/support?tab=notices", "공지"],
-            ["/admin/support?tab=system", "긴급 스위치"],
-            ["/upload", "업로드"],
-          ].map(([href, label]) => (
-            <Link key={href} href={href} className="rounded-xl border border-line px-4 py-2 hover:border-quiet">
-              {label}
-            </Link>
-          ))}
-        </nav>
-      </section>
     </div>
   );
 }
