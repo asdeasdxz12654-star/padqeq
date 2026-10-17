@@ -87,3 +87,21 @@ describe("행사에 장소 태그 연결", () => {
     expect((await db.query("select name, place_tag_id from events")).rows).toEqual([{ name: "대구콘페", place_tag_id: null }]);
   });
 });
+
+describe("행사 제안 때 장소 고르기", () => {
+  const propose = (place: string | null) =>
+    as(FAN, "insert into events (name, starts_on, ends_on, venue, region, proposed_by, place_tag_id) values ('새 행사', '2099-01-01', '2099-01-01', '엑스코', '대구', $1, $2)", [FAN, place]);
+
+  it("회원은 공식 장소 태그만 고를 수 있고, 운영자는 승인 전에 바꿀 수 있다", async () => {
+    await expect(propose(tag.genshin!)).rejects.toThrow(/place_invalid/);
+    await expect(propose(tag["pending-place"]!)).rejects.toThrow(/place_invalid/);
+    await propose(tag["exco-addr"]!);
+    await propose(null);
+    const proposal = (await db.query<{ id: string; place_tag_id: string }>("select id, place_tag_id from events where name = '새 행사' and place_tag_id is not null")).rows[0]!;
+    expect(proposal.place_tag_id).toBe(tag["exco-addr"]);
+    await as(ADMIN, "select set_event_place($1, $2)", [proposal.id, tag.exco]);
+    expect((await db.query("select place_tag_id from events where id = $1", [proposal.id])).rows).toEqual([{ place_tag_id: tag.exco }]);
+    // 장소 칸 말고는 여전히 못 바꾼다
+    await expect(as(FAN, "update events set place_tag_id = null where id = $1", [proposal.id])).rejects.toThrow(/permission denied/);
+  });
+});
