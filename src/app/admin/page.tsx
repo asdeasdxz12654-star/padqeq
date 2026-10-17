@@ -5,6 +5,7 @@ import Link from "next/link";
 import { countStuckDrafts, getBackupInfo } from "@/lib/admin/ops-status";
 import { type Dashboard, R2_FREE_BYTES, backupState, buildTodos, estimateMonthlyUsd, formatBytes, usageLevel } from "@/lib/admin/dashboard";
 import { getAdminPending } from "@/lib/admin/pending";
+import { countTagChores, type TagChores } from "@/lib/admin/tag-chores";
 import { createClient } from "@/lib/supabase/server";
 import { getSiteSwitches } from "@/lib/support/switches";
 
@@ -18,7 +19,7 @@ export default async function AdminHomePage() {
   // 운영 도우미의 첫 화면은 신고 처리
   if ((await getViewer())?.profile?.role !== "admin") redirect("/admin/reports");
   const supabase = await createClient();
-  const [pending, switches, backup, stuckDrafts, dash] = await Promise.all([
+  const [pending, switches, backup, stuckDrafts, dash, chores] = await Promise.all([
     getAdminPending(),
     getSiteSwitches(),
     getBackupInfo(),
@@ -27,6 +28,7 @@ export default async function AdminHomePage() {
       if (r.error) throw r.error;
       return r.data as unknown as Dashboard;
     }),
+    loadTagChores(),
   ]);
   const backupNow = backupState(backup === null ? undefined : (backup.latest?.at ?? null));
   const todos = buildTodos(dash, undefined, { backup: backupNow, stuckDrafts });
@@ -58,6 +60,13 @@ export default async function AdminHomePage() {
     { href: "/admin/support", title: "1:1 문의", help: "답하면 회원에게 알림", count: pending.inquiries },
     { href: "/admin/events", title: "행사 제안", help: "승인하면 행사 태그가 생겨요", count: pending.events },
     { href: "/admin/reports?tab=claims", title: "크레딧 연결", help: "본인인지 확인하고 연결", count: pending.claims },
+  ];
+
+  const choreCards: { href: string; title: string; help: string; count: number }[] = [
+    { href: "/admin/tags?view=similar", title: "비슷한 태그 짝", help: "같은 대상이면 합치기", count: chores.similarPairs },
+    { href: "/admin/tags?view=nolocation&kind=place", title: "위치 없는 장소", help: "주소로 찾아 지도에 올리기", count: chores.placesWithoutLocation },
+    { href: "/admin/events", title: "장소 없는 행사", help: "열리는 곳을 고르면 지도에 나와요", count: chores.eventsWithoutPlace },
+    { href: "/admin/tags?view=pending", title: "승인 대기 태그", help: "회원이 만든 태그", count: chores.pendingTags },
   ];
 
   return (
@@ -206,6 +215,26 @@ export default async function AdminHomePage() {
         </ul>
       </section>
 
+      <section aria-labelledby="chores-heading">
+        <h2 id="chores-heading" className="mb-1 text-lg font-semibold">
+          태그 · 지도 정리
+        </h2>
+        <p className="mb-3 text-xs text-quiet">급하지 않지만, 정리할수록 사진이 한곳에 모이고 촬영 장소 지도가 채워져요. 위에서부터 차례로 하면 편해요.</p>
+        <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          {choreCards.map((c) => (
+            <li key={c.href}>
+              <Link href={c.href} className="flex h-full flex-col gap-1 rounded-xl border border-line p-4 hover:border-quiet">
+                <span className="flex items-center justify-between font-semibold">
+                  {c.title}
+                  <span className={`rounded-full px-2 text-sm ${c.count ? "bg-amber-400/20 text-amber-200" : "text-quiet"}`}>{c.count}</span>
+                </span>
+                <span className="text-xs text-quiet">{c.help}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       <section aria-labelledby="tools-heading">
         <h2 id="tools-heading" className="mb-3 text-lg font-semibold">
           관리
@@ -229,5 +258,20 @@ export default async function AdminHomePage() {
         </nav>
       </section>
     </div>
+  );
+}
+
+/** 태그 · 지도 정리 할 일 (태그 관리 · 행사 관리 화면과 같은 기준) */
+async function loadTagChores(): Promise<TagChores> {
+  const supabase = await createClient();
+  const [tags, events] = await Promise.all([
+    supabase.from("tags").select("id, kind, name, status, lat, tag_aliases(alias)").limit(3000),
+    supabase.from("events").select("place_tag_id").eq("status", "official").limit(1000),
+  ]);
+  if (tags.error) throw tags.error;
+  if (events.error) throw events.error;
+  return countTagChores(
+    tags.data.map((t) => ({ id: t.id, kind: t.kind, name: t.name, status: t.status, lat: t.lat, aliases: t.tag_aliases.map((a) => a.alias) })),
+    events.data,
   );
 }
