@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatLatLng, markerRadius, parseLatLng, pickedLatLng, spreadOverlaps } from "./location";
+import { formatLatLng, markerRadius, parseLatLng, groupByPosition, pickedLatLng } from "./location";
 
 describe("좌표 읽기", () => {
   it("숫자 두 개", () => {
@@ -39,17 +39,14 @@ describe("좌표 읽기", () => {
   });
 });
 
-describe("겹친 지도 표시 비켜 놓기", () => {
-  it("첫 번째는 그대로, 같은 자리의 나머지만 약 40m 옆으로", () => {
-    const [a, b, c] = spreadOverlaps([
-      { id: "exco", lat: 35.9068, lng: 128.6133 },
-      { id: "con", lat: 35.9068, lng: 128.6133 },
+describe("같은 자리 지도 표시 묶기", () => {
+  it("실제 엑스코 · 대구콘페처럼 같은 자리는 하나로, 다른 자리는 따로", () => {
+    const groups = groupByPosition([
+      { id: "exco", lat: 35.90702, lng: 128.61311 },
       { id: "park", lat: 37.5, lng: 127 },
+      { id: "con", lat: 35.90702, lng: 128.61311 },
+      { id: "near", lat: 35.90704, lng: 128.61309 },
     ]);
-    expect(a).toEqual({ id: "exco", lat: 35.9068, lng: 128.6133 });
-    expect(c).toEqual({ id: "park", lat: 37.5, lng: 127 });
-    expect(b!.id).toBe("con");
-    expect(Math.abs(b!.lat - 35.9068) + Math.abs(b!.lng - 128.6133)).toBeGreaterThan(0.0003);
-    expect(Math.abs(b!.lat - 35.9068)).toBeLessThan(0.001);
+    expect(groups.map((g) => g.map((p) => p.id))).toEqual([["exco", "con", "near"], ["park"]]);
   });
 });

@@ -3,7 +3,7 @@
 import "leaflet/dist/leaflet.css";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
-import { KOREA_CENTER, KOREA_ZOOM, markerRadius, spreadOverlaps } from "@/lib/places/location";
+import { KOREA_CENTER, KOREA_ZOOM, groupByPosition, markerRadius } from "@/lib/places/location";
 import { accentColor, addOsmTiles } from "./map-tiles";
 
 export type MapPlace = { id: string; slug: string; name: string; kind: "place" | "event"; lat: number; lng: number; posts: number };
@@ -30,35 +30,41 @@ export function PlaceMap({ places, focus }: { places: MapPlace[]; focus: string 
 
       const accent = accentColor();
       const markers = new Map<string, L.CircleMarker>();
-      // 장소와 그 장소 위치를 쓰는 행사가 같은 자리면 하나만 눌리므로 조금 비켜 놓는다
-      for (const p of spreadOverlaps(places)) {
+      // 같은 자리(장소와 그 장소 위치를 쓰는 행사 등)는 점 하나로 묶고, 누르면 이름을 모두 보여 준다
+      for (const group of groupByPosition(places)) {
         // 팝업 내용은 문자열 HTML이 아닌 요소로 만든다 (태그 이름을 그대로 글자로)
         const content = document.createElement("div");
-        content.className = "flex flex-col gap-0.5 text-sm";
-        const link = document.createElement("a");
-        link.href = `/t/${encodeURIComponent(p.slug)}`;
-        link.textContent = p.name;
-        link.className = "font-semibold underline underline-offset-2";
-        link.addEventListener("click", (e) => {
-          e.preventDefault();
-          router.push(link.pathname);
-        });
-        const meta = document.createElement("span");
-        meta.textContent = `${p.kind === "event" ? "행사" : "장소"} · 게시물 ${p.posts}개`;
-        meta.className = "text-xs opacity-75";
-        content.append(link, meta);
+        content.className = "flex flex-col gap-2 text-sm";
+        for (const p of group) {
+          const item = document.createElement("div");
+          item.className = "flex flex-col gap-0.5";
+          const link = document.createElement("a");
+          link.href = `/t/${encodeURIComponent(p.slug)}`;
+          link.textContent = p.name;
+          link.className = "font-semibold underline underline-offset-2";
+          link.addEventListener("click", (e) => {
+            e.preventDefault();
+            router.push(link.pathname);
+          });
+          const meta = document.createElement("span");
+          meta.textContent = `${p.kind === "event" ? "행사" : "장소"} · 게시물 ${p.posts}개`;
+          meta.className = "text-xs opacity-75";
+          item.append(link, meta);
+          content.append(item);
+        }
 
-        const marker = L.circleMarker([p.lat, p.lng], {
-          radius: markerRadius(p.posts),
+        const first = group[0]!;
+        const marker = L.circleMarker([first.lat, first.lng], {
+          radius: markerRadius(group.reduce((sum, p) => sum + p.posts, 0)),
           color: "#fff",
           weight: 1.5,
           fillColor: accent,
           fillOpacity: 0.85,
         })
-          .bindTooltip(p.name, { direction: "top", offset: [0, -6] })
+          .bindTooltip(group.map((p) => p.name).join(" · "), { direction: "top", offset: [0, -6] })
           .bindPopup(content)
           .addTo(map);
-        markers.set(p.slug, marker);
+        for (const p of group) markers.set(p.slug, marker);
       }
 
       const target = focus ? markers.get(focus) : undefined;

@@ -163,10 +163,10 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
             <h2 id="place-events-heading" className="mb-1 font-semibold">
               이 장소의 행사
             </h2>
-            <ul className="flex flex-col gap-1">
+            <ul className="flex flex-col">
               {placeEvents.map((e) => (
                 <li key={e.id}>
-                  <Link href={`/events/${e.id}`} className="flex gap-3 hover:underline">
+                  <Link href={`/events/${e.id}`} className="flex min-h-11 items-center gap-3 hover:underline">
                     <span className="w-28 shrink-0 tabular-nums text-quiet">
                       {e.starts_on.slice(0, 4)}. {formatRange(e.starts_on, e.ends_on)}
                     </span>

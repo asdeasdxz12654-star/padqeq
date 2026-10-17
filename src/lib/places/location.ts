@@ -46,23 +46,18 @@ export function parseLatLng(input: string): LatLng | null {
 }
 
 /**
- * 같은 자리에 겹친 표시(예: 장소와 그 장소 위치를 쓰는 행사)를 조금씩 비켜 놓는다. 첫 번째는 그대로,
- * 나머지는 둘레 약 40m 원 위에 고르게. 눌러서 고를 수 있게 하려는 것이고, 실제 위치는 바꾸지 않는다.
+ * 같은 자리(약 10m 안)의 표시를 하나로 묶는다. 장소와 그 장소 위치를 쓰는 행사처럼 겹치면
+ * 점을 조금 비켜 놓아도 넓게 보면 겹쳐 하나만 눌리므로, 점 하나에 이름을 모두 보여 준다. 처음 나온 순서를 지킨다.
  */
-export function spreadOverlaps<T extends LatLng>(items: T[]): T[] {
-  const groups = new Map<string, number>();
-  for (const p of items) groups.set(`${p.lat},${p.lng}`, (groups.get(`${p.lat},${p.lng}`) ?? 0) + 1);
-  const seen = new Map<string, number>();
-  return items.map((p) => {
-    const key = `${p.lat},${p.lng}`;
-    const n = seen.get(key) ?? 0;
-    seen.set(key, n + 1);
-    if (n === 0) return p;
-    const others = groups.get(key)! - 1;
-    const angle = (2 * Math.PI * (n - 1)) / others - Math.PI / 2;
-    const r = 0.0004;
-    return { ...p, lat: round(p.lat + r * Math.sin(angle)), lng: round(p.lng + (r * Math.cos(angle)) / Math.cos((p.lat * Math.PI) / 180)) };
-  });
+export function groupByPosition<T extends LatLng>(items: T[]): T[][] {
+  const groups = new Map<string, T[]>();
+  for (const p of items) {
+    const key = `${p.lat.toFixed(4)},${p.lng.toFixed(4)}`;
+    const group = groups.get(key);
+    if (group) group.push(p);
+    else groups.set(key, [p]);
+  }
+  return [...groups.values()];
 }
 
 /** 지도 원 크기: 게시물이 많을수록 조금 크게 (6~18px) */

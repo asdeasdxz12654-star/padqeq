@@ -6,6 +6,18 @@ import { createTag, findSimilarExistingTags, placesForEventTags, searchTags, typ
 
 // 업로드 화면 태그 고르기: 검색해서 붙이고, 없으면 그 자리에서 만든다.
 
+// 행사 태그 → 장소 태그. 묶음이 여러 개여도 같은 행사는 한 번만 묻는다 (실패하면 다음에 다시)
+const eventPlaceCache = new Map<string, Promise<TagOption[]>>();
+function cachedPlacesForEventTags(key: string): Promise<TagOption[]> {
+  let found = eventPlaceCache.get(key);
+  if (!found) {
+    found = placesForEventTags(key.split(","));
+    found.catch(() => eventPlaceCache.delete(key));
+    eventPlaceCache.set(key, found);
+  }
+  return found;
+}
+
 const inputClass = "min-h-10 rounded-lg border border-line bg-surface px-3 text-sm outline-none focus:border-accent";
 
 export function TagPicker({
@@ -50,7 +62,7 @@ export function TagPicker({
   useEffect(() => {
     if (!eventKey || disabled) return;
     let stale = false;
-    placesForEventTags(eventKey.split(",")).then(
+    cachedPlacesForEventTags(eventKey).then(
       (places) => {
         if (!stale) setEventPlaces({ key: eventKey, places });
       },
