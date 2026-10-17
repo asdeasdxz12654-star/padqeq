@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useState, useTransition } from "react";
 import { MAX_TAGS_PER_POST, TAG_KIND_LABEL, TAG_KINDS, type TagKind } from "@/lib/tags/tag-rules";
-import { createTag, searchTags, type TagOption } from "./tag-actions";
+import { createTag, findSimilarExistingTags, searchTags, type SimilarTagOption, type TagOption } from "./tag-actions";
 
 // 업로드 화면 태그 고르기: 검색해서 붙이고, 없으면 그 자리에서 만든다.
 
@@ -142,6 +142,19 @@ function NewTagForm({
   const [aliases, setAliases] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  // 같은 대상일 것 같은 기존 태그 (중복 태그를 처음부터 줄인다)
+  const [similar, setSimilar] = useState<{ name: string; tags: SimilarTagOption[] } | null>(null);
+
+  useEffect(() => {
+    let stale = false;
+    void findSimilarExistingTags(name).then((tags) => {
+      if (!stale) setSimilar({ name, tags });
+    });
+    return () => {
+      stale = true;
+    };
+  }, [name]);
+  const similarTags = similar?.name === name ? similar.tags : [];
 
   useEffect(() => {
     if (kind !== "character" || !parentQuery.trim()) return;
@@ -162,6 +175,31 @@ function NewTagForm({
         새 태그 <strong>{name}</strong>
         {!isAdmin && <span className="block text-xs text-quiet">운영자가 승인하기 전까지는 내 게시물에만 보여요.</span>}
       </p>
+      {similarTags.length > 0 && (
+        <div role="status" className="flex flex-col gap-2 rounded-lg bg-slot p-3">
+          <p className="text-sm">
+            비슷한 태그가 이미 있어요. 같은 대상이면 새로 만들지 말고 이걸 붙여 주세요.
+            <span className="block text-xs text-quiet">같은 장소 · 작품이 여러 태그로 나뉘면 사진이 흩어져요.</span>
+          </p>
+          <ul className="flex flex-wrap gap-1.5">
+            {similarTags.map((tag) => (
+              <li key={tag.id}>
+                <button
+                  type="button"
+                  onClick={() => onCreated(tag)}
+                  className="flex min-h-9 items-baseline gap-1.5 rounded-full border border-line bg-surface px-3 py-1 text-left text-sm hover:border-accent"
+                >
+                  <span className="text-xs text-quiet">{TAG_KIND_LABEL[tag.kind]}</span>
+                  {tag.parentName && <span className="text-quiet">{tag.parentName} ›</span>}
+                  {tag.name}
+                  {tag.pending && <span className="text-xs text-quiet">(승인 대기)</span>}
+                  <span className="text-xs text-accent">붙이기</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <div className="flex flex-wrap gap-1.5">
         {TAG_KINDS.map((k) => (
           <button

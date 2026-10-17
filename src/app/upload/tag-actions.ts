@@ -5,6 +5,7 @@ import { getViewer } from "@/lib/auth/viewer";
 import { escapeLike } from "@/lib/posts/feed-params";
 import { cleanTagName, parseAliases, TAG_KINDS, type TagKind, tagSlug } from "@/lib/tags/tag-rules";
 import { createClient } from "@/lib/supabase/server";
+import { searchWords, similarToName } from "@/lib/tags/similar";
 
 export type TagOption = { id: string; kind: TagKind; name: string; slug: string; parentName: string | null; pending: boolean };
 
@@ -66,6 +67,44 @@ export async function searchTags(rawQuery: string): Promise<TagOption[]> {
     }))
     .sort((a, b) => Number(!a.name.startsWith(query)) - Number(!b.name.startsWith(query)) || a.name.localeCompare(b.name, "ko"))
     .slice(0, 10);
+}
+
+export type SimilarTagOption = TagOption & { reason: "same" | "alias" | "contains" };
+
+/**
+ * 새 태그를 만들기 전에: 같은 대상일 것 같은 기존 태그 (띄어쓰기 · 괄호 · 다른 표기 · 한쪽 이름이 다른 쪽에 든 경우).
+ * 이름의 낱말로 후보를 모은 뒤 태그 관리 › 비슷한 이름과 같은 규칙으로 고른다. 볼 수 있는 태그만 (RLS).
+ */
+export async function findSimilarExistingTags(rawName: string): Promise<SimilarTagOption[]> {
+  const viewer = await getViewer();
+  if (!viewer?.profile?.can_upload) return [];
+  const name = cleanTagName(String(rawName)).slice(0, 60);
+  const words = searchWords(name);
+  if (!words.length) return [];
+  // 낱말은 글자 · 숫자만이라 검색 조건 문법을 바꾸지 못한다
+  const supabase = await createClient();
+  const [byName, byAlias] = await Promise.all([
+    supabase.from("tags").select("id").or(words.map((w) => `name.ilike.*${w}*`).join(",")).limit(100),
+    supabase.from("tag_aliases").select("tag_id").or(words.map((w) => `alias.ilike.*${w}*`).join(",")).limit(100),
+  ]);
+  const ids = [...new Set([...(byName.data ?? []).map((r) => r.id), ...(byAlias.data ?? []).map((r) => r.tag_id)])].slice(0, 150);
+  if (!ids.length) return [];
+
+  const { data } = await supabase
+    .from("tags")
+    .select("id, kind, name, slug, status, parent:tags!tags_parent_id_fkey(name), tag_aliases(alias), post_tags(count)")
+    .in("id", ids);
+  const candidates = (data ?? []).map((t) => ({
+    id: t.id,
+    kind: t.kind,
+    name: t.name,
+    slug: t.slug,
+    parentName: (Array.isArray(t.parent) ? t.parent[0]?.name : (t.parent as { name: string } | null)?.name) ?? null,
+    pending: t.status === "pending",
+    aliases: t.tag_aliases.map((a) => a.alias),
+    posts: t.post_tags[0]?.count ?? 0,
+  }));
+  return similarToName(name, candidates).map((t) => ({ id: t.id, kind: t.kind, name: t.name, slug: t.slug, parentName: t.parentName, pending: t.pending, reason: t.reason }));
 }
 
 const createSchema = z.object({

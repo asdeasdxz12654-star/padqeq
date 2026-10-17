@@ -42,18 +42,48 @@ export function findSimilarTags(tags: TagForSimilarity[], limit = 100): SimilarP
 }
 
 function compare(a: { tag: TagForSimilarity; names: string[] }, b: { tag: TagForSimilarity; names: string[] }): SimilarPair["reason"] | null {
-  const aName = normalizeTagName(a.tag.name);
-  const bName = normalizeTagName(b.tag.name);
-  if (aName && aName === bName) return "same";
-  if (a.names.some((n) => b.names.includes(n))) return "alias";
+  return relation(normalizeTagName(a.tag.name), a.names, normalizeTagName(b.tag.name), b.names);
+}
+
+/** 비교용 이름(정규화된 대표 이름 + 별칭 포함 목록)끼리의 관계 */
+function relation(aMain: string, aNames: string[], bMain: string, bNames: string[]): SimilarPair["reason"] | null {
+  if (aMain && aMain === bMain) return "same";
+  if (aNames.some((n) => bNames.includes(n))) return "alias";
   // 한쪽 이름(별칭 포함)이 다른 쪽 이름에 통째로 들어 있으면
-  for (const x of a.names) {
-    for (const y of b.names) {
+  for (const x of aNames) {
+    for (const y of bNames) {
       const [short, long] = x.length <= y.length ? [x, y] : [y, x];
       if (short.length >= MIN_CONTAINED && long.includes(short)) return "contains";
     }
   }
   return null;
+}
+
+/**
+ * 새 태그를 만들기 전에: 이 이름과 같은 대상일 것 같은 기존 태그 (업로드 화면 안내).
+ * 종류는 가리지 않는다 (종류를 잘못 고른 경우도 잡게). 같은 이름 → 별칭 → 포함, 그 안에서 게시물 많은 순.
+ */
+export function similarToName<T extends TagForSimilarity>(name: string, tags: T[], limit = 5): (T & { reason: SimilarPair["reason"] })[] {
+  const main = normalizeTagName(name);
+  if (!main) return [];
+  const rank = { same: 0, alias: 1, contains: 2 } as const;
+  return tags
+    .flatMap((tag) => {
+      const names = [...new Set([tag.name, ...tag.aliases].map(normalizeTagName).filter(Boolean))];
+      const reason = relation(main, [main], normalizeTagName(tag.name), names);
+      return reason ? [{ ...tag, reason }] : [];
+    })
+    .sort((x, y) => rank[x.reason] - rank[y.reason] || y.posts - x.posts)
+    .slice(0, limit);
+}
+
+/** DB에서 후보를 찾을 검색 낱말: 띄어쓰기 · 기호로 나눈 2자 이상 낱말 중 긴 것부터 6개 (글자 · 숫자만이라 검색 조건에 그대로 써도 된다) */
+export function searchWords(name: string): string[] {
+  const words = name
+    .normalize("NFKC")
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter((w) => w.length >= 2);
+  return [...new Set(words)].sort((a, b) => b.length - a.length).slice(0, 6);
 }
 
 function order(a: TagForSimilarity, b: TagForSimilarity): { keep: TagForSimilarity; drop: TagForSimilarity } {
