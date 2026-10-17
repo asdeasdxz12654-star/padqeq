@@ -7,6 +7,7 @@ import { profileHref } from "@/lib/profiles/profile-href";
 import { NAV_ITEMS } from "./nav-items";
 import { HeaderAutoHide } from "./header-auto-hide";
 import { HeaderSearch } from "./search-box";
+import { HaedamLogo } from "./haedam-logo";
 
 /** 상단 바. 데스크톱(768px~)에서는 GNB + 업로드 버튼 + 계정, 모바일에서는 로고와 가입 안내만. */
 export async function SiteHeader() {
@@ -19,8 +20,8 @@ export async function SiteHeader() {
     <header data-site-header className="sticky top-0 z-30 border-b border-line bg-bg/95 pt-[env(safe-area-inset-top)] backdrop-blur">
       <HeaderAutoHide />
       <div className="mx-auto flex h-14 max-w-[1440px] items-center gap-8 px-4 md:px-6">
-        <Link href="/" className="-ml-2 flex min-h-11 items-center px-2 text-lg font-bold tracking-tight">
-          해담
+        <Link href="/" aria-label="해담 홈" className="-ml-2 flex min-h-11 items-center px-2">
+          <HaedamLogo />
         </Link>
         <nav aria-label="주 메뉴" className="hidden md:block">
           <ul className="flex gap-4 text-sm text-quiet lg:gap-6">

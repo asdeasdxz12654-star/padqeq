@@ -14,7 +14,8 @@ import "./globals.css";
 
 // 빌드 때 받아 같은 출처에서 서빙한다 (CSP font-src 'self')
 const plexKr = IBM_Plex_Sans_KR({
-  weight: ["400", "500", "600", "700"],
+  // 굵기는 보통 · 굵게 두 가지만 (글꼴 파일 수 · 용량을 줄인다. 500 · 600은 가까운 굵기로 보인다)
+  weight: ["400", "700"],
   variable: "--font-plex-kr",
   preload: false,
   display: "swap",
@@ -34,8 +35,8 @@ export const metadata: Metadata = {
   },
   twitter: { card: "summary_large_image" },
   formatDetection: { telephone: false },
-  // 홈 화면에 추가했을 때 (아이폰). 상태 표시줄 아래까지 그리고, 상단 바가 안전 영역만큼 비켜 준다.
-  appleWebApp: { capable: true, title: "해담", statusBarStyle: "black-translucent" },
+  // 홈 화면에 추가했을 때 (아이폰). 밝은 바탕이라 상태 표시줄은 기본(검정 글자)으로.
+  appleWebApp: { capable: true, title: "해담", statusBarStyle: "default" },
   icons: { apple: "/icons/apple-touch-icon.png" },
 };
 
@@ -44,8 +45,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#111110" },
-    { media: "(prefers-color-scheme: light)", color: "#f5f5f3" },
+    { media: "(prefers-color-scheme: dark)", color: "#0d0d0d" },
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
   ],
 };
 
@@ -54,7 +55,8 @@ export default async function RootLayout({ children, modal }: LayoutProps<"/">) 
   // (정적 페이지에는 nonce가 없어 스크립트가 차단됨)
   await connection();
   const saved = (await cookies()).get("theme")?.value;
-  const theme = saved === "light" || saved === "system" ? saved : "dark";
+  // 기본은 라이트. 다크 · 기기 설정은 설정 화면에서 고른 사람만
+  const theme = saved === "dark" || saved === "system" ? saved : "light";
 
   return (
     <html lang="ko" data-theme={theme} className={`${plexKr.variable} h-full antialiased`}>

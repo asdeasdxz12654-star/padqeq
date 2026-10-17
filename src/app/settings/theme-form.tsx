@@ -4,8 +4,8 @@ import { useState } from "react";
 
 export type ThemeChoice = "dark" | "light" | "system";
 const OPTIONS: { value: ThemeChoice; label: string }[] = [
-  { value: "dark", label: "다크 (기본)" },
-  { value: "light", label: "라이트" },
+  { value: "light", label: "라이트 (기본)" },
+  { value: "dark", label: "다크" },
   { value: "system", label: "기기 설정 따르기" },
 ];
 

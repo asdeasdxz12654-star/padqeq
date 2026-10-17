@@ -11,5 +11,5 @@ export function addOsmTiles(L: typeof Leaflet, map: Leaflet.Map) {
   }).addTo(map);
 }
 
-/** 사이트 강조색 (원 표시) */
-export const accentColor = () => getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#e58a5a";
+/** 지도 원 색: 그림용 빨강(로고의 해와 같은 색) */
+export const accentColor = () => getComputedStyle(document.documentElement).getPropertyValue("--sun").trim() || "#e2574b";

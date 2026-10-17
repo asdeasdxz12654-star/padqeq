@@ -36,7 +36,7 @@ export default async function SettingsPage() {
   const profile = account && { ...account, ...mine?.[0] };
   const blocked = (blocks ?? []).flatMap((b) => (b.blocked ? [b.blocked] : []));
   const savedTheme = (await cookies()).get("theme")?.value;
-  const themeChoice: ThemeChoice = savedTheme === "light" || savedTheme === "system" ? savedTheme : "dark";
+  const themeChoice: ThemeChoice = savedTheme === "dark" || savedTheme === "system" ? savedTheme : "light";
   const email = typeof claims?.claims.email === "string" ? claims.claims.email : null;
 
   return (

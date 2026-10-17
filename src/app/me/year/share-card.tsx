@@ -10,7 +10,8 @@ type Content = ReturnType<typeof shareCardContent>;
 
 const W = 1080;
 const H = 1350;
-const COLOR = { bg: "#111110", line: "#2a2a27", text: "#f2f2ee", quiet: "#a3a39c", accent: "#6b9bff", slot: "#22221f" };
+// 해담 색 (흰 바탕 · 먹색 글자 · 해의 빨강)
+const COLOR = { bg: "#ffffff", line: "#e6e6e3", text: "#111111", quiet: "#555555", accent: "#e2574b", slot: "#f7f7f5" };
 
 export function YearShareCard({ year, handle, content }: { year: number; handle: string; content: Content }) {
   const [card, setCard] = useState<{ url: string; file: File } | null>(null);
