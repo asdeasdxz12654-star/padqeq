@@ -11,7 +11,8 @@ import { Constants } from "@/lib/supabase/database.types";
 
 export const metadata: Metadata = { title: "커뮤니티" };
 
-// 커뮤니티 탭: 행사 캘린더 · 구인 · 섭외 · 촬영 장소 · 자유 · Q&A · 크리에이터
+// 커뮤니티: 구인 · 섭외 · 촬영 장소 · 자유 · Q&A (+ 행사 · 크리에이터)
+// PC(1024px~)는 3단: 왼쪽 게시판 메뉴 · 가운데 글 목록 · 오른쪽 다가오는 행사 · 크리에이터. 휴대폰은 한 줄씩.
 
 const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric" });
 
@@ -60,7 +61,7 @@ export default async function CommunityPage({ searchParams }: PageProps<"/commun
     if (terms) query = query.eq("casting_terms", terms);
     if (openOnly) query = query.is("closed_at", null);
   }
-  const [{ data, error }, viewer, events] = await Promise.all([query, getViewer(), board || before ? Promise.resolve([]) : upcomingEvents(todayKst(), 3)]);
+  const [{ data, error }, viewer, events] = await Promise.all([query, getViewer(), upcomingEvents(todayKst(), 4)]);
   if (error) throw error;
   const posts = data as unknown as Row[];
 
@@ -72,142 +73,229 @@ export default async function CommunityPage({ searchParams }: PageProps<"/commun
   const chip = "inline-flex min-h-10 items-center rounded-full border border-line px-3 aria-[current=page]:border-text aria-[current=page]:bg-text aria-[current=page]:text-bg";
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pt-8 pb-16 md:px-6 lg:max-w-4xl">
+    <div className="mx-auto max-w-[1440px] px-4 pt-6 pb-16 md:px-6">
       <GatherSwitch current="community" />
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold">커뮤니티</h1>
-        {viewer?.profile && (
-          <Link href={`/community/write${board ? `?board=${board}` : ""}`} className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-on-accent">
-            글쓰기
+      <div className="lg:grid lg:grid-cols-[200px_minmax(0,1fr)_300px] lg:items-start lg:gap-8">
+        {/* PC 왼쪽: 글쓰기 · 게시판 · 바로가기 */}
+        <nav aria-label="게시판 메뉴" className="sticky top-20 hidden flex-col gap-1 lg:flex">
+          {viewer?.profile && (
+            <Link
+              href={`/community/write${board ? `?board=${board}` : ""}`}
+              className="mb-4 flex min-h-12 items-center justify-center gap-1.5 rounded-full bg-accent font-bold text-on-accent"
+            >
+              <span aria-hidden="true">+</span> 글쓰기
+            </Link>
+          )}
+          <Link
+            href="/community"
+            aria-current={!board ? "page" : undefined}
+            className="flex min-h-11 items-center rounded-xl px-3 text-sm hover:bg-surface aria-[current=page]:bg-surface aria-[current=page]:font-bold"
+          >
+            전체
           </Link>
-        )}
-      </div>
+          {BOARDS.map((b) => (
+            <Link
+              key={b}
+              href={`/community?board=${b}`}
+              aria-current={board === b ? "page" : undefined}
+              className="flex min-h-11 items-center rounded-xl px-3 text-sm hover:bg-surface aria-[current=page]:bg-surface aria-[current=page]:font-bold"
+            >
+              {BOARD_LABEL[b].title}
+            </Link>
+          ))}
+          <div className="my-3 h-px bg-line" />
+          <Link href="/events" className="flex min-h-11 items-center rounded-xl px-3 text-sm text-quiet hover:bg-surface hover:text-text">
+            행사 캘린더
+          </Link>
+          <Link href="/creators" className="flex min-h-11 items-center rounded-xl px-3 text-sm text-quiet hover:bg-surface hover:text-text">
+            크리에이터 찾기
+          </Link>
+          <Link href="/map" className="flex min-h-11 items-center rounded-xl px-3 text-sm text-quiet hover:bg-surface hover:text-text">
+            촬영 장소 지도
+          </Link>
+        </nav>
 
-      {!board && !before && (
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          <section aria-labelledby="events-heading" className="rounded-2xl border border-line p-4">
-            <h2 id="events-heading" className="flex items-center justify-between font-semibold">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h1 className="text-2xl font-bold">{board ? BOARD_LABEL[board].title : "커뮤니티"}</h1>
+            {viewer?.profile && (
+              <Link
+                href={`/community/write${board ? `?board=${board}` : ""}`}
+                className="rounded-full bg-accent px-4 py-2 text-sm font-bold text-on-accent lg:hidden"
+              >
+                글쓰기
+              </Link>
+            )}
+          </div>
+
+          {!board && !before && (
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:hidden">
+              <section aria-labelledby="events-heading" className="rounded-2xl border border-line p-4">
+                <h2 id="events-heading" className="flex items-center justify-between font-semibold">
+                  다가오는 행사
+                  <Link href="/events" className="-my-3.5 flex min-h-11 items-center pl-3 text-xs font-normal text-quiet hover:underline">
+                    캘린더 ›
+                  </Link>
+                </h2>
+                {events.length === 0 ? (
+                  <p className="mt-2 text-sm text-quiet">등록된 행사가 없어요.</p>
+                ) : (
+                  <ul className="mt-1 flex flex-col text-sm">
+                    {events.map((e) => (
+                      <li key={e.id}>
+                        <Link href={`/events/${e.id}`} className="flex min-h-11 items-center gap-2 hover:underline">
+                          <span className="w-20 shrink-0 tabular-nums text-quiet">{formatRange(e.starts_on, e.ends_on)}</span>
+                          <span className="truncate">{e.name}</span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+              <Link href="/creators" className="flex flex-col justify-between rounded-2xl border border-line p-4 hover:border-quiet">
+                <span className="font-semibold">크리에이터</span>
+                <span className="mt-2 text-sm text-quiet">코스어 · 포토그래퍼 · 모델 · 보정 작가를 찾아요. 최근 활동순이에요.</span>
+              </Link>
+            </div>
+          )}
+
+          <nav aria-label="게시판" className="mt-6 -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 text-sm lg:hidden">
+            <Link href="/community" aria-current={!board ? "page" : undefined} className={`${chip} shrink-0`}>
+              전체
+            </Link>
+            {BOARDS.map((b) => (
+              <Link key={b} href={`/community?board=${b}`} aria-current={board === b ? "page" : undefined} className={`${chip} shrink-0`}>
+                {BOARD_LABEL[b].title}
+              </Link>
+            ))}
+          </nav>
+          {board && <p className="mt-3 text-sm text-quiet">{BOARD_LABEL[board].help}</p>}
+
+          {(board === "casting" || board === "places") && (
+            <div className="mt-3 flex flex-col gap-2 text-xs">
+              {board === "casting" && (
+                <div className="flex flex-wrap gap-1.5">
+                  {Constants.public.Enums.casting_kind.map((k) => (
+                    <Link key={k} href={href({ kind: kind === k ? null : k })} aria-current={kind === k ? "page" : undefined} className={chip}>
+                      {CASTING_KIND_LABEL[k]}
+                    </Link>
+                  ))}
+                  {Constants.public.Enums.casting_terms.map((t) => (
+                    <Link key={t} href={href({ terms: terms === t ? null : t })} aria-current={terms === t ? "page" : undefined} className={chip}>
+                      {TERMS_LABEL[t]}
+                    </Link>
+                  ))}
+                  <Link href={href({ open: openOnly ? null : "1" })} aria-current={openOnly ? "page" : undefined} className={chip}>
+                    모집 중만
+                  </Link>
+                </div>
+              )}
+              <form action="/community" className="flex items-center gap-2">
+                <input type="hidden" name="board" value={board} />
+                {kind && <input type="hidden" name="kind" value={kind} />}
+                {terms && <input type="hidden" name="terms" value={terms} />}
+                {openOnly && <input type="hidden" name="open" value="1" />}
+                <label htmlFor="region-filter">지역</label>
+                <select id="region-filter" name="region" defaultValue={region ?? ""} className="min-h-10 rounded-xl border border-line bg-bg px-2 text-sm">
+                  <option value="">전체</option>
+                  {REGIONS.map((r) => (
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
+                  ))}
+                </select>
+                <button type="submit" className="min-h-10 rounded-xl border border-line px-3">
+                  보기
+                </button>
+              </form>
+            </div>
+          )}
+
+          {board === "casting" && (
+            <p className="mt-3 rounded-xl bg-slot px-3 py-2 text-xs leading-relaxed text-quiet">
+              첫 촬영 전 안전 가이드 — 공개 장소에서 만나고, 촬영 범위 · 결과물 사용 범위를 메시지로 미리 합의하세요. 선입금 요구는 신고 사유예요.
+            </p>
+          )}
+
+          {posts.length === 0 ? (
+            <p className="mt-6 rounded-xl border border-line p-8 text-center text-sm text-quiet">아직 글이 없어요. 첫 글을 남겨 주세요.</p>
+          ) : (
+            <ul className="mt-4 flex flex-col gap-2">
+              {posts.map((p) => (
+                <li key={p.id}>
+                  <Link
+                    href={`/community/${p.id}`}
+                    className={`flex flex-col gap-1.5 rounded-2xl border border-line p-4 hover:border-quiet ${p.closed_at ? "opacity-50" : ""}`}
+                  >
+                    <span className="flex flex-wrap gap-1.5 text-[11px] text-quiet">
+                      {!board && <span className="rounded border border-line px-1.5 py-0.5">{BOARD_LABEL[p.board].title}</span>}
+                      {p.closed_at && <span className="rounded border border-line px-1.5 py-0.5">마감</span>}
+                      {p.region && <span className="rounded border border-line px-1.5 py-0.5">{p.region}</span>}
+                      {p.casting_kind && <span className="rounded border border-line px-1.5 py-0.5">{CASTING_KIND_LABEL[p.casting_kind]}</span>}
+                      {p.casting_terms && <span className="rounded border border-line px-1.5 py-0.5">{TERMS_LABEL[p.casting_terms]}</span>}
+                      {p.shoot_on && <span className="rounded border border-line px-1.5 py-0.5">{p.shoot_on.slice(5).replace("-", ".")}</span>}
+                    </span>
+                    <span className="text-base font-bold">{p.title}</span>
+                    <span className="line-clamp-2 text-sm text-quiet">{p.body}</span>
+                    <span className="text-xs text-quiet">
+                      @{p.author?.handle ?? "?"} · {timeFormat.format(new Date(p.created_at))}
+                      {p.board !== "casting" && ` · 답글 ${p.replies[0]?.count ?? 0}`}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+          {posts.length === pageSize && (
+            <div className="mt-6 flex justify-center">
+              <Link href={href({ before: posts.at(-1)!.created_at })} className="min-h-11 rounded-full border border-line px-6 py-2.5 text-sm hover:border-quiet">
+                이전 글 더 보기
+              </Link>
+            </div>
+          )}
+        </div>
+
+        {/* PC 오른쪽: 다가오는 행사 · 크리에이터 */}
+        <aside aria-label="옆 정보" className="sticky top-20 hidden flex-col gap-4 lg:flex">
+          <section aria-labelledby="rail-events" className="rounded-2xl border border-line p-4">
+            <h2 id="rail-events" className="flex items-center justify-between font-bold">
               다가오는 행사
-              <Link href="/events" className="-my-3.5 flex min-h-11 items-center pl-3 text-xs font-normal text-quiet hover:underline">
+              <Link href="/events" className="text-xs font-normal text-quiet hover:underline">
                 캘린더 ›
               </Link>
             </h2>
             {events.length === 0 ? (
               <p className="mt-2 text-sm text-quiet">등록된 행사가 없어요.</p>
             ) : (
-              <ul className="mt-1 flex flex-col text-sm">
+              <ul className="mt-2 flex flex-col gap-1">
                 {events.map((e) => (
                   <li key={e.id}>
-                    <Link href={`/events/${e.id}`} className="flex min-h-11 items-center gap-2 hover:underline">
-                      <span className="w-20 shrink-0 tabular-nums text-quiet">{formatRange(e.starts_on, e.ends_on)}</span>
-                      <span className="truncate">{e.name}</span>
+                    <Link href={`/events/${e.id}`} className="flex min-h-12 items-center gap-3 rounded-xl hover:bg-surface">
+                      <span className="flex w-12 shrink-0 flex-col items-center rounded-lg bg-surface py-1">
+                        <span className="text-[11px] text-quiet">{Number(e.starts_on.slice(5, 7))}월</span>
+                        <span className="text-base leading-none font-bold">{Number(e.starts_on.slice(8))}</span>
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-bold">{e.name}</span>
+                        <span className="block truncate text-xs text-quiet">
+                          {e.region} · {e.venue}
+                        </span>
+                      </span>
                     </Link>
                   </li>
                 ))}
               </ul>
             )}
           </section>
-          <Link href="/creators" className="flex flex-col justify-between rounded-2xl border border-line p-4 hover:border-quiet">
-            <span className="font-semibold">크리에이터</span>
-            <span className="mt-2 text-sm text-quiet">코스어 · 포토그래퍼 · 모델 · 보정 작가를 찾아요. 최근 활동순이에요.</span>
+          <Link href="/creators" className="flex flex-col gap-1 rounded-2xl border border-line p-4 hover:border-quiet">
+            <span className="font-bold">크리에이터</span>
+            <span className="text-sm text-quiet">코스어 · 포토그래퍼 · 모델 · 보정 작가를 찾아요.</span>
           </Link>
-        </div>
-      )}
-
-      <nav aria-label="게시판" className="mt-6 -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 text-sm">
-        <Link href="/community" aria-current={!board ? "page" : undefined} className={`${chip} shrink-0`}>
-          전체
-        </Link>
-        {BOARDS.map((b) => (
-          <Link key={b} href={`/community?board=${b}`} aria-current={board === b ? "page" : undefined} className={`${chip} shrink-0`}>
-            {BOARD_LABEL[b].title}
-          </Link>
-        ))}
-      </nav>
-      {board && <p className="mt-3 text-sm text-quiet">{BOARD_LABEL[board].help}</p>}
-
-      {(board === "casting" || board === "places") && (
-        <div className="mt-3 flex flex-col gap-2 text-xs">
-          {board === "casting" && (
-            <div className="flex flex-wrap gap-1.5">
-              {Constants.public.Enums.casting_kind.map((k) => (
-                <Link key={k} href={href({ kind: kind === k ? null : k })} aria-current={kind === k ? "page" : undefined} className={chip}>
-                  {CASTING_KIND_LABEL[k]}
-                </Link>
-              ))}
-              {Constants.public.Enums.casting_terms.map((t) => (
-                <Link key={t} href={href({ terms: terms === t ? null : t })} aria-current={terms === t ? "page" : undefined} className={chip}>
-                  {TERMS_LABEL[t]}
-                </Link>
-              ))}
-              <Link href={href({ open: openOnly ? null : "1" })} aria-current={openOnly ? "page" : undefined} className={chip}>
-                모집 중만
-              </Link>
-            </div>
+          {board === "casting" ? null : (
+            <p className="px-1 text-xs leading-relaxed text-quiet">첫 촬영 전 안전 가이드: 공개 장소에서 만나고, 촬영 범위를 미리 합의하세요.</p>
           )}
-          <form action="/community" className="flex items-center gap-2">
-            <input type="hidden" name="board" value={board} />
-            {kind && <input type="hidden" name="kind" value={kind} />}
-            {terms && <input type="hidden" name="terms" value={terms} />}
-            {openOnly && <input type="hidden" name="open" value="1" />}
-            <label htmlFor="region-filter">지역</label>
-            <select id="region-filter" name="region" defaultValue={region ?? ""} className="min-h-10 rounded-xl border border-line bg-bg px-2 text-sm">
-              <option value="">전체</option>
-              {REGIONS.map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
-            </select>
-            <button type="submit" className="min-h-10 rounded-xl border border-line px-3">
-              보기
-            </button>
-          </form>
-        </div>
-      )}
-
-      {board === "casting" && (
-        <p className="mt-3 rounded-xl bg-slot px-3 py-2 text-xs leading-relaxed text-quiet">
-          첫 촬영 전 안전 가이드 — 공개 장소에서 만나고, 촬영 범위 · 결과물 사용 범위를 메시지로 미리 합의하세요. 선입금 요구는 신고 사유예요.
-        </p>
-      )}
-
-      {posts.length === 0 ? (
-        <p className="mt-6 rounded-xl border border-line p-8 text-center text-sm text-quiet">아직 글이 없어요. 첫 글을 남겨 주세요.</p>
-      ) : (
-        <ul className="mt-4 flex flex-col gap-2">
-          {posts.map((p) => (
-            <li key={p.id}>
-              <Link
-                href={`/community/${p.id}`}
-                className={`flex flex-col gap-1.5 rounded-xl border border-line p-3 hover:border-quiet ${p.closed_at ? "opacity-50" : ""}`}
-              >
-                <span className="flex flex-wrap gap-1.5 text-[11px] text-quiet">
-                  {!board && <span className="rounded border border-line px-1.5 py-0.5">{BOARD_LABEL[p.board].title}</span>}
-                  {p.closed_at && <span className="rounded border border-line px-1.5 py-0.5">마감</span>}
-                  {p.region && <span className="rounded border border-line px-1.5 py-0.5">{p.region}</span>}
-                  {p.casting_kind && <span className="rounded border border-line px-1.5 py-0.5">{CASTING_KIND_LABEL[p.casting_kind]}</span>}
-                  {p.casting_terms && <span className="rounded border border-line px-1.5 py-0.5">{TERMS_LABEL[p.casting_terms]}</span>}
-                  {p.shoot_on && <span className="rounded border border-line px-1.5 py-0.5">{p.shoot_on.slice(5).replace("-", ".")}</span>}
-                </span>
-                <span className="font-medium">{p.title}</span>
-                <span className="line-clamp-2 text-sm text-quiet">{p.body}</span>
-                <span className="text-xs text-quiet">
-                  @{p.author?.handle ?? "?"} · {timeFormat.format(new Date(p.created_at))}
-                  {p.board !== "casting" && ` · 답글 ${p.replies[0]?.count ?? 0}`}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-      {posts.length === pageSize && (
-        <div className="mt-6 flex justify-center">
-          <Link href={href({ before: posts.at(-1)!.created_at })} className="min-h-11 rounded-full border border-line px-6 py-2.5 text-sm hover:border-quiet">
-            이전 글 더 보기
-          </Link>
-        </div>
-      )}
+        </aside>
+      </div>
     </div>
   );
 }
