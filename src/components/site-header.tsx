@@ -20,14 +20,14 @@ export async function SiteHeader() {
     <header data-site-header className="sticky top-0 z-30 border-b border-line bg-bg/95 pt-[env(safe-area-inset-top)] backdrop-blur">
       <HeaderAutoHide />
       <div className="mx-auto flex h-14 max-w-[1440px] items-center gap-8 px-4 md:px-6">
-        <Link href="/" aria-label="해담 홈" className="-ml-2 flex min-h-11 items-center px-2">
+        <Link prefetch={false} href="/" aria-label="해담 홈" className="-ml-2 flex min-h-11 items-center px-2">
           <HaedamLogo />
         </Link>
         <nav aria-label="주 메뉴" className="hidden md:block">
           <ul className="flex gap-4 text-sm text-quiet lg:gap-6">
             {NAV_ITEMS.filter(({ href }) => href !== "/upload" && href !== "/me").map(({ href, label }) => (
               <li key={href}>
-                <Link href={href} className="flex min-h-11 items-center hover:text-text">
+                <Link prefetch={false} href={href} className="flex min-h-11 items-center hover:text-text">
                   {label}
                 </Link>
               </li>
@@ -38,24 +38,24 @@ export async function SiteHeader() {
           <HeaderSearch />
           {viewer && !viewer.profile ? (
             // 로그인은 했지만 핸들을 정하지 않은 상태 (가입 도중 이탈)
-            <Link href="/welcome" className="rounded-full border border-accent px-3 py-1.5 font-semibold text-accent">
+            <Link prefetch={false} href="/welcome" className="rounded-full border border-accent px-3 py-1.5 font-semibold text-accent">
               가입 마무리
             </Link>
           ) : (
             <>
-              <Link
+              <Link prefetch={false}
                 href="/upload"
                 className="hidden min-h-11 items-center rounded-full bg-accent px-4 font-semibold text-on-accent md:inline-flex"
               >
                 업로드
               </Link>
               {mfaRequired && (
-                <Link href="/admin" className="flex min-h-11 items-center text-quiet hover:text-text">
+                <Link prefetch={false} href="/admin" className="flex min-h-11 items-center text-quiet hover:text-text">
                   운영 (인증)
                 </Link>
               )}
               {pending && (
-                <Link
+                <Link prefetch={false}
                   href={viewer?.profile?.role === "admin" ? "/admin" : "/admin/reports"}
                   aria-label={pending.total ? `운영, 처리할 일 ${pending.total}건` : "운영"}
                   className="flex min-h-11 items-center gap-1.5 text-quiet hover:text-text"
@@ -70,11 +70,11 @@ export async function SiteHeader() {
               )}
               {viewer?.profile && <NotificationBell unread={unread} />}
               {viewer?.profile ? (
-                <Link href={profileHref(viewer.profile.handle)} className="hidden min-h-11 max-w-40 items-center truncate text-quiet hover:text-text lg:flex">
+                <Link prefetch={false} href={profileHref(viewer.profile.handle)} className="hidden min-h-11 max-w-40 items-center truncate text-quiet hover:text-text lg:flex">
                   @{viewer.profile.handle}
                 </Link>
               ) : (
-                <Link href="/login" className="flex min-h-11 items-center px-1 text-quiet hover:text-text">
+                <Link prefetch={false} href="/login" className="flex min-h-11 items-center px-1 text-quiet hover:text-text">
                   로그인
                 </Link>
               )}
@@ -89,7 +89,7 @@ export async function SiteHeader() {
 /** 알림 (모바일 · 데스크톱 모두). 안 읽은 수는 99까지. */
 function NotificationBell({ unread }: { unread: number }) {
   return (
-    <Link
+    <Link prefetch={false}
       href="/notifications"
       aria-label={unread > 0 ? `알림, 안 읽은 알림 ${unread}개` : "알림"}
       className="relative -mr-2 flex size-11 items-center justify-center text-quiet hover:text-text md:mr-0"

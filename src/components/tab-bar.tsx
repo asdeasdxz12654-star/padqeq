@@ -30,7 +30,7 @@ export function TabBar() {
           const icon = ICONS[href];
           return (
             <li key={href}>
-              <Link
+              <Link prefetch={false}
                 href={href}
                 aria-current={active ? "page" : undefined}
                 onClick={() => {

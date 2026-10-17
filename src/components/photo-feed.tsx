@@ -44,12 +44,12 @@ export function PhotoFeed({ items, empty }: { items: FeedItem[]; empty: string }
             <div className="px-1 pt-2 pb-1">
               <h2 className="truncate text-sm font-medium">
                 {/* 카드 전체를 누를 수 있게 (링크 영역을 카드로 넓힘) */}
-                <Link href={`/p/${post.id}`} className="after:absolute after:inset-0">
+                <Link prefetch={false} href={`/p/${post.id}`} className="after:absolute after:inset-0">
                   {post.title}
                 </Link>
               </h2>
               <p className="text-xs text-quiet">
-                <Link href={profileHref(post.handle)} className="relative z-10 hover:text-text">
+                <Link prefetch={false} href={profileHref(post.handle)} className="relative z-10 hover:text-text">
                   @{post.handle}
                 </Link>{" "}
                 · {CATEGORY_LABEL[post.category]} · {post.shotYear}

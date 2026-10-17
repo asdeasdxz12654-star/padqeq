@@ -30,7 +30,7 @@ export function CollectionCards({ items, empty }: { items: CollectionCard[]; emp
               )}
             </div>
             <h3 className="truncate px-1 pt-2 text-sm font-medium">
-              <Link href={`/c/${c.id}`} className="after:absolute after:inset-0">
+              <Link prefetch={false} href={`/c/${c.id}`} className="after:absolute after:inset-0">
                 {c.title}
               </Link>
             </h3>

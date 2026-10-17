@@ -117,7 +117,7 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
           {event.description && <p className="mt-2 text-sm leading-relaxed whitespace-pre-line">{event.description}</p>}
           {official && tag.data && point && (
             <div className="mt-2 flex flex-col gap-1.5">
-              <MiniMap point={point} label={`${event.venue} 위치 지도`} />
+              <MiniMap deferred point={point} label={`${event.venue} 위치 지도`} />
               <Link href={`/map?focus=${encodeURIComponent(tag.data.slug)}`} className="inline-flex min-h-11 items-center self-start text-sm text-quiet underline underline-offset-2 hover:text-text">
                 촬영 장소 지도에서 보기
               </Link>

@@ -148,7 +148,7 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
         {tag.status === "pending" && <p className="text-xs text-quiet">운영자 승인 대기 중인 태그예요.</p>}
         {tag.lat !== null && tag.lng !== null && tag.status === "official" && (
           <div className="max-w-xl">
-            <MiniMap point={{ lat: tag.lat, lng: tag.lng }} label={`${tag.name} 위치 지도`} />
+            <MiniMap deferred point={{ lat: tag.lat, lng: tag.lng }} label={`${tag.name} 위치 지도`} />
           </div>
         )}
         {tag.lat !== null && tag.status === "official" && (

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans_KR } from "next/font/google";
 import { cookies } from "next/headers";
+import { Suspense } from "react";
 import { connection } from "next/server";
 import { PhotoGuard } from "@/components/photo-guard";
 import { RestrictionBanner } from "@/components/restriction-banner";
@@ -9,6 +10,7 @@ import { SiteNotice } from "@/components/site-notice";
 import { SiteHeader } from "@/components/site-header";
 import { SearchShortcut } from "@/components/search-box";
 import { TabBar } from "@/components/tab-bar";
+import { NavProgress } from "@/components/nav-progress";
 import { OG_IMAGES } from "@/lib/og";
 import "./globals.css";
 
@@ -67,6 +69,9 @@ export default async function RootLayout({ children, modal }: LayoutProps<"/">) 
         >
           본문으로 건너뛰기
         </a>
+        <Suspense fallback={null}>
+          <NavProgress />
+        </Suspense>
         <SiteHeader />
         <SiteNotice />
         <RestrictionBanner />

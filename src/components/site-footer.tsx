@@ -5,16 +5,16 @@ export function SiteFooter() {
   return (
     <footer className="mx-auto mt-16 max-w-[1440px] border-t border-line px-4 pt-6 pb-8 text-xs text-quiet md:px-6">
       <nav aria-label="사이트 안내" className="-my-2 flex flex-wrap gap-x-4">
-        <Link href="/help" className="inline-flex min-h-10 items-center hover:text-text">
+        <Link prefetch={false} href="/help" className="inline-flex min-h-10 items-center hover:text-text">
           고객센터
         </Link>
-        <Link href="/help?tab=faq" className="inline-flex min-h-10 items-center hover:text-text">
+        <Link prefetch={false} href="/help?tab=faq" className="inline-flex min-h-10 items-center hover:text-text">
           자주 묻는 질문
         </Link>
-        <Link href="/terms" className="inline-flex min-h-10 items-center hover:text-text">
+        <Link prefetch={false} href="/terms" className="inline-flex min-h-10 items-center hover:text-text">
           이용약관
         </Link>
-        <Link href="/privacy" className="inline-flex min-h-10 items-center font-semibold text-text hover:underline">
+        <Link prefetch={false} href="/privacy" className="inline-flex min-h-10 items-center font-semibold text-text hover:underline">
           개인정보처리방침
         </Link>
       </nav>

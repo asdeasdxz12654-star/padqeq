@@ -2,7 +2,7 @@
 
 import "leaflet/dist/leaflet.css";
 import type * as Leaflet from "leaflet";
-import { useEffect, useEffectEvent, useRef } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { KOREA_CENTER, KOREA_ZOOM, type LatLng, pickedLatLng } from "@/lib/places/location";
 import { accentColor, addOsmTiles } from "./map-tiles";
 
@@ -20,10 +20,22 @@ function drawMarker(s: MapState | null, p: LatLng | null, follow: boolean) {
 
 /**
  * 한 곳을 보여 주는 작은 지도 (태그 · 행사 화면). onPick을 주면 지도를 눌러 자리를 고른다 (운영자 위치 설정).
+ * deferred면 처음에는 '지도 보기' 자리만 두고, 누를 때 지도 · 지도 조각을 불러온다 (화면이 빨리 뜨게).
  * 페이지를 내리다 지도에 걸리지 않게 휠 확대는 끄고, 보기 전용은 휴대폰에서 한 손가락 끌기도 끈다 (+ − 버튼으로 확대).
  */
-export function MiniMap({ point, label, onPick }: { point: LatLng | null; label: string; onPick?: (p: LatLng) => void }) {
+export function MiniMap({
+  point,
+  label,
+  onPick,
+  deferred = false,
+}: {
+  point: LatLng | null;
+  label: string;
+  onPick?: (p: LatLng) => void;
+  deferred?: boolean;
+}) {
   const box = useRef<HTMLDivElement>(null);
+  const [active, setActive] = useState(!deferred);
   const state = useRef<MapState | null>(null);
   const picking = Boolean(onPick);
   const pick = useEffectEvent((lat: number, lng: number) => {
@@ -34,6 +46,7 @@ export function MiniMap({ point, label, onPick }: { point: LatLng | null; label:
   const latest = useRef<LatLng | null>(null);
 
   useEffect(() => {
+    if (!active) return;
     let disposed = false;
     let cleanup = () => {};
     void import("leaflet").then(({ default: L }) => {
@@ -60,7 +73,7 @@ export function MiniMap({ point, label, onPick }: { point: LatLng | null; label:
       disposed = true;
       cleanup();
     };
-  }, [picking]);
+  }, [picking, active]);
 
   // 자리가 바뀌면 원을 옮긴다
   const lat = point?.lat;
@@ -69,6 +82,23 @@ export function MiniMap({ point, label, onPick }: { point: LatLng | null; label:
     latest.current = lat !== undefined && lng !== undefined ? { lat, lng } : null;
     drawMarker(state.current, latest.current, true);
   }, [lat, lng]);
+
+  if (!active) {
+    return (
+      <button
+        type="button"
+        onClick={() => setActive(true)}
+        className="flex h-56 w-full flex-col items-center justify-center gap-2 rounded-xl border border-line bg-surface text-sm hover:border-quiet md:h-64"
+      >
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+          <path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z" />
+          <path d="M9 4v14M15 6v14" />
+        </svg>
+        <span className="font-semibold">지도 보기</span>
+        <span className="text-xs text-quiet">{label}</span>
+      </button>
+    );
+  }
 
   return (
     <div

@@ -10,6 +10,8 @@
     "binding": "ASSETS"
   },
   "observability": { "enabled": true },
+  // 서버(Worker)를 DB(Supabase)와 가까운 곳에서 돌린다: 화면 하나에 DB를 여러 번 묻는 경우 왕복 시간이 줄어든다
+  "placement": { "mode": "smart" },
   // 대표 주소는 SITE_HOST. workers.dev 주소는 남겨 두되 worker.ts가 대표 주소로 넘긴다. 버전별 미리보기 주소는 끈다.
   "workers_dev": true,
   "preview_urls": false,

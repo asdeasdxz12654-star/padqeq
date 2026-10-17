@@ -11,7 +11,7 @@ export function OnThisDay({ items }: { items: OnThisDayItem[] }) {
     <section aria-labelledby="on-this-day" className="px-4 pt-2 pb-4 md:px-6">
       <h2 id="on-this-day" className="mb-2 flex items-center justify-between text-base font-semibold">
         이맘때의 사진
-        <Link href="/memories" className="text-xs font-normal text-quiet hover:underline">
+        <Link prefetch={false} href="/memories" className="text-xs font-normal text-quiet hover:underline">
           모두 보기 ›
         </Link>
       </h2>
@@ -37,7 +37,7 @@ export function OnThisDay({ items }: { items: OnThisDayItem[] }) {
                 {post.yearsAgo}년 전
               </span>
               <h3 className="truncate px-1 pt-1.5 text-xs">
-                <Link href={`/p/${post.id}`} className="after:absolute after:inset-0">
+                <Link prefetch={false} href={`/p/${post.id}`} className="after:absolute after:inset-0">
                   {post.title}
                 </Link>
               </h3>

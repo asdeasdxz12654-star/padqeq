@@ -24,13 +24,13 @@ export function YearChips({
     <nav aria-label="촬영 연도">
       <ul className="flex items-center gap-2 overflow-x-auto px-4 py-3 md:px-6 [scrollbar-width:none]">
         <li>
-          <Link href={hrefFor(null)} aria-current={selected === null ? "page" : undefined} className={`${chip} ${selected === null ? on : off}`}>
+          <Link prefetch={false} href={hrefFor(null)} aria-current={selected === null ? "page" : undefined} className={`${chip} ${selected === null ? on : off}`}>
             전체
           </Link>
         </li>
         {chips.visible.map((year) => (
           <li key={year}>
-            <Link
+            <Link prefetch={false}
               href={hrefFor(year)}
               aria-current={selected === year ? "page" : undefined}
               className={`${chip} ${selected === year ? on : off}`}
@@ -48,7 +48,7 @@ export function YearChips({
               <ul className="absolute left-0 z-20 mt-2 min-w-28 rounded-xl border border-line bg-surface p-1 shadow-lg">
                 {chips.older.map((year) => (
                   <li key={year}>
-                    <Link
+                    <Link prefetch={false}
                       href={hrefFor(year)}
                       aria-current={selected === year ? "page" : undefined}
                       className="flex min-h-11 items-center rounded-lg px-3 text-sm hover:bg-slot"

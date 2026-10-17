@@ -32,12 +32,12 @@ export function DailyPicks({ picks }: { picks: { date: string; items: FeedItem[]
                 )}
               </div>
               <h3 className="truncate px-1 pt-1.5 text-sm">
-                <Link href={`/p/${post.id}`} className="after:absolute after:inset-0">
+                <Link prefetch={false} href={`/p/${post.id}`} className="after:absolute after:inset-0">
                   {post.title}
                 </Link>
               </h3>
               <p className="truncate px-1 text-xs text-quiet">
-                <Link href={profileHref(post.handle)} className="relative z-10 hover:text-text">
+                <Link prefetch={false} href={profileHref(post.handle)} className="relative z-10 hover:text-text">
                   @{post.handle}
                 </Link>
               </p>
