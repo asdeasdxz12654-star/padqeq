@@ -8,6 +8,7 @@ import { MiniMap } from "@/components/mini-map";
 import { PhotoFeed } from "@/components/photo-feed";
 import { TagChip } from "@/components/tag-chip";
 import { YearChips } from "@/components/year-chips";
+import { type YearCover, YearsStrip } from "@/components/years-strip";
 import { getViewer } from "@/lib/auth/viewer";
 import { loadFeedByIds } from "@/lib/posts/feed";
 import type { FeedScope } from "@/lib/posts/feed-scope";
@@ -110,6 +111,25 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
       ? ((await supabase.from("tags").select("id, name, slug").eq("kind", tag.kind).eq("status", "official").neq("id", tag.id).order("name").limit(500)).data ?? [])
       : null;
   if (years.error) throw years.error;
+
+  // 같은 자리, 다른 해: 이 태그가 붙은 사진의 촬영 연도 (행사 태그는 회차마다 따로라 빼고), 해마다 한 장
+  let yearCovers: YearCover[] = [];
+  if (view === "latest" && year === null && tag.kind !== "event") {
+    const { data: shot } = await supabase
+      .from("posts")
+      .select("shot_year, post_tags!inner(tag_id)")
+      .eq("post_tags.tag_id", tag.id)
+      .eq("status", "published")
+      .limit(2000);
+    const tagYears = [...new Set((shot ?? []).map((r) => r.shot_year))].sort((a, b) => b - a).slice(0, 8);
+    if (tagYears.length >= 2) {
+      yearCovers = await Promise.all(
+        tagYears.map(async (y) => ({ year: y, cover: (await loadScopePage({ kind: "tag", tagId: tag.id, year: y })).items[0] ?? null })),
+      );
+    }
+  }
+  const stripTitle =
+    tag.kind === "place" ? "같은 자리, 다른 해" : tag.kind === "character" ? "해마다 같은 캐릭터" : "해마다 담긴 " + tag.name;
 
   return (
     <div className="mx-auto max-w-[1440px]">
@@ -231,6 +251,7 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
 
       {view === "latest" && (
         <>
+          <YearsStrip title={stripTitle} sub="해마다 한 장씩 · 누르면 그해 사진만" years={yearCovers} hrefFor={(y) => `${base}?year=${y}`} />
           <YearChips
             chips={buildYearChips(years.data.map((r) => r.year))}
             selected={year}

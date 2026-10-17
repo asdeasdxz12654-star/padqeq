@@ -27,6 +27,9 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
   const viewer = await getViewer();
   const today = todayKst();
   const upcoming = event.ends_on >= today;
+  // 행사 당일 모드: 기간 중이면 맨 위에 '지금 진행 중' (며칠째인지)
+  const live = event.status === "official" && event.starts_on <= today && today <= event.ends_on;
+  const liveDay = live ? Math.round((Date.parse(today) - Date.parse(event.starts_on)) / 86_400_000) + 1 : 0;
   const official = event.status === "official";
 
   const supabase = await createClient();
@@ -74,6 +77,18 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
 
       <div className="mt-4 grid gap-6 md:grid-cols-[minmax(0,1fr)_320px]">
         <header className="flex flex-col gap-2">
+          {live && (
+            <p className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl bg-accent-soft px-4 py-3 text-sm">
+              <span className="flex items-center gap-2 font-bold text-accent">
+                <span aria-hidden="true" className="size-2.5 rounded-full bg-sun motion-safe:animate-pulse" />
+                지금 진행 중 · {liveDay}일째
+              </span>
+              <a href="#cos-heading" className="underline underline-offset-2">
+                오늘 오는 코스 보기
+              </a>
+              <span className="text-quiet">찍은 사진은 행사가 끝난 뒤 올려도 이 화면에 모여요.</span>
+            </p>
+          )}
           <h1 className="text-2xl font-bold">{event.name}</h1>
           <p className="text-sm">
             <span className="tabular-nums">

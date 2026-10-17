@@ -150,6 +150,24 @@ body {
   color-scheme: dark;
 }
 
+/* 인화되는 순간 (photo-develop.tsx): 인화지 → 흐릿하게 → 선명하게 */
+@keyframes develop {
+  0% { opacity: 0; filter: blur(6px) saturate(0.4); }
+  40% { opacity: 0.7; filter: blur(3px) saturate(0.7); }
+  100% { opacity: 1; filter: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .develop-ready .photo-guard img:not([data-loaded]) {
+    opacity: 0;
+  }
+  .develop-ready .photo-guard img[data-loaded] {
+    animation: develop 0.6s ease-out;
+  }
+  .develop-canvas {
+    animation: develop 0.6s ease-out;
+  }
+}
+
 /* 화면 이동 진행 막대 (nav-progress.tsx) */
 @keyframes nav-progress {
   0% { transform: translateX(-100%); }

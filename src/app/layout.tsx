@@ -11,6 +11,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SearchShortcut } from "@/components/search-box";
 import { TabBar } from "@/components/tab-bar";
 import { NavProgress } from "@/components/nav-progress";
+import { PhotoDevelop } from "@/components/photo-develop";
 import { OG_IMAGES } from "@/lib/og";
 import "./globals.css";
 
@@ -83,6 +84,7 @@ export default async function RootLayout({ children, modal }: LayoutProps<"/">) 
         {modal}
         <TabBar />
         <PhotoGuard />
+        <PhotoDevelop />
         <SearchShortcut />
       </body>
     </html>

@@ -248,7 +248,7 @@ export function PhotoViewer({
             ref={canvas}
             role="img"
             aria-label={photo.alt}
-            className={`block size-full ${zoom ? "" : "rounded-lg"} ${status === "ready" ? "" : "invisible"}`}
+            className={`block size-full ${zoom ? "" : "rounded-lg"} ${status === "ready" ? "develop-canvas" : "invisible"}`}
           />
           {burst > 0 && (
             <svg

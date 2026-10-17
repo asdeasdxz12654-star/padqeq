@@ -32,6 +32,7 @@ import { SaveButton } from "./save-button";
 import { WatermarkCheck } from "./watermark-check";
 import { FollowButton } from "@/components/follow-button";
 import { MenuGroup, MoreMenu } from "./more-menu";
+import { type PhotoBack, PhotoFlip } from "./photo-flip";
 
 const dateFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "medium" });
 const dateTimeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
@@ -120,6 +121,15 @@ export async function PostDetail({ id }: { id: string }) {
     (c) => c.status === "approved" || c.status === "external" || isAuthor || (viewer !== null && c.member_id === viewer.id && c.status === "pending"),
   );
 
+  // 사진 뒷면: 이미 있는 정보로 (촬영일 · 장소 · 행사 태그 · 설명 · 함께 만든 사람 · 촬영 정보)
+  const back: PhotoBack = {
+    date: post.shot_on ? post.shot_on.replaceAll("-", ". ") : `${post.shot_year}년`,
+    places: post.tags.filter((t) => t.kind === "place" || t.kind === "event").map((t) => t.name),
+    memo: post.body ? post.body.slice(0, 280) : post.title,
+    people: credits.filter((c) => c.status !== "pending").map((c) => ({ role: CREDIT_ROLE_LABEL[c.role], name: c.member ? `@${c.member.handle}` : (c.external_label ?? "") })),
+    exif: post.exif,
+  };
+
   return (
     <article className="mx-auto max-w-[1440px] px-0 pt-4 pb-16 md:px-6 md:pt-6">
       {/* 작성자에게는 조치 안내 · 소명, 운영자에게는 상태만 */}
@@ -144,14 +154,16 @@ export async function PostDetail({ id }: { id: string }) {
         {/* 사진 무대: 테마와 상관없이 어두운 바탕 (몰입 보기) */}
         <div className="stage-dark flex flex-col gap-3 py-3 md:rounded-2xl md:p-5">
           {/* 가림 표시: 내 글이거나 '바로 보기'를 켰으면 가리지 않는다 */}
-          <Veil postId={post.id} reason={veilFor(post.veil, isAuthor || Boolean(viewer?.showVeiled))} variant="full">
-            <PhotoViewer
-              postId={post.id}
-              initialPhotos={post.photos}
-              watermark={viewer?.profile ? `@${viewer.profile.handle}` : null}
-              canLike={Boolean(viewer?.profile) && post.status === "published" && !post.held_at}
-            />
-          </Veil>
+          <PhotoFlip back={back}>
+            <Veil postId={post.id} reason={veilFor(post.veil, isAuthor || Boolean(viewer?.showVeiled))} variant="full">
+              <PhotoViewer
+                postId={post.id}
+                initialPhotos={post.photos}
+                watermark={viewer?.profile ? `@${viewer.profile.handle}` : null}
+                canLike={Boolean(viewer?.profile) && post.status === "published" && !post.held_at}
+              />
+            </Veil>
+          </PhotoFlip>
           {/* 촬영 데이터 줄: 카메라 화면처럼 사진 바로 아래 한 줄 */}
           {post.exif && (
             <p className="px-4 text-center font-mono text-xs leading-relaxed tracking-wide text-quiet">

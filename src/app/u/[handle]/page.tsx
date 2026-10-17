@@ -7,7 +7,7 @@ import { ShareButton } from "@/components/share-button";
 import { FollowButton } from "@/components/follow-button";
 import { FeedList } from "@/components/feed-list";
 import { ProtectedPhoto } from "@/components/protected-photo";
-import { YearChips } from "@/components/year-chips";
+import { YearShelf } from "@/components/year-shelf";
 import { getViewer } from "@/lib/auth/viewer";
 import { loadCollectionCards } from "@/lib/collections/load";
 import { getFollowedMembers } from "@/lib/follows/follows";
@@ -18,7 +18,7 @@ import { creditedPostIds, loadScopePage } from "@/lib/posts/feed-scope-server";
 import { getProfileByHandle } from "@/lib/profiles/get-profile";
 import { createClient } from "@/lib/supabase/server";
 import { profileHref } from "@/lib/profiles/profile-href";
-import { parseYearParam, VISIBLE_CHIPS } from "@/lib/year-chips";
+import { parseYearParam } from "@/lib/year-chips";
 
 // S-09 프로필: 커버 · 소개 · 링크 · 크리에이터 정보 · 작업물 / 크레딧된 작업 / 컬렉션 · 촬영 연도. 주소는 /@handle (next.config.ts에서 연결)
 // 팔로우는 홈 '팔로우' 피드로 이어진다 (팔로워 수는 공개하지 않음).
@@ -69,6 +69,16 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
     "inline-flex min-h-10 items-center border-b-2 border-transparent px-1 text-sm aria-[current=page]:border-text aria-[current=page]:font-semibold";
   // 이 회원이 사진을 올린 촬영 연도만 (S-09 ⑥)
   const years = profile.years.toSorted((a, b) => b - a);
+  // 연도 책장: 해마다 표지 한 장 · 장수 (최근 12년까지)
+  const shelf =
+    tab === "works"
+      ? await Promise.all(
+          years.slice(0, 12).map(async (y) => {
+            const page = await loadScopePage({ kind: "author", authorId: profile.id, year: y });
+            return { year: y, count: page.items.length, more: page.next !== null, cover: page.items[0] ?? null };
+          }),
+        )
+      : [];
 
   return (
     <div className="mx-auto max-w-[1440px]">
@@ -176,13 +186,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
       </nav>
 
       <h2 className="sr-only">{tab === "works" ? "작업물" : tab === "credits" ? "크레딧된 작업" : "컬렉션"}</h2>
-      {tab === "works" && years.length > 0 && (
-        <YearChips
-          chips={{ visible: years.slice(0, VISIBLE_CHIPS), older: years.slice(VISIBLE_CHIPS) }}
-          selected={year}
-          hrefFor={(y) => (y === null ? base : `${base}?year=${y}`)}
-        />
-      )}
+      {tab === "works" && <YearShelf years={shelf.filter((y) => y.count > 0)} selected={year} hrefFor={(y) => (y === null ? base : `${base}?year=${y}`)} />}
       {tab === "collections" ? (
         <div className="pt-4">
           <CollectionCards items={collections} empty={isMe ? "아직 만든 컬렉션이 없어요. 마이 › 내 컬렉션에서 만들 수 있어요." : "공개한 컬렉션이 아직 없어요."} />
