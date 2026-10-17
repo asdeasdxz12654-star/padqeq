@@ -18,6 +18,13 @@ describe("describeNotification", () => {
     });
   });
 
+  it("행사 끝난 뒤 알림은 행사 태그가 붙은 업로드 화면으로", () => {
+    const id = "25a97515-d5af-4c8e-96ef-eee5a86a2e82";
+    expect(describeNotification({ kind: "event_photos", actorHandle: null, post: null, event: { id, name: "대구콘페" } }).href).toBe(`/upload?event=${id}`);
+    expect(describeNotification({ kind: "event_photos", actorHandle: null, post: null, event: null }).href).toBe("/upload");
+    expect(notificationGroup("event_photos")).toBe("community");
+  });
+
   it("게시물로 연결한다", () => {
     expect(describeNotification({ kind: "post_held", actorHandle: null, post }).href).toBe(`/p/${post.id}`);
   });

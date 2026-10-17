@@ -50,16 +50,19 @@ export function UploadStudio({
   isAdmin,
   viewerHandle,
   currentYear,
+  initialTags = [],
 }: {
   isAdmin: boolean;
   viewerHandle: string | null;
   currentYear: number;
+  /** 처음부터 붙일 태그 (행사 끝난 뒤 알림에서 오면 행사 · 장소 태그) */
+  initialTags?: Bundle["tags"];
 }) {
   const router = useRouter();
   const { photos, addFiles, release, retry } = useConverter({ stage: true });
   const [bundles, setBundles] = useState<Bundle[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
-  const [common, setCommon] = useState<Common>({ category: "cosplay", hasPeople: true, consent: emptyConsent(), tags: [], credits: [] });
+  const [common, setCommon] = useState<Common>({ category: "cosplay", hasPeople: true, consent: emptyConsent(), tags: initialTags, credits: [] });
   const [running, setRunning] = useState(false);
 
   const photosOf = (bundle: Bundle) => bundle.photoIds.map((id) => photos[id]).filter((p): p is Photo => Boolean(p));

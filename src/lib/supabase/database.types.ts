@@ -2275,6 +2275,7 @@ export type Database = {
         | "comment_mentioned"
         | "comment_hidden"
         | "event_reminder"
+        | "event_photos"
         | "event_approved"
         | "event_rejected"
         | "board_replied"
@@ -2473,6 +2474,7 @@ export const Constants = {
         "comment_mentioned",
         "comment_hidden",
         "event_reminder",
+        "event_photos",
         "event_approved",
         "event_rejected",
         "board_replied",

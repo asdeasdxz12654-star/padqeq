@@ -129,6 +129,14 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
             </div>
           )}
           {!upcoming && official && <p className="mt-2 text-sm text-quiet">지난 행사예요. 이 행사에서 찍은 사진을 모아 봐요.</p>}
+          {!upcoming && official && viewer?.profile?.can_upload && tag.data && (
+            <Link
+              href={`/upload?event=${event.id}`}
+              className="mt-1 inline-flex min-h-11 items-center self-start rounded-xl bg-accent px-4 text-sm font-semibold text-on-accent"
+            >
+              이 행사 사진 올리기
+            </Link>
+          )}
           {upcoming && official && viewer?.profile?.can_upload && tag.data && (
             <p className="mt-2 text-sm text-quiet">이 행사에서 찍은 사진을 올릴 때 태그 #{tag.data.name}을 붙이면 여기에 모여요.</p>
           )}

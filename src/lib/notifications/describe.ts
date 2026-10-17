@@ -71,6 +71,9 @@ export function describeNotification({ kind, actorHandle, post, event = null, bo
       return { text: "운영 정책에 따라 내 댓글이 가려졌어요. 이의가 있으면 1:1 문의를 남겨 주세요.", href: postHref };
     case "event_reminder":
       return { text: "참가 예정인 행사가 내일이에요. 즐거운 촬영 되세요!", href: event ? `/events/${event.id}` : "/events" };
+    case "event_photos":
+      // 행사 태그가 붙은 채로 업로드 화면이 열린다
+      return { text: "참가한 행사는 즐거우셨나요? 찍은 사진을 올리면 행사 화면에 모여요.", href: event ? `/upload?event=${event.id}` : "/upload" };
     case "event_approved":
       return { text: "제안한 행사가 등록됐어요. 고마워요!", href: event ? `/events/${event.id}` : "/events" };
     case "event_rejected":
