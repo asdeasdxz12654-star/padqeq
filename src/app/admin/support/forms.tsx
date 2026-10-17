@@ -1,5 +1,6 @@
 "use client";
 
+import { confirmAction } from "@/lib/ui/confirm";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Constants } from "@/lib/supabase/database.types";
@@ -160,8 +161,8 @@ function DeleteNoticeButton({ id }: { id: string }) {
     <button
       type="button"
       disabled={pending}
-      onClick={() => {
-        if (!window.confirm("이 공지를 지울까요?")) return;
+      onClick={async () => {
+        if (!(await confirmAction({ title: "이 공지를 지울까요?", confirmLabel: "지우기", danger: true }))) return;
         startTransition(async () => {
           const result = await deleteNotice(id);
           if (result.ok) {

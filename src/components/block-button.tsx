@@ -1,5 +1,6 @@
 "use client";
 
+import { confirmAction } from "@/lib/ui/confirm";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { setBlock } from "@/app/me/messages/actions";
@@ -15,8 +16,17 @@ export function BlockButton({ userId, handle, initial }: { userId: string; handl
       <button
         type="button"
         disabled={pending}
-        onClick={() => {
-          if (!blocked && !window.confirm(`@${handle}님을 차단할까요? 서로의 게시물 · 댓글이 보이지 않고 메시지도 주고받을 수 없어요.`)) return;
+        onClick={async () => {
+          if (
+            !blocked &&
+            !(await confirmAction({
+              title: `@${handle}님을 차단할까요?`,
+              body: "서로의 게시물 · 댓글이 보이지 않고 메시지도 주고받을 수 없어요.",
+              confirmLabel: "차단",
+              danger: true,
+            }))
+          )
+            return;
           startTransition(async () => {
             setError(null);
             const result = await setBlock(userId, !blocked);

@@ -4,7 +4,7 @@ import { isStaffRole } from "@/lib/auth/roles";
 import { getViewer } from "@/lib/auth/viewer";
 import { getUnreadCount } from "@/lib/notifications/unread";
 import { profileHref } from "@/lib/profiles/profile-href";
-import { NAV_ITEMS } from "./nav-items";
+import { HeaderNav } from "./header-nav";
 import { HeaderAutoHide } from "./header-auto-hide";
 import { HeaderSearch } from "./search-box";
 import { HaedamLogo } from "./haedam-logo";
@@ -19,21 +19,11 @@ export async function SiteHeader() {
   return (
     <header data-site-header className="sticky top-0 z-30 border-b border-line bg-bg/95 pt-[env(safe-area-inset-top)] backdrop-blur">
       <HeaderAutoHide />
-      <div className="mx-auto flex h-14 max-w-[1440px] items-center gap-8 px-4 md:px-6">
+      <div className="mx-auto flex h-14 max-w-[1440px] items-center gap-6 px-4 md:px-6">
         <Link prefetch={false} href="/" aria-label="해담 홈" className="-ml-2 flex min-h-11 items-center px-2">
           <HaedamLogo />
         </Link>
-        <nav aria-label="주 메뉴" className="hidden md:block">
-          <ul className="flex gap-4 text-sm text-quiet lg:gap-6">
-            {NAV_ITEMS.filter(({ href }) => href !== "/upload" && href !== "/me").map(({ href, label }) => (
-              <li key={href}>
-                <Link prefetch={false} href={href} className="flex min-h-11 items-center hover:text-text">
-                  {label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        <HeaderNav />
         <div className="ml-auto flex items-center gap-4 text-sm">
           <HeaderSearch />
           {viewer && !viewer.profile ? (
@@ -45,9 +35,9 @@ export async function SiteHeader() {
             <>
               <Link prefetch={false}
                 href="/upload"
-                className="hidden min-h-11 items-center rounded-full bg-accent px-4 font-semibold text-on-accent md:inline-flex"
+                className="hidden min-h-10 items-center rounded-full bg-accent px-4 font-bold text-on-accent md:inline-flex"
               >
-                업로드
+                올리기
               </Link>
               {mfaRequired && (
                 <Link prefetch={false} href="/admin" className="flex min-h-11 items-center text-quiet hover:text-text">

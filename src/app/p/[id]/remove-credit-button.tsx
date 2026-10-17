@@ -1,5 +1,6 @@
 "use client";
 
+import { confirmAction } from "@/lib/ui/confirm";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { removeMyCredit } from "./actions";
@@ -11,8 +12,8 @@ export function RemoveCreditButton({ creditId }: { creditId: string }) {
     <button
       type="button"
       disabled={pending}
-      onClick={() => {
-        if (!window.confirm("이 게시물에서 내 크레딧을 해제할까요?")) return;
+      onClick={async () => {
+        if (!(await confirmAction({ title: "이 게시물에서 내 크레딧을 해제할까요?", confirmLabel: "해제", danger: true }))) return;
         startTransition(async () => {
           const result = await removeMyCredit(creditId);
           if (result.ok) router.refresh();

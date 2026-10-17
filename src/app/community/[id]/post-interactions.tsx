@@ -1,5 +1,6 @@
 "use client";
 
+import { confirmAction } from "@/lib/ui/confirm";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -49,8 +50,9 @@ export function PostActions({ id, mine, closed, isCasting, canReport }: { id: st
               type="button"
               disabled={pending}
               className={small}
-              onClick={() => {
-                if (window.confirm("이 글을 지울까요? 답글도 함께 지워져요.")) run(() => deleteBoardPost(id), () => router.push("/community"));
+              onClick={async () => {
+                if (await confirmAction({ title: "이 글을 지울까요?", body: "답글도 함께 지워져요.", confirmLabel: "지우기", danger: true }))
+                  run(() => deleteBoardPost(id), () => router.push("/community"));
               }}
             >
               지우기
@@ -236,8 +238,8 @@ function ReplyItem({ postId, reply, viewerId, postAuthorId }: { postId: string; 
               type="button"
               disabled={pending}
               className={small}
-              onClick={() => {
-                if (window.confirm("이 답글을 지울까요?")) run(() => deleteReply({ postId, id: reply.id }));
+              onClick={async () => {
+                if (await confirmAction({ title: "이 답글을 지울까요?", confirmLabel: "지우기", danger: true })) run(() => deleteReply({ postId, id: reply.id }));
               }}
             >
               삭제

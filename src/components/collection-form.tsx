@@ -1,5 +1,6 @@
 "use client";
 
+import { confirmAction } from "@/lib/ui/confirm";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { createCollection, deleteCollection, updateCollection } from "@/lib/collections/actions";
@@ -72,8 +73,8 @@ export function CollectionForm({
           <button
             type="button"
             disabled={pending}
-            onClick={() => {
-              if (!window.confirm("이 컬렉션을 지울까요? 담긴 게시물은 그대로 남아요.")) return;
+            onClick={async () => {
+              if (!(await confirmAction({ title: "이 컬렉션을 지울까요?", body: "담긴 게시물은 그대로 남아요.", confirmLabel: "지우기", danger: true }))) return;
               startTransition(async () => {
                 const result = await deleteCollection(collection.id);
                 if (!result.ok) return setError(result.error);

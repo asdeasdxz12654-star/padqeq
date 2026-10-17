@@ -1,5 +1,6 @@
 "use client";
 
+import { confirmAction } from "@/lib/ui/confirm";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -134,9 +135,10 @@ function CommentItem({ comment, ctx, isTop }: { comment: CommentView; ctx: Ctx; 
               type="button"
               disabled={pending}
               className={actionClass}
-              onClick={() => {
-                const warn = comment.replies.length ? " 답글도 함께 지워져요." : "";
-                if (window.confirm(`이 댓글을 지울까요?${warn}`)) run(() => deleteComment({ postId: ctx.postId, id: comment.id }));
+              onClick={async () => {
+                const warn = comment.replies.length ? "답글도 함께 지워져요." : undefined;
+                if (await confirmAction({ title: "이 댓글을 지울까요?", body: warn, confirmLabel: "지우기", danger: true }))
+                  run(() => deleteComment({ postId: ctx.postId, id: comment.id }));
               }}
             >
               삭제

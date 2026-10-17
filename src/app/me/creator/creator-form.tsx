@@ -1,5 +1,6 @@
 "use client";
 
+import { confirmAction } from "@/lib/ui/confirm";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { REGIONS } from "@/lib/events/calendar";
@@ -102,8 +103,8 @@ export function CreatorForm({ initial, exists, adult, currentYear }: { initial: 
           <button
             type="button"
             disabled={pending}
-            onClick={() => {
-              if (!window.confirm("크리에이터 정보를 지울까요? 디렉토리에서 빠져요.")) return;
+            onClick={async () => {
+              if (!(await confirmAction({ title: "크리에이터 정보를 지울까요?", body: "크리에이터 찾기에서 빠져요.", confirmLabel: "지우기", danger: true }))) return;
               startTransition(async () => {
                 const result = await removeCreatorProfile();
                 setMessage(result.ok ? { ok: true, text: "지웠어요." } : { ok: false, text: result.error });

@@ -1,5 +1,6 @@
 "use client";
 
+import { confirmAction } from "@/lib/ui/confirm";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { type EventDraft, EventForm } from "@/components/event-form";
@@ -62,8 +63,8 @@ export function EventAdminEditor({
         <button
           type="button"
           disabled={pending}
-          onClick={() => {
-            if (!window.confirm("이 행사를 지울까요? 행사 태그와 사진은 남아요.")) return;
+          onClick={async () => {
+            if (!(await confirmAction({ title: "이 행사를 지울까요?", body: "행사 태그와 사진은 남아요.", confirmLabel: "지우기", danger: true }))) return;
             startTransition(async () => {
               const result = await deleteEventAdmin(id);
               if (!result.ok) return setError(result.error);

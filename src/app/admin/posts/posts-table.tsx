@@ -1,5 +1,6 @@
 "use client";
 
+import { confirmAction } from "@/lib/ui/confirm";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -49,9 +50,9 @@ export function PostsTable({ rows, trash, categoryLabel }: { rows: AdminPostRow[
       return next;
     });
 
-  const run = () => {
+  const run = async () => {
     if (!action) return;
-    if (!window.confirm(`${selected.size}개에 '${BULK_LABEL[action].label}'을(를) 적용합니다.`)) return;
+    if (!(await confirmAction({ title: `${selected.size}개에 '${BULK_LABEL[action].label}'을(를) 적용할까요?`, confirmLabel: "적용" }))) return;
     setMessage(null);
     startTransition(async () => {
       const result = await bulkPosts({ ids: [...selected], action, note, confirm });

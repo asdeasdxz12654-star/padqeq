@@ -1,5 +1,6 @@
 "use client";
 
+import { confirmAction } from "@/lib/ui/confirm";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { hidePost } from "./actions";
@@ -14,8 +15,8 @@ export function HidePostButton({ postId }: { postId: string }) {
       <button
         type="button"
         disabled={pending}
-        onClick={() => {
-          if (!window.confirm("이 게시물을 숨길까요? 다른 사람에게 더 이상 보이지 않아요.")) return;
+        onClick={async () => {
+          if (!(await confirmAction({ title: "이 게시물을 숨길까요?", body: "다른 사람에게 더 이상 보이지 않아요.", confirmLabel: "숨기기", danger: true }))) return;
           setError(null);
           startTransition(async () => {
             const result = await hidePost(postId);
