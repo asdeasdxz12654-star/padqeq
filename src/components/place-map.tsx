@@ -6,7 +6,22 @@ import { useEffect, useRef, useState } from "react";
 import { KOREA_CENTER, KOREA_ZOOM, type LatLng, groupByPosition, markerRadius, sortByDistance } from "@/lib/places/location";
 import { accentColor, addOsmTiles } from "./map-tiles";
 
-export type MapPlace = { id: string; slug: string; name: string; kind: "place" | "event"; lat: number; lng: number; posts: number };
+export type MapPlace = {
+  id: string;
+  slug: string;
+  name: string;
+  kind: "place" | "event";
+  lat: number;
+  lng: number;
+  posts: number;
+  /** 누르면 갈 곳 (기본: 태그 허브) */
+  href?: string;
+  /** 이름 아래 한 줄 (기본: 장소/행사 · 게시물 수) */
+  detail?: string;
+};
+
+export const placeHref = (p: MapPlace) => p.href ?? `/t/${encodeURIComponent(p.slug)}`;
+export const placeDetail = (p: MapPlace) => p.detail ?? `${p.kind === "event" ? "행사" : "장소"} · 게시물 ${p.posts}개`;
 
 /**
  * 촬영 장소 지도 (S-04). OpenStreetMap 무료 지도 위에 장소 · 행사 태그를 원으로 보여 준다.
@@ -45,7 +60,7 @@ export function PlaceMap({ places, focus, me = null }: { places: MapPlace[]; foc
           const item = document.createElement("div");
           item.className = "flex flex-col gap-0.5";
           const link = document.createElement("a");
-          link.href = `/t/${encodeURIComponent(p.slug)}`;
+          link.href = placeHref(p);
           link.textContent = p.name;
           link.className = "font-semibold underline underline-offset-2";
           link.addEventListener("click", (e) => {
@@ -53,7 +68,7 @@ export function PlaceMap({ places, focus, me = null }: { places: MapPlace[]; foc
             router.push(link.pathname);
           });
           const meta = document.createElement("span");
-          meta.textContent = `${p.kind === "event" ? "행사" : "장소"} · 게시물 ${p.posts}개`;
+          meta.textContent = placeDetail(p);
           meta.className = "text-xs opacity-75";
           item.append(link, meta);
           content.append(item);

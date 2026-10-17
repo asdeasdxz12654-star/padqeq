@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { MapPlace } from "@/components/place-map";
 import { createClient } from "@/lib/supabase/server";
-import { MapExplorer } from "./map-explorer";
+import { MapExplorer } from "@/components/map-explorer";
 
 export const metadata: Metadata = { title: "촬영 장소 지도", description: "공원 · 행사장처럼 사진을 찍은 장소를 지도에서 모아 봐요." };
 
