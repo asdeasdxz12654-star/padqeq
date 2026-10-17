@@ -149,7 +149,7 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
         {(tag.kind === "place" || tag.kind === "event") && isStaffRole(viewer?.profile?.role) && (
           <details className="rounded-xl border border-line p-3 text-sm">
             <summary className="cursor-pointer font-semibold">지도 위치 (운영자)</summary>
-            <LocationForm tagId={tag.id} current={tag.lat !== null && tag.lng !== null ? { lat: tag.lat, lng: tag.lng } : null} />
+            <LocationForm tagId={tag.id} tagName={tag.name} current={tag.lat !== null && tag.lng !== null ? { lat: tag.lat, lng: tag.lng } : null} />
           </details>
         )}
         {mergeCandidates && (

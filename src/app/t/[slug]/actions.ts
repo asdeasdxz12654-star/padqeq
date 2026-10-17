@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { isStaffRole } from "@/lib/auth/roles";
 import { getViewer } from "@/lib/auth/viewer";
+import { type PlaceResult, searchPlaces } from "@/lib/places/geocode";
 import { parseLatLng } from "@/lib/places/location";
 import { createClient } from "@/lib/supabase/server";
 
@@ -31,6 +32,21 @@ export async function setTagLocation(input: z.input<typeof locationSchema>): Pro
   revalidatePath("/map");
   revalidatePath("/t/[slug]", "page");
   return { ok: true };
+}
+
+const placeSearchSchema = z.string().trim().min(2, "두 글자 이상 넣어 주세요.").max(200, "200자까지 넣을 수 있어요.");
+
+/** 주소 · 장소 이름으로 지도 위치 찾기 (운영자). 결과는 고르기만 하고, 저장은 setTagLocation이 한다. */
+export async function findPlace(input: string): Promise<{ ok: true; query: string; results: PlaceResult[] } | { ok: false; error: string }> {
+  const parsed = placeSearchSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "입력을 확인해 주세요." };
+  const viewer = await getViewer();
+  if (!isStaffRole(viewer?.profile?.role)) return { ok: false, error: "운영자만 쓸 수 있어요." };
+  try {
+    return { ok: true, ...(await searchPlaces(parsed.data)) };
+  } catch {
+    return { ok: false, error: "지도 검색이 응답하지 않아요. 잠시 뒤 다시 해 주세요." };
+  }
 }
 
 const mergeSchema = z.object({
