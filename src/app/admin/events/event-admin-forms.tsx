@@ -4,9 +4,22 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { type EventDraft, EventForm } from "@/components/event-form";
 import { deleteEventAdmin, rejectEventAdmin, saveEventAdmin } from "./actions";
+import { EventPlaceForm, type PlaceOption } from "./event-place-form";
 
 /** 운영자 행사 편집 (제안 승인 포함) + 거절 · 지우기 */
-export function EventAdminEditor({ id, initial, proposed }: { id: string | null; initial: EventDraft; proposed: boolean }) {
+export function EventAdminEditor({
+  id,
+  initial,
+  proposed,
+  placeId,
+  places,
+}: {
+  id: string | null;
+  initial: EventDraft;
+  proposed: boolean;
+  placeId: string | null;
+  places: PlaceOption[];
+}) {
   const router = useRouter();
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -22,6 +35,7 @@ export function EventAdminEditor({ id, initial, proposed }: { id: string | null;
         submitLabel={proposed ? "승인하고 등록" : id ? "고치기" : "등록"}
         doneHref="/admin/events"
       />
+      {id && !proposed && <EventPlaceForm key={id} eventId={id} current={placeId} places={places} />}
       {id && proposed && (
         <form
           className="flex flex-col gap-2 rounded-xl border border-line p-4"

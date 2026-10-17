@@ -14,10 +14,11 @@ export type EventRow = {
   description: string;
   status: "official" | "proposed" | "rejected";
   tag_id: string | null;
+  place_tag_id: string | null;
   review_note: string | null;
 };
 
-const EVENT_COLUMNS = "id, name, starts_on, ends_on, venue, region, url, description, status, tag_id, review_note";
+const EVENT_COLUMNS = "id, name, starts_on, ends_on, venue, region, url, description, status, tag_id, place_tag_id, review_note";
 
 /** 기간과 겹치는 공식 행사 (시작일 순) */
 export async function listEvents(from: string, to: string): Promise<EventRow[]> {

@@ -65,3 +65,25 @@ export async function deleteEventAdmin(id: string): Promise<Result> {
   revalidatePath("/admin/events");
   return { ok: true };
 }
+
+const PLACE_ERRORS: Record<string, string> = {
+  place_invalid: "공식 장소 태그만 고를 수 있어요.",
+  event_not_found: "행사를 찾지 못했어요. 새로 고침 해 주세요.",
+};
+
+/** 행사가 열리는 곳 (공식 장소 태그, null이면 연결을 푼다). 행사 태그에 위치가 없으면 지도는 장소 위치를 쓴다. */
+export async function setEventPlaceAdmin(id: string, placeId: string | null): Promise<Result> {
+  if (!z.uuid().safeParse(id).success || (placeId !== null && !z.uuid().safeParse(placeId).success)) return { ok: false, error: "잘못된 요청이에요." };
+  const supabase = await admin();
+  if (!supabase) return { ok: false, error: "운영자만 할 수 있어요." };
+  const { error } = await supabase.rpc("set_event_place", { target: id, place: placeId });
+  if (error) {
+    const code = Object.keys(PLACE_ERRORS).find((k) => error.message.includes(k));
+    return { ok: false, error: code ? PLACE_ERRORS[code]! : "저장하지 못했어요." };
+  }
+  revalidatePath("/events/[id]", "page");
+  revalidatePath("/t/[slug]", "page");
+  revalidatePath("/map");
+  revalidatePath("/admin/events");
+  return { ok: true };
+}

@@ -31,7 +31,7 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
 
   const supabase = await createClient();
   const scope: FeedScope | null = event.tag_id ? { kind: "tag", tagId: event.tag_id, year: null } : null;
-  const [counts, mine, attendees, tag, photos] = await Promise.all([
+  const [counts, mine, attendees, tag, place, photos] = await Promise.all([
     official ? attendeeCounts([event.id]) : Promise.resolve(new Map<string, number>()),
     viewer?.profile ? myAttendance(viewer.id, [event.id]) : Promise.resolve(new Map()),
     official
@@ -44,11 +44,21 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
           .limit(200)
       : Promise.resolve({ data: [] }),
     event.tag_id ? supabase.from("tags").select("slug, name, lat, lng").eq("id", event.tag_id).maybeSingle() : Promise.resolve({ data: null }),
+    event.place_tag_id
+      ? supabase.from("tags").select("slug, name, lat, lng").eq("id", event.place_tag_id).eq("status", "official").maybeSingle()
+      : Promise.resolve({ data: null }),
     scope ? loadScopePage(scope) : Promise.resolve({ items: [], next: null }),
   ]);
   const publicAttendees = (attendees.data ?? []).filter((a) => a.user);
   // 코스 목록 (S-12 ③): 공개한 참가자의 코스 메모를 캐릭터별로
   const costumes = cosList(publicAttendees.map((a) => ({ handle: a.user!.handle, cosNote: a.cos_note })));
+  // 지도 위치: 행사 태그에 따로 정한 위치, 없으면 연결된 장소 태그의 위치 (촬영 장소 지도와 같은 규칙)
+  const point =
+    tag.data?.lat != null && tag.data.lng != null
+      ? { lat: tag.data.lat, lng: tag.data.lng }
+      : place.data?.lat != null && place.data.lng != null
+        ? { lat: place.data.lat, lng: place.data.lng }
+        : null;
 
   return (
     <div className="mx-auto max-w-[1440px] px-4 pt-8 pb-16 md:px-6">
@@ -70,7 +80,18 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
               {event.starts_on.replaceAll("-", ".")}
               {event.ends_on !== event.starts_on && ` – ${event.ends_on.slice(5).replace("-", ".")}`}
             </span>
-            <span className="text-quiet"> · {event.venue} · {event.region}</span>
+            <span className="text-quiet">
+              {" · "}
+              {place.data ? (
+                <Link href={`/t/${encodeURIComponent(place.data.slug)}`} className="underline underline-offset-2 hover:text-text">
+                  {event.venue}
+                </Link>
+              ) : (
+                event.venue
+              )}
+              {" · "}
+              {event.region}
+            </span>
           </p>
           <p className="text-sm text-quiet">
             {official && `참가 예정 ${counts.get(event.id) ?? 0}명 · `}게시물 {photos.items.length}
@@ -94,9 +115,9 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
             )}
           </p>
           {event.description && <p className="mt-2 text-sm leading-relaxed whitespace-pre-line">{event.description}</p>}
-          {official && tag.data && tag.data.lat !== null && tag.data.lng !== null && (
+          {official && tag.data && point && (
             <div className="mt-2 flex flex-col gap-1.5">
-              <MiniMap point={{ lat: tag.data.lat, lng: tag.data.lng }} label={`${event.venue} 위치 지도`} />
+              <MiniMap point={point} label={`${event.venue} 위치 지도`} />
               <Link href={`/map?focus=${encodeURIComponent(tag.data.slug)}`} className="self-start text-sm text-quiet underline underline-offset-2 hover:text-text">
                 촬영 장소 지도에서 보기
               </Link>

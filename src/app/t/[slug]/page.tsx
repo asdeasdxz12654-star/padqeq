@@ -14,6 +14,7 @@ import type { FeedScope } from "@/lib/posts/feed-scope";
 import { loadScopePage } from "@/lib/posts/feed-scope-server";
 import { getFollowedTags } from "@/lib/follows/follows";
 import { profileHref } from "@/lib/profiles/profile-href";
+import { formatRange } from "@/lib/events/calendar";
 import { createClient } from "@/lib/supabase/server";
 import { isStaffRole } from "@/lib/auth/roles";
 import { LocationForm } from "./location-form";
@@ -98,6 +99,12 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
       ? ((await supabase.from("tags").select("id, name, slug").eq("kind", tag.kind).eq("status", "official").neq("id", tag.id).order("name").limit(500)).data ?? [])
       : null;
   if (years.error) throw years.error;
+  // 장소 태그: 이 곳에서 열리는 · 열린 공식 행사 (최근 것부터)
+  const placeEvents =
+    tag.kind === "place"
+      ? ((await supabase.from("events").select("id, name, starts_on, ends_on").eq("place_tag_id", tag.id).eq("status", "official").order("starts_on", { ascending: false }).limit(20))
+          .data ?? [])
+      : [];
 
   return (
     <div className="mx-auto max-w-[1440px]">
@@ -145,6 +152,25 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
               지도에서 보기
             </Link>
           </p>
+        )}
+        {placeEvents.length > 0 && (
+          <section aria-labelledby="place-events-heading" className="max-w-xl text-sm">
+            <h2 id="place-events-heading" className="mb-1 font-semibold">
+              이 장소의 행사
+            </h2>
+            <ul className="flex flex-col gap-1">
+              {placeEvents.map((e) => (
+                <li key={e.id}>
+                  <Link href={`/events/${e.id}`} className="flex gap-3 hover:underline">
+                    <span className="w-28 shrink-0 tabular-nums text-quiet">
+                      {e.starts_on.slice(0, 4)}. {formatRange(e.starts_on, e.ends_on)}
+                    </span>
+                    <span className="min-w-0 break-words">{e.name}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
         )}
         {(tag.kind === "place" || tag.kind === "event") && isStaffRole(viewer?.profile?.role) && (
           <details className="rounded-xl border border-line p-3 text-sm">

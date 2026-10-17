@@ -1089,6 +1089,7 @@ export type Database = {
           ends_on: string
           id: string
           name: string
+          place_tag_id: string | null
           proposed_by: string | null
           region: string
           review_note: string | null
@@ -1105,6 +1106,7 @@ export type Database = {
           ends_on: string
           id?: string
           name: string
+          place_tag_id?: string | null
           proposed_by?: string | null
           region: string
           review_note?: string | null
@@ -1121,6 +1123,7 @@ export type Database = {
           ends_on?: string
           id?: string
           name?: string
+          place_tag_id?: string | null
           proposed_by?: string | null
           region?: string
           review_note?: string | null
@@ -2018,6 +2021,7 @@ export type Database = {
         Returns: { id: string; kind: Database["public"]["Enums"]["tag_kind"]; lat: number; lng: number; name: string; post_count: number; slug: string }[]
       }
       merge_tags: { Args: { note: string; source: string; target: string }; Returns: Json }
+      set_event_place: { Args: { place: string | null; target: string }; Returns: undefined }
       set_tag_location: { Args: { new_lat: number | null; new_lng: number | null; note: string; target: string }; Returns: undefined }
       related_tags: {
         Args: { max_rows?: number; tag: string }

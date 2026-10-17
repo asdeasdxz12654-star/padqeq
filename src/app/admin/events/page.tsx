@@ -19,22 +19,25 @@ export default async function AdminEventsPage({ searchParams }: PageProps<"/admi
   const edit = typeof params.edit === "string" ? params.edit : null;
   const today = todayKst();
   const supabase = await createClient();
-  const [{ data: proposals, error: e1 }, { data: events, error: e2 }] = await Promise.all([
+  const [{ data: proposals, error: e1 }, { data: events, error: e2 }, { data: places, error: e3 }] = await Promise.all([
     supabase
       .from("events")
-      .select("id, name, starts_on, ends_on, venue, region, url, description, status, proposer:profiles!events_proposed_by_fkey(handle)")
+      .select("id, name, starts_on, ends_on, venue, region, url, description, status, place_tag_id, proposer:profiles!events_proposed_by_fkey(handle)")
       .eq("status", "proposed")
       .order("created_at")
       .limit(100),
     supabase
       .from("events")
-      .select("id, name, starts_on, ends_on, venue, region, url, description, status, proposer:profiles!events_proposed_by_fkey(handle)")
+      .select("id, name, starts_on, ends_on, venue, region, url, description, status, place_tag_id, proposer:profiles!events_proposed_by_fkey(handle)")
       .eq("status", "official")
       .gte("ends_on", daysAgo(180))
       .order("starts_on", { ascending: false })
       .limit(200),
+    // 행사가 열리는 곳으로 고를 공식 장소 태그
+    supabase.from("tags").select("id, name, lat").eq("kind", "place").eq("status", "official").order("name").limit(1000),
   ]);
-  if (e1 || e2) throw e1 ?? e2;
+  if (e1 || e2 || e3) throw e1 ?? e2 ?? e3;
+  const placeOptions = places.map((p) => ({ id: p.id, name: p.name, hasLocation: p.lat !== null }));
 
   const selected = [...proposals, ...events].find((e) => e.id === edit) ?? null;
   const draft: EventDraft | null =
@@ -98,7 +101,13 @@ export default async function AdminEventsPage({ searchParams }: PageProps<"/admi
         </div>
         <section aria-label="행사 편집">
           {draft ? (
-            <EventAdminEditor id={edit === "new" ? null : edit} initial={draft} proposed={selected?.status === "proposed"} />
+            <EventAdminEditor
+              id={edit === "new" ? null : edit}
+              initial={draft}
+              proposed={selected?.status === "proposed"}
+              placeId={selected?.place_tag_id ?? null}
+              places={placeOptions}
+            />
           ) : (
             <p className="text-sm text-quiet">왼쪽에서 행사를 고르거나 새 행사를 등록하세요.</p>
           )}

@@ -3,7 +3,7 @@
 import "leaflet/dist/leaflet.css";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
-import { KOREA_CENTER, KOREA_ZOOM, markerRadius } from "@/lib/places/location";
+import { KOREA_CENTER, KOREA_ZOOM, markerRadius, spreadOverlaps } from "@/lib/places/location";
 import { accentColor, addOsmTiles } from "./map-tiles";
 
 export type MapPlace = { id: string; slug: string; name: string; kind: "place" | "event"; lat: number; lng: number; posts: number };
@@ -30,7 +30,8 @@ export function PlaceMap({ places, focus }: { places: MapPlace[]; focus: string 
 
       const accent = accentColor();
       const markers = new Map<string, L.CircleMarker>();
-      for (const p of places) {
+      // 장소와 그 장소 위치를 쓰는 행사가 같은 자리면 하나만 눌리므로 조금 비켜 놓는다
+      for (const p of spreadOverlaps(places)) {
         // 팝업 내용은 문자열 HTML이 아닌 요소로 만든다 (태그 이름을 그대로 글자로)
         const content = document.createElement("div");
         content.className = "flex flex-col gap-0.5 text-sm";
