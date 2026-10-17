@@ -30,6 +30,8 @@ import { RepublishButton } from "./republish-button";
 import { ReportButton } from "./report-button";
 import { SaveButton } from "./save-button";
 import { WatermarkCheck } from "./watermark-check";
+import { FollowButton } from "@/components/follow-button";
+import { MenuGroup, MoreMenu } from "./more-menu";
 
 const dateFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "medium" });
 const dateTimeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
@@ -83,10 +85,8 @@ export async function PostDetail({ id }: { id: string }) {
     canSave ? supabase.from("bookmarks").select("post_id").eq("user_id", member!.id).eq("post_id", post.id).maybeSingle() : none,
     getComments(post.id),
     getSiteSwitches(),
-    // 댓글 설정이 '팔로워만'이면 내가 업로더를 팔로우하는지
-    post.comment_policy === "followers" && member && !isAuthor
-      ? getFollowedMembers(member.id).then((list) => list.some((m) => m.id === post.author_id))
-      : Promise.resolve(true),
+    // 내가 업로더를 팔로우하는지 (작가 줄의 팔로우 버튼 · '팔로워만' 댓글 설정)
+    member && !isAuthor ? getFollowedMembers(member.id).then((list) => list.some((m) => m.id === post.author_id)) : Promise.resolve(false),
     isAuthor ? supabase.from("profiles").select("cover_post_id, pinned_post_ids").eq("id", post.author_id).maybeSingle() : none,
     isAdmin ? supabase.from("daily_picks").select("post_id").eq("post_id", post.id).eq("pick_date", todayKst()).maybeSingle() : none,
     published && relatedTagIds.length ? loadFeed({ ...feedFilter, tagIds: relatedTagIds }) : Promise.resolve([]),
@@ -107,7 +107,7 @@ export async function PostDetail({ id }: { id: string }) {
       ? "게시된 글에만 댓글을 달 수 있어요."
       : !isAuthor && !isAdmin && post.comment_policy === "off"
         ? "업로더가 댓글을 껐어요."
-        : !isAuthor && !isAdmin && !followsAuthor
+        : !isAuthor && !isAdmin && post.comment_policy === "followers" && !followsAuthor
           ? "업로더를 팔로우한 회원만 댓글을 달 수 있어요."
           : viewer?.restriction
             ? "이용이 제한된 기간이라 댓글을 달 수 없어요."
@@ -140,25 +140,52 @@ export async function PostDetail({ id }: { id: string }) {
         </div>
       )}
 
-      <div className="md:grid md:grid-cols-[minmax(0,1fr)_320px] md:gap-8">
-        {/* 가림 표시: 내 글이거나 '바로 보기'를 켰으면 가리지 않는다 */}
-        <Veil postId={post.id} reason={veilFor(post.veil, isAuthor || Boolean(viewer?.showVeiled))} variant="full">
-          <PhotoViewer
-            postId={post.id}
-            initialPhotos={post.photos}
-            watermark={viewer?.profile ? `@${viewer.profile.handle}` : null}
-            canLike={Boolean(viewer?.profile) && post.status === "published" && !post.held_at}
-          />
-        </Veil>
+      <div className="md:grid md:grid-cols-[minmax(0,1fr)_380px] md:items-start md:gap-8">
+        {/* 사진 무대: 테마와 상관없이 어두운 바탕 (몰입 보기) */}
+        <div className="stage-dark flex flex-col gap-3 py-3 md:rounded-2xl md:p-5">
+          {/* 가림 표시: 내 글이거나 '바로 보기'를 켰으면 가리지 않는다 */}
+          <Veil postId={post.id} reason={veilFor(post.veil, isAuthor || Boolean(viewer?.showVeiled))} variant="full">
+            <PhotoViewer
+              postId={post.id}
+              initialPhotos={post.photos}
+              watermark={viewer?.profile ? `@${viewer.profile.handle}` : null}
+              canLike={Boolean(viewer?.profile) && post.status === "published" && !post.held_at}
+            />
+          </Veil>
+          {/* 촬영 데이터 줄: 카메라 화면처럼 사진 바로 아래 한 줄 */}
+          {post.exif && (
+            <p className="px-4 text-center font-mono text-xs leading-relaxed tracking-wide text-quiet">
+              <span className="sr-only">촬영 정보: </span>
+              {post.exif}
+            </p>
+          )}
+        </div>
 
-        <div className="mt-6 flex flex-col gap-5 px-4 md:mt-0 md:px-0">
-          <header className="flex flex-col gap-2">
-            <h1 className="text-xl font-bold leading-snug">{post.title}</h1>
-            <p className="text-sm">
-              <Link href={profileHref(post.author.handle)} className="font-semibold hover:underline">
-                @{post.author.handle}
+        <div className="mt-6 flex flex-col gap-5 px-4 md:sticky md:top-20 md:mt-0 md:px-0">
+          <header className="flex flex-col gap-3">
+            {/* 작가 줄 */}
+            <div className="flex items-center gap-3">
+              <Link
+                href={profileHref(post.author.handle)}
+                aria-label={`@${post.author.handle} 프로필`}
+                className="flex size-11 shrink-0 items-center justify-center rounded-full bg-surface text-base font-bold"
+              >
+                {(post.author.display_name || post.author.handle).slice(0, 1)}
               </Link>
-              <span className="text-quiet"> · {post.author.display_name}</span>
+              <div className="min-w-0 flex-1">
+                <Link href={profileHref(post.author.handle)} className="block truncate font-bold hover:underline">
+                  {post.author.display_name}
+                </Link>
+                <p className="truncate text-sm text-quiet">@{post.author.handle}</p>
+              </div>
+              {member && !isAuthor && <FollowButton target={{ kind: "member", id: post.author_id }} initial={followsAuthor} />}
+            </div>
+
+            <h1 className="text-2xl leading-snug font-bold">{post.title}</h1>
+            <p className="text-sm text-quiet">
+              {CATEGORY_LABEL[post.category]} · 촬영 {post.shot_on ? dateFormat.format(new Date(post.shot_on)) : `${post.shot_year}년`}
+              {post.published_at && ` · 게시 ${dateFormat.format(new Date(post.published_at))}`}
+              {post.photos.length > 1 && ` · ${post.photos.length}장`}
             </p>
             {isAuthor && (post.visibility !== "public" || post.scheduled_at || post.comment_policy !== "everyone") && (
               <p className="flex flex-wrap gap-1.5 text-[11px]">
@@ -181,50 +208,75 @@ export async function PostDetail({ id }: { id: string }) {
                 {isAuthor && post.veil_by_staff && <span> 운영자가 붙였어요</span>}
               </p>
             )}
-            <p className="text-xs text-quiet">
-              {CATEGORY_LABEL[post.category]} · 촬영 {post.shot_on ? dateFormat.format(new Date(post.shot_on)) : `${post.shot_year}년`}
-              {post.published_at && ` · 게시 ${dateFormat.format(new Date(post.published_at))}`}
-            </p>
-            {post.status === "published" && !post.held_at && (
-              <div className="flex flex-wrap items-center gap-2">
-                <LikeButton
-                  postId={post.id}
-                  initial={likeStats?.liked ?? false}
-                  count={likeStats?.likes ?? 0}
-                  loginHref={viewer?.profile ? null : `/login?next=${encodeURIComponent(`/p/${post.id}`)}`}
-                />
-                {canSave ? (
-                  <SaveButton postId={post.id} initial={saved} />
-                ) : (
-                  !viewer && (
-                    <Link
-                      href={`/login?next=${encodeURIComponent(`/p/${post.id}`)}`}
-                      className="inline-flex min-h-10 items-center rounded-full bg-accent px-4 text-sm font-semibold text-on-accent"
-                    >
-                      저장
-                    </Link>
-                  )
-                )}
-                <ShareButton path={`/p/${post.id}`} title={post.title} />
+
+            {/* 같은 일은 같은 자리: 좋아요 · 저장 · 공유 · ⋯ */}
+            <div className="flex flex-wrap items-center gap-2">
+              {post.status === "published" && !post.held_at && (
+                <>
+                  <LikeButton
+                    postId={post.id}
+                    initial={likeStats?.liked ?? false}
+                    count={likeStats?.likes ?? 0}
+                    loginHref={viewer?.profile ? null : `/login?next=${encodeURIComponent(`/p/${post.id}`)}`}
+                  />
+                  {canSave ? (
+                    <SaveButton postId={post.id} initial={saved} />
+                  ) : (
+                    !viewer && (
+                      <Link
+                        href={`/login?next=${encodeURIComponent(`/p/${post.id}`)}`}
+                        className="inline-flex min-h-10 items-center rounded-full bg-accent px-4 text-sm font-bold text-on-accent"
+                      >
+                        저장
+                      </Link>
+                    )
+                  )}
+                  <ShareButton path={`/p/${post.id}`} title={post.title} />
+                </>
+              )}
+              <div className="ml-auto">
+                <MoreMenu>
+                  {!isAuthor && (
+                    <MenuGroup title="이 게시물">
+                      {viewer?.profile ? (
+                        <ReportButton postId={post.id} photoCount={post.photos.length} />
+                      ) : (
+                        <Link href={`/login?next=${encodeURIComponent(`/p/${post.id}`)}`} className="text-sm underline underline-offset-4">
+                          로그인하고 신고
+                        </Link>
+                      )}
+                    </MenuGroup>
+                  )}
+                  {canCollect && (
+                    <MenuGroup title="컬렉션에 담기">
+                      <CollectPanel postId={post.id} collections={myCollections} />
+                    </MenuGroup>
+                  )}
+                  {isAuthor && (
+                    <MenuGroup title="작가 메뉴">
+                      <Link href={`/p/${post.id}/edit`} className="inline-flex min-h-10 items-center rounded-full border border-line px-4 text-sm hover:border-quiet">
+                        고치기
+                      </Link>
+                      {post.status === "published" && (
+                        <ProfileFeatureButtons postId={post.id} isCover={authorDecor?.cover_post_id === post.id} isPinned={(authorDecor?.pinned_post_ids ?? []).includes(post.id)} />
+                      )}
+                      {canHide && <HidePostButton postId={post.id} />}
+                    </MenuGroup>
+                  )}
+                  {isAdmin && (
+                    <MenuGroup title="운영 메뉴">
+                      {post.status === "published" && post.visibility === "public" && <PickButton postId={post.id} picked={pickedToday} />}
+                      {!isAuthor && canHide && <HidePostButton postId={post.id} />}
+                      <WatermarkCheck postId={post.id} />
+                    </MenuGroup>
+                  )}
+                  <p className="text-xs text-quiet">© @{post.author.handle} · 다운로드 · AI 학습 금지</p>
+                </MoreMenu>
               </div>
-            )}
+            </div>
           </header>
 
-          {post.body && <p className="whitespace-pre-line text-sm leading-relaxed">{post.body}</p>}
-
-          {post.exif && (
-            <p className="flex items-start gap-1.5 text-xs text-quiet">
-              <svg aria-hidden="true" viewBox="0 0 24 24" className="mt-0.5 size-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <rect x="3" y="7" width="18" height="13" rx="2" />
-                <circle cx="12" cy="13.5" r="3.5" />
-                <path d="M8 7l1.5-3h5L16 7" />
-              </svg>
-              <span>
-                <span className="sr-only">촬영 정보: </span>
-                {post.exif}
-              </span>
-            </p>
-          )}
+          {post.body && <p className="text-[15px] leading-relaxed whitespace-pre-line">{post.body}</p>}
 
           {post.tags.length > 0 && (
             <ul aria-label="태그" className="flex flex-wrap gap-1.5">
@@ -237,65 +289,39 @@ export async function PostDetail({ id }: { id: string }) {
           )}
 
           {credits.length > 0 && (
-            <section aria-labelledby="credits-heading" className="flex flex-col gap-2">
-              <h2 id="credits-heading" className="text-sm font-semibold">
-                크레딧
+            <section aria-labelledby="credits-heading" className="flex flex-col gap-2 border-t border-line pt-4">
+              <h2 id="credits-heading" className="text-sm font-bold">
+                함께 만든 사람
               </h2>
-              <ul className="flex flex-col gap-1.5 text-sm">
+              <ul className="flex flex-col gap-2 text-sm">
                 {credits.map((c) => (
-                  <li key={c.id} className={`flex flex-wrap items-baseline gap-x-3 gap-y-1 ${c.status === "pending" ? "opacity-50" : ""}`}>
-                    <span className="w-12 shrink-0 text-quiet">{CREDIT_ROLE_LABEL[c.role]}</span>
-                    {c.member ? (
-                      <Link href={profileHref(c.member.handle)} className="hover:underline">
-                        @{c.member.handle}
-                      </Link>
-                    ) : c.external_url ? (
-                      <a href={c.external_url} rel="nofollow noopener noreferrer ugc" target="_blank" className="underline underline-offset-2">
-                        {c.external_label}
-                      </a>
-                    ) : (
-                      <span>{c.external_label}</span>
-                    )}
-                    {c.status === "pending" && <span className="text-xs text-quiet">승인 대기</span>}
-                    {viewer && c.member_id === viewer.id && !isAuthor && <RemoveCreditButton creditId={c.id} />}
-                    {viewer?.profile && !isAuthor && c.status === "external" && (
-                      <ClaimCreditButton creditId={c.id} label={c.external_label ?? ""} requested={claimed.has(c.id)} />
-                    )}
+                  <li key={c.id} className={`grid grid-cols-[4.5rem_1fr] items-baseline gap-x-3 ${c.status === "pending" ? "opacity-50" : ""}`}>
+                    <span className="text-quiet">{CREDIT_ROLE_LABEL[c.role]}</span>
+                    <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                      {c.member ? (
+                        <Link href={profileHref(c.member.handle)} className="font-bold hover:underline">
+                          @{c.member.handle}
+                        </Link>
+                      ) : c.external_url ? (
+                        <a href={c.external_url} rel="nofollow noopener noreferrer ugc" target="_blank" className="underline underline-offset-2">
+                          {c.external_label}
+                        </a>
+                      ) : (
+                        <span>{c.external_label}</span>
+                      )}
+                      {c.status === "pending" && <span className="text-xs text-quiet">승인 대기</span>}
+                      {viewer && c.member_id === viewer.id && !isAuthor && <RemoveCreditButton creditId={c.id} />}
+                      {viewer?.profile && !isAuthor && c.status === "external" && (
+                        <ClaimCreditButton creditId={c.id} label={c.external_label ?? ""} requested={claimed.has(c.id)} />
+                      )}
+                    </span>
                   </li>
                 ))}
               </ul>
             </section>
           )}
 
-          <p className="text-xs leading-relaxed text-quiet">
-            © @{post.author.handle} · 무단 전재 및 AI 학습 이용 금지
-          </p>
-
-          {/* 남의 글은 신고할 수 있다 (비로그인은 로그인 후) */}
-          {!isAuthor &&
-            (viewer?.profile ? (
-              <ReportButton postId={post.id} photoCount={post.photos.length} />
-            ) : (
-              <Link
-                href={`/login?next=${encodeURIComponent(`/p/${post.id}`)}`}
-                className="self-start text-sm text-quiet underline underline-offset-4"
-              >
-                신고
-              </Link>
-            ))}
-
-          {canCollect && <CollectPanel postId={post.id} collections={myCollections} />}
-          {isAuthor && (
-            <Link href={`/p/${post.id}/edit`} className="self-start rounded-full border border-line px-3 py-1.5 text-sm hover:border-quiet">
-              편집
-            </Link>
-          )}
-          {canHide && <HidePostButton postId={post.id} />}
-          {isAuthor && post.status === "published" && (
-            <ProfileFeatureButtons postId={post.id} isCover={authorDecor?.cover_post_id === post.id} isPinned={(authorDecor?.pinned_post_ids ?? []).includes(post.id)} />
-          )}
-          {isAdmin && post.status === "published" && post.visibility === "public" && <PickButton postId={post.id} picked={pickedToday} />}
-          {viewer?.profile?.role === "admin" && <WatermarkCheck postId={post.id} />}
+          <p className="text-xs leading-relaxed text-quiet">© @{post.author.handle} · 무단 전재 · 다운로드 · AI 학습 이용 금지</p>
 
           <Comments
             postId={post.id}
@@ -313,8 +339,8 @@ export async function PostDetail({ id }: { id: string }) {
 
       {related.length > 0 && (
         <section aria-labelledby="related-heading" className="mt-12">
-          <h2 id="related-heading" className="mb-3 px-4 text-lg font-semibold md:px-0">
-            연관 게시물
+          <h2 id="related-heading" className="mb-3 px-4 text-lg font-bold md:px-0">
+            이어서 볼 사진
           </h2>
           <PhotoFeed items={related} empty="" />
         </section>

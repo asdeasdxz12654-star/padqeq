@@ -321,8 +321,9 @@ export function PhotoViewer({
           </button>
           )}
           {count > 1 && (
-          <span aria-live="polite" className="tabular-nums text-quiet">
-            {index + 1} / {count}
+          <span aria-live="polite" className="font-mono text-sm tabular-nums text-quiet">
+            {/* 필름 컷 번호처럼 03 / 12 */}
+            <span className="text-text">{String(index + 1).padStart(2, "0")}</span> / {String(count).padStart(2, "0")}
           </span>
           )}
           {count > 1 && (

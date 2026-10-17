@@ -134,6 +134,22 @@ body {
   }
 }
 
+/* 사진 무대: 테마와 상관없이 어두운 무대 (게시물 상세 몰입 보기). 안의 색 변수만 바꿔 버튼 · 글자도 맞춘다 */
+.stage-dark {
+  --bg: #0d0d0d;
+  --surface: #1a1a1a;
+  --line: #2e2e2e;
+  --text: #f2f2f2;
+  --text-quiet: #bdbdbd;
+  --slot: #262626;
+  --accent: #e86a5e;
+  --on-accent: #0d0d0d;
+  --sun: #e86a5e;
+  background: var(--bg);
+  color: var(--text);
+  color-scheme: dark;
+}
+
 /* 화면 이동 진행 막대 (nav-progress.tsx) */
 @keyframes nav-progress {
   0% { transform: translateX(-100%); }
