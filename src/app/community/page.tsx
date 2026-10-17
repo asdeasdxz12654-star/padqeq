@@ -93,10 +93,10 @@ export default async function CommunityPage({ searchParams }: PageProps<"/commun
             {events.length === 0 ? (
               <p className="mt-2 text-sm text-quiet">등록된 행사가 없어요.</p>
             ) : (
-              <ul className="mt-2 flex flex-col gap-1.5 text-sm">
+              <ul className="mt-1 flex flex-col text-sm">
                 {events.map((e) => (
                   <li key={e.id}>
-                    <Link href={`/events/${e.id}`} className="flex gap-2 hover:underline">
+                    <Link href={`/events/${e.id}`} className="flex min-h-11 items-center gap-2 hover:underline">
                       <span className="w-20 shrink-0 tabular-nums text-quiet">{formatRange(e.starts_on, e.ends_on)}</span>
                       <span className="truncate">{e.name}</span>
                     </Link>

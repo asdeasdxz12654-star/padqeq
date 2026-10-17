@@ -24,15 +24,18 @@ export default async function EventsPage({ searchParams }: PageProps<"/events">)
   const region = typeof params.region === "string" && (REGIONS as readonly string[]).includes(params.region) ? (params.region as Region) : null;
   const { first, last } = monthRange(current);
 
-  const viewer = await getViewer();
-  const all = await listEvents(first, last);
-  const [counts, mine] = await Promise.all([
+  // 서로 기다릴 필요 없는 것은 함께 부른다 (회원 · 그달 행사 → 참가 수 · 내 참가 · 지도 위치)
+  const [viewer, all] = await Promise.all([getViewer(), listEvents(first, last)]);
+  const [counts, mine, allLocated] = await Promise.all([
     attendeeCounts(all.map((e) => e.id)),
     viewer?.profile ? myAttendance(viewer.id, all.map((e) => e.id)) : Promise.resolve(new Map()),
+    mapView ? eventLocations(all) : Promise.resolve(null),
   ]);
   const regions = REGIONS.filter((r) => all.some((e) => e.region === r));
-  const events = all.filter((e) => (!mineOnly || mine.has(e.id)) && (!region || e.region === region));
-  const located = mapView ? await eventLocations(events) : null;
+  const shown = (e: (typeof all)[number]) => (!mineOnly || mine.has(e.id)) && (!region || e.region === region);
+  const events = all.filter(shown);
+  const shownIds = new Set(events.map((e) => e.id));
+  const located = allLocated && { onMap: allLocated.onMap.filter((p) => shownIds.has(p.id)), missing: allLocated.missing.filter(shown) };
 
   const href = (month: string, opts: { mine?: boolean; map?: boolean; region?: Region | null } = {}) => {
     const q = new URLSearchParams({ month });
