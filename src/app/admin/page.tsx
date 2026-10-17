@@ -265,13 +265,13 @@ export default async function AdminHomePage() {
 async function loadTagChores(): Promise<TagChores> {
   const supabase = await createClient();
   const [tags, events] = await Promise.all([
-    supabase.from("tags").select("id, kind, name, status, lat, tag_aliases(alias)").limit(3000),
+    supabase.from("tags").select("id, kind, name, status, lat, lng, tag_aliases(alias)").limit(3000),
     supabase.from("events").select("place_tag_id").eq("status", "official").limit(1000),
   ]);
   if (tags.error) throw tags.error;
   if (events.error) throw events.error;
   return countTagChores(
-    tags.data.map((t) => ({ id: t.id, kind: t.kind, name: t.name, status: t.status, lat: t.lat, aliases: t.tag_aliases.map((a) => a.alias) })),
+    tags.data.map((t) => ({ id: t.id, kind: t.kind, name: t.name, status: t.status, lat: t.lat, lng: t.lng, aliases: t.tag_aliases.map((a) => a.alias) })),
     events.data,
   );
 }

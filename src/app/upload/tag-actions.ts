@@ -5,7 +5,7 @@ import { getViewer } from "@/lib/auth/viewer";
 import { escapeLike } from "@/lib/posts/feed-params";
 import { cleanTagName, parseAliases, TAG_KINDS, type TagKind, tagSlug } from "@/lib/tags/tag-rules";
 import { createClient } from "@/lib/supabase/server";
-import { searchWords, similarToName } from "@/lib/tags/similar";
+import { placeWords, searchWords, type SimilarReason, similarToName } from "@/lib/tags/similar";
 
 export type TagOption = { id: string; kind: TagKind; name: string; slug: string; parentName: string | null; pending: boolean };
 
@@ -69,7 +69,7 @@ export async function searchTags(rawQuery: string): Promise<TagOption[]> {
     .slice(0, 10);
 }
 
-export type SimilarTagOption = TagOption & { reason: "same" | "alias" | "contains" };
+export type SimilarTagOption = TagOption & { reason: SimilarReason };
 
 /**
  * 새 태그를 만들기 전에: 같은 대상일 것 같은 기존 태그 (띄어쓰기 · 괄호 · 다른 표기 · 한쪽 이름이 다른 쪽에 든 경우).
@@ -79,7 +79,8 @@ export async function findSimilarExistingTags(rawName: string): Promise<SimilarT
   const viewer = await getViewer();
   if (!viewer?.profile?.can_upload) return [];
   const name = cleanTagName(String(rawName)).slice(0, 60);
-  const words = searchWords(name);
+  // 장소 낱말 뿌리도 함께 (엑스코로 → 엑스코로 '대구 엑스코'도 찾게)
+  const words = [...new Set([...searchWords(name), ...placeWords(name)])].slice(0, 8);
   if (!words.length) return [];
   // 낱말은 글자 · 숫자만이라 검색 조건 문법을 바꾸지 못한다
   const supabase = await createClient();

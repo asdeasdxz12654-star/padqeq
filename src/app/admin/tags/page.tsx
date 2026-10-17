@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireTopAdmin } from "@/lib/auth/require-admin";
 import { createClient } from "@/lib/supabase/server";
-import { findSimilarTags, type SimilarPair } from "@/lib/tags/similar";
+import { findSimilarTags, NEAR_METERS, type SimilarPair } from "@/lib/tags/similar";
 import { TAG_KIND_LABEL, type TagKind } from "@/lib/tags/tag-rules";
 import { ApproveButton } from "./approve-button";
 
@@ -22,6 +22,7 @@ type TagRow = {
   name: string;
   status: "official" | "pending";
   lat: number | null;
+  lng: number | null;
   tag_aliases: { alias: string }[];
   post_tags: { count: number }[];
 };
@@ -39,7 +40,7 @@ export default async function AdminTagsPage({ searchParams }: PageProps<"/admin/
   const supabase = await createClient();
   let query = supabase
     .from("tags")
-    .select("id, kind, slug, name, status, lat, tag_aliases(alias), post_tags(count)")
+    .select("id, kind, slug, name, status, lat, lng, tag_aliases(alias), post_tags(count)")
     .order("created_at", { ascending: false })
     .limit(view === "similar" ? 3000 : LIST_LIMIT);
   if (kind) query = query.eq("kind", kind);
@@ -53,7 +54,9 @@ export default async function AdminTagsPage({ searchParams }: PageProps<"/admin/
 
   const pairs =
     view === "similar"
-      ? findSimilarTags(tags.map((t) => ({ id: t.id, kind: t.kind, name: t.name, aliases: t.tag_aliases.map((a) => a.alias), posts: posts(t) })))
+      ? findSimilarTags(
+          tags.map((t) => ({ id: t.id, kind: t.kind, name: t.name, aliases: t.tag_aliases.map((a) => a.alias), posts: posts(t), lat: t.lat, lng: t.lng })),
+        )
       : [];
   const byId = new Map(tags.map((t) => [t.id, t]));
 
@@ -145,14 +148,20 @@ export default async function AdminTagsPage({ searchParams }: PageProps<"/admin/
   );
 }
 
-const REASON_LABEL: Record<SimilarPair["reason"], string> = { same: "이름이 같음", alias: "다른 표기가 겹침", contains: "한쪽 이름이 다른 쪽에 들어 있음" };
+const REASON_LABEL: Record<SimilarPair["reason"], string> = {
+  same: "이름이 같음",
+  alias: "다른 표기가 겹침",
+  contains: "한쪽 이름이 다른 쪽에 들어 있음",
+  word: "이름에 같은 낱말이 있음 · 같은 곳인지 확인",
+  near: `지도 위치가 ${NEAR_METERS}m 안 · 같은 곳인지 확인`,
+};
 
 function SimilarList({ pairs, byId }: { pairs: SimilarPair[]; byId: Map<string, TagRow> }) {
   if (pairs.length === 0) return <p className="py-16 text-center text-sm text-quiet">비슷한 이름의 태그가 없어요.</p>;
   return (
     <div className="flex flex-col gap-2">
       <p className="text-sm text-quiet">
-        같은 종류끼리 띄어쓰기 · 괄호 · 대소문자를 무시하고 비교했어요. 같은 대상이 맞을 때만 합쳐 주세요. 남길 태그는 게시물이 많은 쪽으로 골라 두었어요.
+        같은 종류끼리 띄어쓰기 · 괄호 · 대소문자를 무시하고 비교했어요. 장소는 이름에 같은 낱말이 있거나 지도 위치가 가까워도 보여 줘요. 같은 대상이 맞을 때만 합쳐 주세요. 남길 태그는 게시물이 많은 쪽으로 골라 두었어요.
       </p>
       <ul className="flex flex-col divide-y divide-line rounded-xl border border-line">
         {pairs.map((p) => {
