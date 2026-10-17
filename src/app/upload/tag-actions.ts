@@ -107,6 +107,20 @@ export async function findSimilarExistingTags(rawName: string): Promise<SimilarT
   return similarToName(name, candidates).map((t) => ({ id: t.id, kind: t.kind, name: t.name, slug: t.slug, parentName: t.parentName, pending: t.pending, reason: t.reason }));
 }
 
+/** 붙인 행사 태그의 장소 태그 (행사에 연결된 공식 장소만). 업로드 · 고치기 화면에서 "장소도 붙이기"로 권한다. */
+export async function placesForEventTags(rawIds: string[]): Promise<TagOption[]> {
+  const parsed = z.array(z.uuid()).max(10).safeParse(rawIds);
+  if (!parsed.success || parsed.data.length === 0) return [];
+  const viewer = await getViewer();
+  if (!viewer?.profile?.can_upload) return [];
+  const supabase = await createClient();
+  const { data: events } = await supabase.from("events").select("place_tag_id").in("tag_id", parsed.data).eq("status", "official").not("place_tag_id", "is", null);
+  const placeIds = [...new Set((events ?? []).map((e) => e.place_tag_id).filter((id): id is string => id !== null))];
+  if (placeIds.length === 0) return [];
+  const { data: places } = await supabase.from("tags").select("id, kind, name, slug").in("id", placeIds).eq("kind", "place").eq("status", "official");
+  return (places ?? []).map((t) => ({ id: t.id, kind: t.kind, name: t.name, slug: t.slug, parentName: null, pending: false }));
+}
+
 const createSchema = z.object({
   kind: z.enum(TAG_KINDS),
   name: z.string(),

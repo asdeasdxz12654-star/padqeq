@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useState, useTransition } from "react";
 import { MAX_TAGS_PER_POST, TAG_KIND_LABEL, TAG_KINDS, type TagKind } from "@/lib/tags/tag-rules";
-import { createTag, findSimilarExistingTags, searchTags, type SimilarTagOption, type TagOption } from "./tag-actions";
+import { createTag, findSimilarExistingTags, placesForEventTags, searchTags, type SimilarTagOption, type TagOption } from "./tag-actions";
 
 // 업로드 화면 태그 고르기: 검색해서 붙이고, 없으면 그 자리에서 만든다.
 
@@ -39,6 +39,28 @@ export function TagPicker({
       clearTimeout(timer);
     };
   }, [query]);
+
+  // 행사 태그를 붙이면 그 행사의 장소 태그도 권한다 (장소별 사진이 저절로 모이게)
+  const eventKey = value
+    .filter((t) => t.kind === "event")
+    .map((t) => t.id)
+    .sort()
+    .join(",");
+  const [eventPlaces, setEventPlaces] = useState<{ key: string; places: TagOption[] } | null>(null);
+  useEffect(() => {
+    if (!eventKey || disabled) return;
+    let stale = false;
+    placesForEventTags(eventKey.split(",")).then(
+      (places) => {
+        if (!stale) setEventPlaces({ key: eventKey, places });
+      },
+      () => {},
+    );
+    return () => {
+      stale = true;
+    };
+  }, [eventKey, disabled]);
+  const suggestedPlaces = eventPlaces?.key === eventKey && !disabled ? eventPlaces.places.filter((p) => !value.some((v) => v.id === p.id)) : [];
 
   const shown = results && results.query === query.trim() ? results.tags.filter((t) => !value.some((v) => v.id === t.id)) : [];
   const exact = results?.tags.some((t) => t.name.toLowerCase() === query.trim().toLowerCase());
@@ -77,6 +99,24 @@ export function TagPicker({
             </li>
           ))}
         </ul>
+      )}
+
+      {suggestedPlaces.length > 0 && !full && (
+        <p className="flex flex-wrap items-center gap-1.5 text-sm">
+          <span className="text-xs text-quiet">행사가 열린 곳:</span>
+          {suggestedPlaces.map((place) => (
+            <button
+              key={place.id}
+              type="button"
+              onClick={() => onChange([...value, place])}
+              className="flex min-h-9 items-baseline gap-1.5 rounded-full border border-dashed border-line px-3 py-1 text-left hover:border-accent"
+            >
+              <span className="text-xs text-quiet">{TAG_KIND_LABEL.place}</span>
+              {place.name}
+              <span className="text-xs text-accent">장소도 붙이기</span>
+            </button>
+          ))}
+        </p>
       )}
 
       {!disabled && !full && (
