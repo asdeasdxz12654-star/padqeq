@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { LineArt } from "@/components/line-art";
 
 // 오류 번호(digest)만 보여 주고 내부 메시지는 노출하지 않는다 (S-20)
 export default function ErrorPage({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
-    <div className="mx-auto max-w-md px-4 py-24 text-center">
+    <div className="mx-auto flex max-w-md flex-col items-center px-4 py-20 text-center">
+      <LineArt kind="error" className="mb-4" />
       <h1 className="text-xl font-bold">오류가 발생했어요</h1>
       <p className="mt-2 text-quiet">잠시 후 다시 시도해 주세요.</p>
       {error.digest && <p className="mt-1 text-sm text-quiet">오류 번호 {error.digest}</p>}

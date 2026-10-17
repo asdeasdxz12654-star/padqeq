@@ -40,7 +40,25 @@ export default async function SettingsPage() {
   const email = typeof claims?.claims.email === "string" ? claims.claims.email : null;
 
   return (
-    <div className="mx-auto flex max-w-xl md:max-w-2xl flex-col gap-10 px-4 pt-10 pb-16 md:px-6">
+    <div className="mx-auto max-w-5xl px-4 pt-8 pb-16 md:grid md:grid-cols-[180px_minmax(0,1fr)] md:gap-10 md:px-6">
+      <nav aria-label="설정 목차" className="sticky top-14 z-10 -mx-4 mb-6 flex gap-2 overflow-x-auto bg-bg px-4 py-2 md:top-20 md:mx-0 md:mb-0 md:flex-col md:self-start md:overflow-visible md:p-0">
+        {[
+          ["#account-heading", "계정"],
+          ["#theme-heading", "화면 · 보기"],
+          ["#alerts-heading", "알림"],
+          ["#credit-heading", "공개 범위 · 메시지"],
+          ["#data-heading", "내 데이터 · 탈퇴"],
+        ].map(([href, label]) => (
+          <a
+            key={href}
+            href={href}
+            className="inline-flex min-h-10 shrink-0 items-center rounded-full border border-line px-3.5 text-sm hover:border-quiet md:rounded-xl md:border-0 md:px-3 md:hover:bg-surface"
+          >
+            {label}
+          </a>
+        ))}
+      </nav>
+    <div className="flex min-w-0 flex-col gap-10">
       <header className="flex items-center gap-3">
         <Link href="/me" className="text-sm text-quiet hover:text-text">
           ‹ 마이
@@ -49,7 +67,7 @@ export default async function SettingsPage() {
       </header>
 
       <section aria-labelledby="account-heading" className="flex flex-col gap-3">
-        <h2 id="account-heading" className="text-lg font-semibold">
+        <h2 id="account-heading" className="scroll-mt-28 text-lg font-semibold">
           계정
         </h2>
         <dl className="grid grid-cols-[6rem_1fr] gap-y-2 text-sm">
@@ -66,7 +84,7 @@ export default async function SettingsPage() {
 
       {warnings && warnings.length > 0 && (
         <section id="warnings" aria-labelledby="warnings-heading" className="flex scroll-mt-20 flex-col gap-3">
-          <h2 id="warnings-heading" className="text-lg font-semibold">
+          <h2 id="warnings-heading" className="scroll-mt-28 text-lg font-semibold">
             받은 경고
           </h2>
           <ul className="flex flex-col gap-2">
@@ -88,14 +106,14 @@ export default async function SettingsPage() {
       )}
 
       <section aria-labelledby="theme-heading" className="flex flex-col gap-3">
-        <h2 id="theme-heading" className="text-lg font-semibold">
+        <h2 id="theme-heading" className="scroll-mt-28 text-lg font-semibold">
           화면
         </h2>
         <ThemeForm current={themeChoice} />
       </section>
 
       <section aria-labelledby="interests-heading" className="flex flex-col gap-3">
-        <h2 id="interests-heading" className="text-lg font-semibold">
+        <h2 id="interests-heading" className="scroll-mt-28 text-lg font-semibold">
           관심 분야
         </h2>
         <p className="text-sm text-quiet">고른 분야의 사진이 홈 &lsquo;추천&rsquo;에서 조금 더 위에 나와요.</p>
@@ -103,7 +121,7 @@ export default async function SettingsPage() {
       </section>
 
       <section id="viewing" aria-labelledby="viewing-heading" className="flex scroll-mt-20 flex-col gap-3">
-        <h2 id="viewing-heading" className="text-lg font-semibold">
+        <h2 id="viewing-heading" className="scroll-mt-28 text-lg font-semibold">
           사진 보기
         </h2>
         <SettingToggle
@@ -115,7 +133,7 @@ export default async function SettingsPage() {
       </section>
 
       <section aria-labelledby="alerts-heading" className="flex flex-col gap-3">
-        <h2 id="alerts-heading" className="text-lg font-semibold">
+        <h2 id="alerts-heading" className="scroll-mt-28 text-lg font-semibold">
           알림
         </h2>
         <SettingToggle
@@ -127,7 +145,7 @@ export default async function SettingsPage() {
       </section>
 
       <section aria-labelledby="credit-heading" className="flex flex-col gap-3">
-        <h2 id="credit-heading" className="text-lg font-semibold">
+        <h2 id="credit-heading" className="scroll-mt-28 text-lg font-semibold">
           크레딧
         </h2>
         <SettingToggle
@@ -139,21 +157,21 @@ export default async function SettingsPage() {
       </section>
 
       <section id="push" aria-labelledby="push-heading" className="flex scroll-mt-20 flex-col gap-3">
-        <h2 id="push-heading" className="text-lg font-semibold">
+        <h2 id="push-heading" className="scroll-mt-28 text-lg font-semibold">
           휴대폰 · 브라우저 알림
         </h2>
         <PushSettings publicKey={process.env.VAPID_PUBLIC_KEY || null} />
       </section>
 
       <section id="messages" aria-labelledby="messages-heading" className="flex scroll-mt-20 flex-col gap-3">
-        <h2 id="messages-heading" className="text-lg font-semibold">
+        <h2 id="messages-heading" className="scroll-mt-28 text-lg font-semibold">
           메시지 · 차단
         </h2>
         <MessageSettings receive={setting?.receive ?? "everyone"} blocked={blocked} />
       </section>
 
       <section aria-labelledby="data-heading" className="flex flex-col gap-3">
-        <h2 id="data-heading" className="text-lg font-semibold">
+        <h2 id="data-heading" className="scroll-mt-28 text-lg font-semibold">
           내 데이터
         </h2>
         <p className="text-sm leading-relaxed text-quiet">
@@ -169,7 +187,7 @@ export default async function SettingsPage() {
       </section>
 
       <section aria-labelledby="delete-heading" className="flex flex-col gap-3">
-        <h2 id="delete-heading" className="text-lg font-semibold">
+        <h2 id="delete-heading" className="scroll-mt-28 text-lg font-semibold">
           계정 삭제
         </h2>
         <DeletionPanel handle={viewer.profile.handle} requestedAt={profile?.deletion_requested_at ?? null} />
@@ -183,6 +201,7 @@ export default async function SettingsPage() {
           개인정보처리방침
         </Link>
       </nav>
+    </div>
     </div>
   );
 }

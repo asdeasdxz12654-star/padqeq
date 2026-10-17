@@ -12,6 +12,7 @@ import { SearchShortcut } from "@/components/search-box";
 import { TabBar } from "@/components/tab-bar";
 import { NavProgress } from "@/components/nav-progress";
 import { PhotoDevelop } from "@/components/photo-develop";
+import { SwRegister } from "@/components/sw-register";
 import { OG_IMAGES } from "@/lib/og";
 import "./globals.css";
 
@@ -85,6 +86,7 @@ export default async function RootLayout({ children, modal }: LayoutProps<"/">) 
         <TabBar />
         <PhotoGuard />
         <PhotoDevelop />
+        <SwRegister />
         <SearchShortcut />
       </body>
     </html>
