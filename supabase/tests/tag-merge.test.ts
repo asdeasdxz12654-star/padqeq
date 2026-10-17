@@ -71,7 +71,7 @@ describe("태그 합치기", () => {
   it("게시물 · 팔로우 · 별칭 · 위치 · 예전 주소를 옮기고 없앤 태그는 지운다", async () => {
     const r = await merge(ADMIN, "exco-addr", "exco");
     // P1은 이미 exco가 붙어 있어 한 번만, P2는 옮김
-    expect(r).toEqual({ posts: 1, follows: 1, aliases: 2, children: 0, event: false, location: true });
+    expect(r).toEqual({ posts: 1, follows: 1, aliases: 2, children: 0, event: false, location: true, places: 0 });
     expect((await db.query("select post_id from post_tags where tag_id = $1 order by post_id", [tag.exco])).rows).toEqual([{ post_id: P1 }, { post_id: P2 }]);
     expect((await db.query("select user_id from tag_follows where tag_id = $1 order by user_id", [tag.exco])).rows).toEqual([{ user_id: ADMIN }, { user_id: FAN }]);
     // 남길 태그 이름과 같은 별칭('대구 엑스코')은 빼고, 없앤 태그 이름은 별칭으로
