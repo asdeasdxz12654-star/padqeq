@@ -101,72 +101,57 @@ export default async function MePage() {
             )}
           </p>
         </div>
+      </div>
+      <div className="mt-4 grid grid-cols-2 gap-2">
         <Link
           href={profileHref(profile.handle)}
-          className="ml-auto shrink-0 rounded-full border border-line px-4 py-1.5 text-sm hover:border-quiet"
+          className="flex min-h-11 items-center justify-center rounded-full bg-text text-sm font-bold text-bg"
         >
           내 프로필 보기
         </Link>
+        <a href="#edit-heading" className="flex min-h-11 items-center justify-center rounded-full border border-line text-sm font-bold hover:border-quiet">
+          프로필 고치기
+        </a>
       </div>
 
-      <Link
-        href="/me/saved"
-        className="mt-8 flex min-h-14 items-center justify-between rounded-xl border border-line px-4 hover:border-quiet"
-      >
-        <span className="font-semibold">저장한 사진</span>
-        <span className="text-xs text-quiet">나만 보는 모음 ›</span>
-      </Link>
+      {/* 받은 요청함: 크레딧 승인 · 크레딧 연결 요청 (알림 화면에서도 여기로) */}
+      {(creditRequests.length > 0 || creditClaims.length > 0) && (
+        <section id="requests" aria-label="받은 요청" className="mt-8 scroll-mt-20 rounded-2xl border border-accent/40 bg-accent-soft/40 p-4">
+          <p className="text-sm font-bold text-accent">받은 요청 {creditRequests.length + creditClaims.length}건</p>
+          {creditRequests.length > 0 && <CreditRequests requests={creditRequests} />}
+          {creditClaims.length > 0 && <CreditClaims claims={creditClaims} />}
+        </section>
+      )}
 
-      <Link
-        href="/me/collections"
-        className="mt-2 flex min-h-14 items-center justify-between rounded-xl border border-line px-4 hover:border-quiet"
-      >
-        <span className="font-semibold">내 컬렉션</span>
-        <span className="text-xs text-quiet">이름 붙인 사진 묶음 ›</span>
-      </Link>
-
-      <Link
-        href="/me/messages"
-        className="mt-2 flex min-h-14 items-center justify-between rounded-xl border border-line px-4 hover:border-quiet"
-      >
-        <span className="font-semibold">
-          메시지
-          {unreadThreads ? <span className="ml-2 rounded-full bg-accent px-2 text-xs text-on-accent">{unreadThreads}</span> : null}
-        </span>
-        <span className="text-xs text-quiet">대화 · 섭외 문의 · 메시지 요청 ›</span>
-      </Link>
-
-      <Link
-        href="/me/creator"
-        className="mt-2 flex min-h-14 items-center justify-between rounded-xl border border-line px-4 hover:border-quiet"
-      >
-        <span className="font-semibold">크리에이터 정보</span>
-        <span className="text-xs text-quiet">역할 · 지역 · 섭외 가능, 디렉토리에 올리기 ›</span>
-      </Link>
-
-      <Link
-        href="/help"
-        className="mt-2 flex min-h-14 items-center justify-between rounded-xl border border-line px-4 hover:border-quiet"
-      >
-        <span className="font-semibold">고객센터</span>
-        <span className="text-xs text-quiet">공지 · 자주 묻는 질문 · 1:1 문의 ›</span>
-      </Link>
-
-      <Link
-        href="/memories"
-        className="mt-2 flex min-h-14 items-center justify-between rounded-xl border border-line px-4 hover:border-quiet"
-      >
-        <span className="font-semibold">N년 전 오늘</span>
-        <span className="text-xs text-quiet">예전 오늘 찍은 사진 ›</span>
-      </Link>
-
-      <Link
-        href="/me/year"
-        className="mt-2 flex min-h-14 items-center justify-between rounded-xl border border-line px-4 hover:border-quiet"
-      >
-        <span className="font-semibold">나의 {currentYearKst()}</span>
-        <span className="text-xs text-quiet">한 해 동안 담은 사진 돌아보기 ›</span>
-      </Link>
+      <nav aria-label="바로가기" className="mt-8 grid grid-cols-2 gap-2 md:grid-cols-4">
+        {[
+          { href: "/me/saved", title: "저장한 사진", sub: "나만 보는 모음", icon: "M6 4h12v17l-6-4-6 4z" },
+          { href: "/me/collections", title: "내 컬렉션", sub: "이름 붙인 묶음", icon: "M4 6h16v12H4zM4 10h16" },
+          { href: "/me/messages", title: "메시지", sub: "대화 · 섭외 문의", icon: "M4 5h16v11H8l-4 4z", badge: unreadThreads || 0 },
+          { href: "/me/year", title: `나의 ${currentYearKst()}`, sub: "한 해 돌아보기", icon: "M5 6h14v14H5zM5 10h14M9 3v4M15 3v4" },
+          { href: "/memories", title: "N년 전 오늘", sub: "예전 오늘의 사진", icon: "M12 7v5l3 2M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18z" },
+          { href: "/me/creator", title: "크리에이터 정보", sub: "역할 · 섭외 가능", icon: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 9c.6-4 3.4-6 7-6s6.4 2 7 6" },
+          { href: "/help", title: "고객센터", sub: "공지 · 1:1 문의", icon: "M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.7M12 17h.01" },
+          { href: "/settings", title: "설정", sub: "계정 · 알림 · 화면", icon: "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM4 12h2M18 12h2M12 4v2M12 18v2" },
+        ].map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className="flex min-h-24 flex-col justify-between gap-2 rounded-2xl border border-line p-3.5 hover:border-quiet"
+          >
+            <span className="flex items-center justify-between">
+              <svg aria-hidden="true" viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <path d={item.icon} />
+              </svg>
+              {item.badge ? <span className="rounded-full bg-accent px-2 text-xs font-bold text-on-accent">{item.badge}</span> : null}
+            </span>
+            <span>
+              <span className="block text-sm font-bold">{item.title}</span>
+              <span className="block text-xs text-quiet">{item.sub}</span>
+            </span>
+          </Link>
+        ))}
+      </nav>
 
       {isStaffRole(profile.role) && (
         <nav aria-label="운영" className="mt-8 flex flex-wrap gap-2">
@@ -201,9 +186,6 @@ export default async function MePage() {
           )}
         </nav>
       )}
-
-      {creditRequests.length > 0 && <CreditRequests requests={creditRequests} />}
-      {creditClaims.length > 0 && <CreditClaims claims={creditClaims} />}
 
       <section aria-labelledby="follows-heading" className="mt-10 flex flex-col gap-4">
         <h2 id="follows-heading" className="text-lg font-semibold">
@@ -253,13 +235,6 @@ export default async function MePage() {
         <ProfileForm displayName={profile.display_name} bio={full?.bio ?? ""} links={full?.links ?? []} />
         <p className="mt-3 text-xs text-quiet">핸들(@{profile.handle})은 크레딧 태그의 기준이라 바꿀 수 없어요.</p>
       </section>
-
-      <Link
-        href="/settings"
-        className="mt-12 flex min-h-12 items-center justify-between rounded-xl border border-line px-4 text-sm font-semibold hover:border-quiet"
-      >
-        설정 <span className="text-xs font-normal text-quiet">계정 · 내 데이터 · 계정 삭제 ›</span>
-      </Link>
 
       <form action={signOut} className="mt-6 border-t border-line pt-6">
         <button type="submit" className="min-h-12 w-full rounded-xl border border-line px-4 text-sm font-semibold">

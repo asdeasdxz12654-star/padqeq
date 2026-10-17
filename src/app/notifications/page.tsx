@@ -29,15 +29,21 @@ export default async function NotificationsPage({ searchParams }: PageProps<"/no
 
   const supabase = await createClient();
   // 상대 · 게시물은 지금 내가 볼 수 있을 때만 붙는다 (RLS)
-  const { data, error } = await supabase
-    .from("notifications")
-    .select(
-      "id, kind, created_at, read_at, actor:profiles!notifications_actor_id_fkey(handle), post:posts!notifications_post_id_fkey(id, title), event:events!notifications_event_id_fkey(id, name), board:board_posts!notifications_board_post_id_fkey(id, title), thread_id",
-    )
-    .eq("recipient_id", viewer.id)
-    .order("id", { ascending: false })
-    .limit(100);
+  const [{ data, error }, pendingCredits, openClaims] = await Promise.all([
+    supabase
+      .from("notifications")
+      .select(
+        "id, kind, created_at, read_at, actor:profiles!notifications_actor_id_fkey(handle), post:posts!notifications_post_id_fkey(id, title), event:events!notifications_event_id_fkey(id, name), board:board_posts!notifications_board_post_id_fkey(id, title), thread_id",
+      )
+      .eq("recipient_id", viewer.id)
+      .order("id", { ascending: false })
+      .limit(100),
+    // 받은 요청: 나를 태그한 크레딧 · 내 글에 온 크레딧 연결 요청 (RLS: 작성자 · 요청자만)
+    supabase.from("credits").select("id", { count: "exact", head: true }).eq("member_id", viewer.id).eq("status", "pending"),
+    supabase.from("credit_claims").select("id", { count: "exact", head: true }).eq("status", "open").neq("claimant_id", viewer.id),
+  ]);
   if (error) throw error;
+  const requestCount = (pendingCredits.count ?? 0) + (openClaims.count ?? 0);
 
   const all = data.map((n) => ({
     ...n,
@@ -54,6 +60,20 @@ export default async function NotificationsPage({ searchParams }: PageProps<"/no
   return (
     <div className="mx-auto max-w-xl md:max-w-2xl px-4 pt-10 pb-16 md:px-6">
       <h1 className="mb-4 text-2xl font-bold">알림</h1>
+      {requestCount > 0 && (
+        <Link
+          href="/me#requests"
+          className="mb-5 flex min-h-14 items-center justify-between gap-3 rounded-2xl border border-accent/40 bg-accent-soft/40 px-4 py-3 hover:border-accent"
+        >
+          <span>
+            <span className="block font-bold">받은 요청 {requestCount}건</span>
+            <span className="block text-xs text-quiet">크레딧 승인 · 크레딧 연결 요청을 확인해 주세요</span>
+          </span>
+          <span aria-hidden="true" className="text-quiet">
+            ›
+          </span>
+        </Link>
+      )}
       {newestUnread !== undefined && <MarkRead upToId={newestUnread} />}
       <nav aria-label="알림 종류" className="-mx-4 mb-6 flex gap-2 overflow-x-auto px-4 pb-1 text-sm">
         <Link href="/notifications" aria-current={!group ? "page" : undefined} className={`${chip} shrink-0`}>
