@@ -147,9 +147,13 @@ function NewTagForm({
 
   useEffect(() => {
     let stale = false;
-    void findSimilarExistingTags(name).then((tags) => {
-      if (!stale) setSimilar({ name, tags });
-    });
+    // 안내일 뿐이라 실패해도 조용히 넘어간다 (새 태그 만들기는 그대로 된다)
+    findSimilarExistingTags(name).then(
+      (tags) => {
+        if (!stale) setSimilar({ name, tags });
+      },
+      () => {},
+    );
     return () => {
       stale = true;
     };

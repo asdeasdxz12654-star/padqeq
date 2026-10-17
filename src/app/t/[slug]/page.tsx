@@ -80,7 +80,7 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
   const view = query.view === "popular" ? "popular" : query.view === "cosers" && showCosers ? "cosers" : "latest";
   // 최신: 작품 허브에는 그 작품 캐릭터 사진도 함께
   const scope: FeedScope = { kind: "tag", tagId: tag.id, year };
-  const [years, first, viewer, popular, cosers, related] = await Promise.all([
+  const [years, first, viewer, popular, cosers, related, placeEvents] = await Promise.all([
     supabase.rpc("published_shot_years"),
     view === "latest" ? loadScopePage(scope) : Promise.resolve({ items: [], next: null }),
     getViewer(),
@@ -88,6 +88,17 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
     view === "cosers" ? supabase.rpc("tag_cosers", { tag: tag.id }).then((r) => r.data ?? []) : Promise.resolve([]),
     // 관련 태그 (S-04 ⑨): 같은 글에 함께 많이 붙는 태그
     supabase.rpc("related_tags", { tag: tag.id, max_rows: 8 }).then((r) => r.data ?? []),
+    // 장소 태그: 이 곳에서 열리는 · 열린 공식 행사 (최근 것부터)
+    tag.kind === "place"
+      ? supabase
+          .from("events")
+          .select("id, name, starts_on, ends_on")
+          .eq("place_tag_id", tag.id)
+          .eq("status", "official")
+          .order("starts_on", { ascending: false })
+          .limit(20)
+          .then((r) => r.data ?? [])
+      : Promise.resolve([]),
   ]);
   const viewHref = (v: "latest" | "popular" | "cosers") => (v === "latest" ? base : `${base}?view=${v}`);
   const following = viewer?.profile ? (await getFollowedTags(viewer.id)).some((t) => t.id === tag.id) : false;
@@ -99,12 +110,6 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
       ? ((await supabase.from("tags").select("id, name, slug").eq("kind", tag.kind).eq("status", "official").neq("id", tag.id).order("name").limit(500)).data ?? [])
       : null;
   if (years.error) throw years.error;
-  // 장소 태그: 이 곳에서 열리는 · 열린 공식 행사 (최근 것부터)
-  const placeEvents =
-    tag.kind === "place"
-      ? ((await supabase.from("events").select("id, name, starts_on, ends_on").eq("place_tag_id", tag.id).eq("status", "official").order("starts_on", { ascending: false }).limit(20))
-          .data ?? [])
-      : [];
 
   return (
     <div className="mx-auto max-w-[1440px]">

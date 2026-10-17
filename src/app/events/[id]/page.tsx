@@ -97,19 +97,19 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
             {official && `참가 예정 ${counts.get(event.id) ?? 0}명 · `}게시물 {photos.items.length}
             {photos.next ? "+" : ""}개
           </p>
-          <p className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+          <p className="flex flex-wrap gap-x-4 text-sm">
             {event.url && (
-              <a href={event.url} target="_blank" rel="noopener noreferrer nofollow" className="underline underline-offset-2">
+              <a href={event.url} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex min-h-11 items-center underline underline-offset-2">
                 공식 사이트
               </a>
             )}
             {official && (
-              <a href={`/events/${event.id}/calendar`} className="underline underline-offset-2">
+              <a href={`/events/${event.id}/calendar`} className="inline-flex min-h-11 items-center underline underline-offset-2">
                 캘린더에 추가 (.ics)
               </a>
             )}
             {tag.data && (
-              <Link href={`/t/${encodeURIComponent(tag.data.slug)}`} className="underline underline-offset-2">
+              <Link href={`/t/${encodeURIComponent(tag.data.slug)}`} className="inline-flex min-h-11 items-center underline underline-offset-2">
                 #{tag.data.name}
               </Link>
             )}
