@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatLatLng, markerRadius, parseLatLng, groupByPosition, pickedLatLng } from "./location";
+import { formatDistance, formatLatLng, groupByPosition, markerRadius, parseLatLng, pickedLatLng, sortByDistance } from "./location";
 
 describe("좌표 읽기", () => {
   it("숫자 두 개", () => {
@@ -48,5 +48,23 @@ describe("같은 자리 지도 표시 묶기", () => {
       { id: "near", lat: 35.90704, lng: 128.61309 },
     ]);
     expect(groups.map((g) => g.map((p) => p.id))).toEqual([["exco", "con", "near"], ["park"]]);
+  });
+});
+
+describe("내 주변", () => {
+  it("가까운 순 · 거리 글자", () => {
+    const me = { lat: 35.8714, lng: 128.6014 }; // 대구 시내
+    const sorted = sortByDistance(
+      [
+        { id: "seoul", lat: 37.5665, lng: 126.978 },
+        { id: "exco", lat: 35.90702, lng: 128.61311 },
+      ],
+      me,
+    );
+    expect(sorted.map((p) => p.id)).toEqual(["exco", "seoul"]);
+    expect(formatDistance(sorted[0]!.meters)).toBe("4.1km");
+    expect(formatDistance(sorted[1]!.meters)).toBe("238km");
+    expect(formatDistance(4)).toBe("10m");
+    expect(formatDistance(347)).toBe("350m");
   });
 });

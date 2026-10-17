@@ -1,6 +1,9 @@
 // 태그 관리 (운영): 같은 대상을 가리키는 것 같은 태그 짝 찾기.
 // 같은 종류끼리만, 띄어쓰기 · 괄호 · 기호 · 대소문자를 무시하고 비교한다. 별칭도 이름처럼 본다.
 // 장소 태그는 이름이 겹치지 않아도 눈에 띄는 낱말이 같거나(엑스코 · 엑스코로) 지도 위치가 가까우면 후보로 본다.
+import { distanceMeters } from "@/lib/places/location";
+
+export { distanceMeters };
 
 export type TagForSimilarity = {
   id: string;
@@ -74,15 +77,6 @@ export function placeWords(name: string): string[] {
     .map((w) => (w.length >= 4 ? w.replace(/(번길|로|길)$/u, "") : w))
     .filter((w) => [...w].length >= 3 && !GENERIC_WORDS.has(w));
   return [...new Set(words)];
-}
-
-/** 두 위치 사이 거리 (m, 지구를 공으로 보고) */
-export function distanceMeters(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
-  const rad = Math.PI / 180;
-  const dLat = (b.lat - a.lat) * rad;
-  const dLng = (b.lng - a.lng) * rad;
-  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLng / 2) ** 2;
-  return 2 * 6_371_000 * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
 type Prepared = { main: string; names: string[]; words: string[]; point: { lat: number; lng: number } | null };

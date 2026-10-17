@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { type MapPlace, PlaceMap } from "@/components/place-map";
+import type { MapPlace } from "@/components/place-map";
 import { createClient } from "@/lib/supabase/server";
+import { MapExplorer } from "./map-explorer";
 
 export const metadata: Metadata = { title: "촬영 장소 지도", description: "공원 · 행사장처럼 사진을 찍은 장소를 지도에서 모아 봐요." };
 
@@ -28,32 +29,7 @@ export default async function MapPage({ searchParams }: PageProps<"/map">) {
         <p className="text-sm text-quiet">장소 · 행사 태그를 지도에서 모아 봐요. 원이 클수록 게시물이 많아요. 사진에 담긴 위치 정보는 올릴 때 지워져서 쓰지 않아요.</p>
       </header>
 
-      <PlaceMap places={places} focus={typeof focus === "string" ? focus : null} />
-
-      <section aria-labelledby="place-list" className="flex flex-col gap-2">
-        <h2 id="place-list" className="text-base font-semibold">
-          장소 목록 <span className="text-sm font-normal text-quiet">{places.length}곳</span>
-        </h2>
-        {places.length === 0 ? (
-          <p className="py-8 text-center text-sm text-quiet">아직 지도에 표시된 장소가 없어요. 운영자가 장소 · 행사 태그에 위치를 달면 여기에 나와요.</p>
-        ) : (
-          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {places.map((p) => (
-              <li key={p.id}>
-                <Link
-                  href={`/t/${encodeURIComponent(p.slug)}`}
-                  className="flex min-h-11 items-baseline gap-2 rounded-xl border border-line px-3 py-2.5 hover:border-quiet"
-                >
-                  <span className="min-w-0 flex-1 truncate font-medium">{p.name}</span>
-                  <span className="shrink-0 text-xs text-quiet">
-                    {p.kind === "event" ? "행사" : "장소"} · 게시물 {p.posts}개
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      <MapExplorer places={places} focus={typeof focus === "string" ? focus : null} />
     </div>
   );
 }

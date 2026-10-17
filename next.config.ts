@@ -14,7 +14,8 @@ const securityHeaders = [
   { key: "Cross-Origin-Embedder-Policy", value: "require-corp" },
   {
     key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()",
+    // 위치: 촬영 장소 지도의 '내 주변'만 쓴다. 우리 사이트에만 허용하고, 쓸 때마다 브라우저가 묻는다 (서버로 보내지 않음)
+    value: "camera=(), microphone=(), geolocation=(self), payment=(), usb=(), browsing-topics=()",
   },
   // 검색엔진은 허용하되 AI 학습·이미지 색인은 거부 (robots.ts와 함께)
   { key: "X-Robots-Tag", value: "noai, noimageai, noimageindex" },

@@ -60,6 +60,26 @@ export function groupByPosition<T extends LatLng>(items: T[]): T[][] {
   return [...groups.values()];
 }
 
+/** 두 위치 사이 거리 (m, 지구를 공으로 보고) */
+export function distanceMeters(a: LatLng, b: LatLng): number {
+  const rad = Math.PI / 180;
+  const dLat = (b.lat - a.lat) * rad;
+  const dLng = (b.lng - a.lng) * rad;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLng / 2) ** 2;
+  return 2 * 6_371_000 * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
+/** 거리 글자: 350m · 1.2km · 12km */
+export function formatDistance(meters: number): string {
+  if (meters < 1000) return `${Math.max(10, Math.round(meters / 10) * 10)}m`;
+  return meters < 10_000 ? `${(meters / 1000).toFixed(1)}km` : `${Math.round(meters / 1000).toLocaleString("ko-KR")}km`;
+}
+
+/** 가까운 순 (거리와 함께). 원래 배열은 바꾸지 않는다. */
+export function sortByDistance<T extends LatLng>(items: T[], from: LatLng): (T & { meters: number })[] {
+  return items.map((p) => ({ ...p, meters: distanceMeters(from, p) })).sort((x, y) => x.meters - y.meters);
+}
+
 /** 지도 원 크기: 게시물이 많을수록 조금 크게 (6~18px) */
 export function markerRadius(posts: number): number {
   return Math.min(18, 6 + Math.round(Math.sqrt(Math.max(posts, 0)) * 2));
