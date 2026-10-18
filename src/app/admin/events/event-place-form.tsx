@@ -55,7 +55,7 @@ export function EventPlaceForm({ eventId, current, places }: { eventId: string; 
         {pending ? "저장 중…" : "장소 저장"}
       </button>
       {message && (
-        <p role={message.ok ? "status" : "alert"} className={`text-sm ${message.ok ? "text-quiet" : "text-red-300"}`}>
+        <p role={message.ok ? "status" : "alert"} className={`text-sm ${message.ok ? "text-quiet" : "text-danger"}`}>
           {message.text}
         </p>
       )}

@@ -23,7 +23,7 @@ export function ApproveButton({ tagId, name }: { tagId: string; name: string }) 
         {pending ? "승인 중…" : "승인"}
       </button>
       {error && (
-        <span role="alert" className="text-xs text-red-300">
+        <span role="alert" className="text-xs text-danger">
           {error}
         </span>
       )}

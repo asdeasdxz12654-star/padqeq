@@ -30,7 +30,7 @@ export function RepublishButton({ postId }: { postId: string }) {
       >
         {pending ? "게시하는 중…" : "다시 게시"}
       </button>
-      {error && <p className="text-xs text-red-300">{error}</p>}
+      {error && <p className="text-xs text-danger">{error}</p>}
     </div>
   );
 }

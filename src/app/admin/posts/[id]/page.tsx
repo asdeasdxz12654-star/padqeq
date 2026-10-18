@@ -62,7 +62,7 @@ export default async function AdminPostHistoryPage({ params }: PageProps<"/admin
               @{post.author.handle}
             </Link>
           )}
-          <span className="text-amber-300">{postStateLabel(post)}</span>
+          <span className="text-warn">{postStateLabel(post)}</span>
           <Link href={`/p/${post.id}`} className="underline underline-offset-2">
             게시물 보기
           </Link>

@@ -52,7 +52,7 @@ export default async function WritePage({ searchParams }: PageProps<"/community/
         ‹ 돌아가기
       </Link>
       <h1 className="mt-4 text-2xl font-bold">{editId ? "글 고치기" : "글쓰기"}</h1>
-      {viewer.restriction && <p className="mt-3 text-sm text-red-300">이용이 제한된 기간이라 글을 쓸 수 없어요.</p>}
+      {viewer.restriction && <p className="mt-3 text-sm text-danger">이용이 제한된 기간이라 글을 쓸 수 없어요.</p>}
       {board === "casting" && !adult && !editId && (
         <div className="mt-6">
           <AdultConfirm reason="구인 · 섭외 게시판은 만 19세 이상만 쓸 수 있어요." />

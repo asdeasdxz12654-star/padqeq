@@ -27,7 +27,7 @@ export function ProfileFeatureButtons({ postId, isCover, isPinned }: { postId: s
       <button type="button" disabled={pending} onClick={() => toggle("pin", !pinned)} className={button}>
         {pinned ? "프로필 고정 해제" : "프로필에 고정"}
       </button>
-      {error && <span className="text-xs text-red-300">{error}</span>}
+      {error && <span className="text-xs text-danger">{error}</span>}
     </div>
   );
 }
@@ -54,7 +54,7 @@ export function PickButton({ postId, picked }: { postId: string; picked: boolean
       >
         {on ? "오늘의 픽에서 빼기" : "오늘의 픽에 넣기"}
       </button>
-      {error && <span className="text-xs text-red-300">{error}</span>}
+      {error && <span className="text-xs text-danger">{error}</span>}
     </span>
   );
 }

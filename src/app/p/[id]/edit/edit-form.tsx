@@ -290,7 +290,7 @@ export function EditForm({ initial, isAdmin, viewerHandle }: { initial: Initial;
       </fieldset>
 
       {error && (
-        <p role="alert" className="text-sm text-red-300">
+        <p role="alert" className="text-sm text-danger">
           {error}
         </p>
       )}

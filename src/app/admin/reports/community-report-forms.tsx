@@ -54,7 +54,7 @@ function DecisionRow<D extends string>({
         className="min-h-11 rounded-xl border border-line bg-bg px-3 text-base"
       />
       {error && (
-        <p role="alert" className="text-sm text-red-300">
+        <p role="alert" className="text-sm text-danger">
           {error}
         </p>
       )}
@@ -113,7 +113,7 @@ export function MessageReportPanel({ reportId }: { reportId: string }) {
           ))}
         </ol>
       )}
-      {error && <p className="text-sm text-red-300">{error}</p>}
+      {error && <p className="text-sm text-danger">{error}</p>}
       <DecisionRow
         name={`message-${reportId}`}
         options={[

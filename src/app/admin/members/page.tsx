@@ -113,7 +113,7 @@ export default async function AdminMembersPage({ searchParams }: PageProps<"/adm
                   <span className="ml-auto flex flex-wrap items-center gap-1.5 text-xs">
                     {m.role !== "member" && <span className="rounded-full border border-line px-2 py-0.5">{ROLE_LABEL[m.role]}</span>}
                     {m.can_upload && <span className="rounded-full border border-line px-2 py-0.5">업로드</span>}
-                    {suspended && <span className="rounded-full bg-red-500/20 px-2 py-0.5 text-red-300">정지 중</span>}
+                    {suspended && <span className="rounded-full bg-danger-soft px-2 py-0.5 text-danger">정지 중</span>}
                     {m.deletion_requested_at && <span className="rounded-full border border-line px-2 py-0.5 text-quiet">탈퇴 유예</span>}
                     <span className="text-quiet">
                       게시물 {m.posts[0]?.count ?? 0} · {dateFormat.format(new Date(m.created_at))} 가입

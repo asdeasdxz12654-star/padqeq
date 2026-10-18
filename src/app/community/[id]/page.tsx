@@ -72,7 +72,7 @@ export default async function BoardPostPage({ params }: PageProps<"/community/[i
         ‹ {BOARD_LABEL[post.board].title}
       </Link>
       {post.hidden_at && (
-        <p className="mt-4 rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
+        <p className="mt-4 rounded-xl border border-warn-line bg-warn-soft px-4 py-3 text-sm text-warn">
           운영 정책에 따라 가려진 글이에요. 다른 사람에게는 보이지 않아요.
         </p>
       )}

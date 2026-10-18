@@ -37,7 +37,7 @@ export function SafetyGuide({ threadId }: { threadId: string }) {
   const [hidden, setHidden] = useState(false);
   if (hidden) return null;
   return (
-    <div role="note" className="rounded-xl border border-amber-400/40 bg-amber-400/10 p-3 text-xs leading-relaxed text-amber-100">
+    <div role="note" className="rounded-xl border border-warn-line bg-warn-soft p-3 text-xs leading-relaxed text-warn">
       <p className="font-semibold">첫 촬영 안전 가이드</p>
       <ul className="mt-1 list-disc pl-5">
         {SAFETY_GUIDE.map((g) => (
@@ -132,7 +132,7 @@ export function Composer({ threadId }: { threadId: string }) {
       }}
     >
       {error && (
-        <p role="alert" className="text-xs text-red-300">
+        <p role="alert" className="text-xs text-danger">
           {error}
         </p>
       )}

@@ -91,7 +91,7 @@ export function CreatorForm({ initial, exists, adult, currentYear }: { initial: 
         디렉토리에 보이기
       </label>
       {message && (
-        <p role={message.ok ? "status" : "alert"} className={`text-sm ${message.ok ? "text-emerald-400" : "text-red-300"}`}>
+        <p role={message.ok ? "status" : "alert"} className={`text-sm ${message.ok ? "text-ok" : "text-danger"}`}>
           {message.text}
         </p>
       )}

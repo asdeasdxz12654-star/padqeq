@@ -79,7 +79,7 @@ export function MergeForm({
         {pending ? "합치는 중…" : "합치기"}
       </button>
       {error && (
-        <p role="alert" className="text-sm text-red-300">
+        <p role="alert" className="text-sm text-danger">
           {error}
         </p>
       )}

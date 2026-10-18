@@ -128,7 +128,7 @@ export function BoardPostForm({ id, initial, castingAllowed }: { id: string | nu
       </label>
 
       {casting && id === null && (
-        <div className="rounded-xl border border-amber-400/40 bg-amber-400/10 p-4 text-sm text-amber-100">
+        <div className="rounded-xl border border-warn-line bg-warn-soft p-4 text-sm text-warn">
           <p className="font-semibold">첫 촬영 안전 가이드</p>
           <ul className="mt-2 list-disc pl-5 text-xs leading-relaxed">
             {SAFETY_GUIDE.map((g) => (
@@ -143,7 +143,7 @@ export function BoardPostForm({ id, initial, castingAllowed }: { id: string | nu
       )}
 
       {error && (
-        <p role="alert" className="text-sm text-red-300">
+        <p role="alert" className="text-sm text-danger">
           {error}
         </p>
       )}

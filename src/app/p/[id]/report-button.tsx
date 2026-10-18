@@ -53,7 +53,7 @@ export function ReportButton({ postId, photoCount }: { postId: string; photoCoun
             </h2>
             <p className="text-sm leading-relaxed text-quiet">운영팀이 확인할게요. 이 게시물은 내 피드에서 더 이상 보이지 않아요.</p>
             {failedUploads > 0 && (
-              <p role="alert" className="text-sm text-red-300">
+              <p role="alert" className="text-sm text-danger">
                 증거 사진 {failedUploads}장을 올리지 못했어요. 신고는 접수됐으니 필요하면 문의 이메일로 보내 주세요.
               </p>
             )}
@@ -166,13 +166,13 @@ export function ReportButton({ postId, photoCount }: { postId: string; photoCoun
               <span className="text-xs leading-relaxed text-quiet">
                 내 원본 사진 · 동의하지 않았다는 대화 화면 등. 원본 사진의 촬영 정보(날짜 · 기기 · 위치)도 본인 확인을 위해 그대로 전달돼요.
               </span>
-              {fileError && <span role="alert" className="text-xs text-red-300">{fileError}</span>}
+              {fileError && <span role="alert" className="text-xs text-danger">{fileError}</span>}
               <span className="text-xs text-quiet">처리가 끝나고 90일 뒤 자동으로 지워져요.</span>
             </div>
             )}
 
             {error && (
-              <p role="alert" className="text-sm text-red-300">
+              <p role="alert" className="text-sm text-danger">
                 {error}
               </p>
             )}

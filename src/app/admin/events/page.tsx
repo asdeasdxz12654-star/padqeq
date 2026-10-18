@@ -67,7 +67,7 @@ export default async function AdminEventsPage({ searchParams }: PageProps<"/admi
         <span className="shrink-0 text-xs text-quiet">
           {e.region}
           {e.status === "proposed" && e.proposer ? ` · @${e.proposer.handle}` : ""}
-          {e.status === "official" && e.place_tag_id === null && <span className="ml-1 rounded-full bg-amber-400/20 px-1.5 text-amber-200">장소 없음</span>}
+          {e.status === "official" && e.place_tag_id === null && <span className="ml-1 rounded-full bg-warn-soft px-1.5 text-warn">장소 없음</span>}
         </span>
       </Link>
     </li>

@@ -29,7 +29,7 @@ export function InAppBrowserNotice({ purpose }: { purpose: "login" | "upload" })
   const openUrl = externalOpenUrl(navigator.userAgent, window.location.href);
 
   return (
-    <div role="note" className="mb-6 rounded-xl border border-amber-400/40 bg-amber-400/10 p-4 text-sm leading-relaxed text-amber-100">
+    <div role="note" className="mb-6 rounded-xl border border-warn-line bg-warn-soft p-4 text-sm leading-relaxed text-warn">
       <p className="font-semibold">{app} 앱 안에서 열었어요</p>
       <p className="mt-1">
         {purpose === "login"
@@ -67,12 +67,12 @@ export function InAppBrowserNotice({ purpose }: { purpose: "login" | "upload" })
             }
             setDismissed(true);
           }}
-          className="min-h-11 rounded-xl border border-amber-400/40 px-4"
+          className="min-h-11 rounded-xl border border-warn-line px-4"
         >
           닫기
         </button>
       </div>
-      {!openUrl && <p className="mt-2 text-xs text-amber-200/80">오른쪽 위(또는 아래) ⋯ 메뉴의 &lsquo;다른 브라우저로 열기&rsquo;를 써도 돼요.</p>}
+      {!openUrl && <p className="mt-2 text-xs text-warn">오른쪽 위(또는 아래) ⋯ 메뉴의 &lsquo;다른 브라우저로 열기&rsquo;를 써도 돼요.</p>}
     </div>
   );
 }

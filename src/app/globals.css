@@ -18,6 +18,15 @@
   /* 그림용 빨강: 로고의 해 · 점 · 표시 (글자에는 쓰지 않는다) */
   --sun: #e2574b;
   --accent-soft: #fcebe8;
+  /* 상태 글자 · 띠 (흰 바탕에서 4.5:1 이상) */
+  --danger: #b3261e;
+  --danger-soft: #fdecea;
+  --danger-line: #f3c0bb;
+  --warn: #8a4b00;
+  --warn-soft: #fff4e0;
+  --warn-line: #f0d3a0;
+  --ok: #1f6b33;
+  --ok-soft: #e3f2e6;
   color-scheme: light;
 }
 
@@ -32,6 +41,14 @@
   --on-accent: #0d0d0d;
   --sun: #e86a5e;
   --accent-soft: #3a1e1b;
+  --danger: #ff8a80;
+  --danger-soft: #3a1e1b;
+  --danger-line: #6b2f29;
+  --warn: #f5c26b;
+  --warn-soft: #2e2412;
+  --warn-line: #5a4520;
+  --ok: #7fd49a;
+  --ok-soft: #16301f;
   color-scheme: dark;
 }
 
@@ -48,6 +65,14 @@
     --on-accent: #0d0d0d;
     --sun: #e86a5e;
     --accent-soft: #3a1e1b;
+    --danger: #ff8a80;
+    --danger-soft: #3a1e1b;
+    --danger-line: #6b2f29;
+    --warn: #f5c26b;
+    --warn-soft: #2e2412;
+    --warn-line: #5a4520;
+    --ok: #7fd49a;
+    --ok-soft: #16301f;
     color-scheme: dark;
   }
 }
@@ -63,6 +88,14 @@
   --color-on-accent: var(--on-accent);
   --color-sun: var(--sun);
   --color-accent-soft: var(--accent-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-line: var(--danger-line);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-warn-line: var(--warn-line);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
   --font-sans: var(--font-plex-kr), system-ui, sans-serif;
 }
 

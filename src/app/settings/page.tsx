@@ -89,7 +89,7 @@ export default async function SettingsPage() {
           </h2>
           <ul className="flex flex-col gap-2">
             {warnings.map((w) => (
-              <li key={w.id} className="rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-sm">
+              <li key={w.id} className="rounded-xl border border-warn-line bg-warn-soft px-4 py-3 text-sm">
                 <p>{w.reason}</p>
                 <p className="mt-1 text-xs text-quiet">{dayFormat.format(new Date(w.created_at))}</p>
               </li>

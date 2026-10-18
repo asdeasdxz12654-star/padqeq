@@ -38,7 +38,7 @@ export default async function NoticePage({ params }: PageProps<"/help/notices/[i
       </p>
       <h1 className="mt-1 text-2xl font-bold">{notice.title}</h1>
       {notice.maintenance_at && (
-        <p className="mt-4 rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
+        <p className="mt-4 rounded-xl border border-warn-line bg-warn-soft px-4 py-3 text-sm text-warn">
           점검 시작: {timeFormat.format(new Date(notice.maintenance_at))}
         </p>
       )}

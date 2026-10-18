@@ -87,7 +87,7 @@ export function AddPhotos({ postId, room }: { postId: string; room: number }) {
                 </span>
               )}
               {p.status === "error" && (
-                <span className="absolute inset-0 flex items-center justify-center bg-black/70 p-1 text-center text-[11px] text-red-200">{p.error}</span>
+                <span className="absolute inset-0 flex items-center justify-center bg-black/70 p-1 text-center text-[11px] text-danger">{p.error}</span>
               )}
               {!busy && (
                 <button
@@ -116,7 +116,7 @@ export function AddPhotos({ postId, room }: { postId: string; room: number }) {
 
       {notice && <p className="text-xs text-quiet">{notice}</p>}
       {stage.kind === "error" && (
-        <p role="alert" className="text-sm text-red-300">
+        <p role="alert" className="text-sm text-danger">
           {stage.message}
         </p>
       )}

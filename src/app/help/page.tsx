@@ -158,7 +158,7 @@ async function Inquiries({ errorRef }: { errorRef: string | null }) {
               <li key={q.id} className="rounded-xl border border-line p-4 text-sm">
                 <p className="flex flex-wrap items-center gap-2 text-xs text-quiet">
                   <span className="rounded border border-line px-1.5 py-0.5">{INQUIRY_CATEGORY_LABEL[q.category]}</span>
-                  <span className={q.status === "answered" ? "text-emerald-400" : "text-amber-300"}>
+                  <span className={q.status === "answered" ? "text-ok" : "text-warn"}>
                     {q.status === "answered" ? "답변 완료" : "답변 대기"}
                   </span>
                   <span>{timeFormat.format(new Date(q.created_at))}</span>

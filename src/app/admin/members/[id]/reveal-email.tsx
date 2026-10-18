@@ -49,7 +49,7 @@ export function RevealEmail({ memberId, masked }: { memberId: string; masked: st
           <button type="submit" disabled={pending || reason.trim().length < 2} className="min-h-11 rounded-xl border border-line px-4 text-sm disabled:opacity-50">
             {pending ? "확인 중…" : "열람"}
           </button>
-          {error && <span role="alert" className="text-sm text-red-300">{error}</span>}
+          {error && <span role="alert" className="text-sm text-danger">{error}</span>}
         </form>
       )}
     </span>

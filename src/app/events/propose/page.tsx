@@ -60,7 +60,7 @@ export default async function ProposeEventPage() {
             {mine.map((e) => (
               <li key={e.id} className="rounded-xl border border-line p-3 text-sm">
                 <p className="flex flex-wrap items-center gap-2">
-                  <span className={e.status === "official" ? "text-emerald-400" : e.status === "rejected" ? "text-quiet" : "text-amber-300"}>
+                  <span className={e.status === "official" ? "text-ok" : e.status === "rejected" ? "text-quiet" : "text-warn"}>
                     {STATUS_LABEL[e.status]}
                   </span>
                   <Link href={`/events/${e.id}`} className="font-medium hover:underline">

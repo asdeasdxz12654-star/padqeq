@@ -308,7 +308,7 @@ function NewTagForm({
         <input value={aliases} onChange={(e) => setAliases(e.target.value)} placeholder="예: Raiden Shogun, 雷電将軍" className={inputClass} />
       </label>
 
-      {error && <p className="text-xs text-red-300">{error}</p>}
+      {error && <p className="text-xs text-danger">{error}</p>}
       <div className="flex gap-2">
         <button
           type="button"

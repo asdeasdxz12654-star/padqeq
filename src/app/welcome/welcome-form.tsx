@@ -19,10 +19,10 @@ const HANDLE_HINT: Record<HandleCheck, { text: string; tone: "quiet" | "ok" | "b
   error: null,
 };
 
-const TONE = { quiet: "text-quiet", ok: "text-emerald-400", bad: "text-red-300" } as const;
+const TONE = { quiet: "text-quiet", ok: "text-ok", bad: "text-danger" } as const;
 
 const inputClass =
-  "min-h-12 rounded-xl border border-line bg-surface px-3 text-base outline-none focus:border-accent aria-[invalid=true]:border-red-400";
+  "min-h-12 rounded-xl border border-line bg-surface px-3 text-base outline-none focus:border-accent aria-[invalid=true]:border-danger-line";
 
 export function WelcomeForm({
   next,
@@ -205,13 +205,13 @@ export function WelcomeForm({
             <dd>탈퇴할 때까지 (법령이 정한 기록은 정한 기간까지)</dd>
           </dl>
         </div>
-        {errors.agree && <p className="text-xs text-red-300">{errors.agree}</p>}
+        {errors.agree && <p className="text-xs text-danger">{errors.agree}</p>}
       </fieldset>
 
       {turnstileSiteKey && <Turnstile siteKey={turnstileSiteKey} resetKey={attempt} />}
 
       {errors.form && (
-        <p role="alert" className="rounded-lg border border-red-400/40 bg-red-400/10 px-3 py-2 text-sm text-red-300">
+        <p role="alert" className="rounded-lg border border-danger-line bg-danger-soft px-3 py-2 text-sm text-danger">
           {errors.form}
         </p>
       )}

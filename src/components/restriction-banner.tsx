@@ -9,12 +9,12 @@ export async function RestrictionBanner() {
   if (!viewer?.restriction) return null;
   const { until, reason } = viewer.restriction;
   return (
-    <div role="status" className="border-b border-red-400/30 bg-red-400/10">
-      <div className="mx-auto max-w-6xl px-4 py-3 text-sm leading-relaxed text-red-100 md:px-6">
+    <div role="status" className="border-b border-danger-line bg-danger-soft">
+      <div className="mx-auto max-w-6xl px-4 py-3 text-sm leading-relaxed text-danger md:px-6">
         <p>
           <span className="font-semibold">{dateFormat.format(new Date(until))}까지 이용이 제한돼요.</span> 사유: {reason}
         </p>
-        <p className="mt-1 text-xs text-red-200/80">
+        <p className="mt-1 text-xs text-danger">
           기간 동안 사진 올리기 · 글 고치기 · 신고 · 컬렉션 만들기를 할 수 없어요. 보기 · 저장 · 소명 · 탈퇴는 할 수 있어요. 이의가
           있으면{" "}
           <a href={`mailto:${OPERATOR.email}`} className="underline underline-offset-2">

@@ -89,7 +89,7 @@ export default async function UploadPage({ searchParams }: PageProps<"/upload">)
         사진은 이 브라우저에서 고화질로 변환한 뒤 올라가요. 원본 파일은 서버에 저장하지 않으니 따로 보관해 주세요.
       </p>
       {quota && (
-        <p className={`mt-1 text-sm ${quota.used >= quota.quota ? "text-red-300" : "text-quiet"}`}>
+        <p className={`mt-1 text-sm ${quota.used >= quota.quota ? "text-danger" : "text-quiet"}`}>
           이번 달 {quota.used.toLocaleString("ko-KR")} / {quota.quota.toLocaleString("ko-KR")}장 올렸어요. 매달 1일에 다시 세요.
         </p>
       )}

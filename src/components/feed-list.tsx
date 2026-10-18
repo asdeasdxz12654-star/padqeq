@@ -5,6 +5,7 @@ import { loadMoreFeed } from "@/app/feed-actions";
 import type { FeedItem, FeedPage } from "@/lib/posts/feed";
 import type { FeedScope } from "@/lib/posts/feed-scope";
 import { foldRuns } from "@/lib/posts/fold-runs";
+import { ImmersiveFeed } from "./immersive-feed";
 import { PhotoFeed } from "./photo-feed";
 
 /**
@@ -62,6 +63,7 @@ export function FeedList({
 
   return (
     <>
+      <ImmersiveFeed items={folded?.visible ?? items} onNearEnd={more} hasMore={Boolean(next)} />
       <PhotoFeed
         items={folded?.visible ?? items}
         empty={empty}

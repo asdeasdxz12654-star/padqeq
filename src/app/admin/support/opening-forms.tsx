@@ -36,7 +36,7 @@ function useRun() {
 function Message({ message }: { message: { ok: boolean; text: string } | null }) {
   if (!message) return null;
   return (
-    <p role={message.ok ? "status" : "alert"} className={`text-sm ${message.ok ? "text-emerald-400" : "text-red-300"}`}>
+    <p role={message.ok ? "status" : "alert"} className={`text-sm ${message.ok ? "text-ok" : "text-danger"}`}>
       {message.text}
     </p>
   );
@@ -106,7 +106,7 @@ export function InviteCodes({ invites, stage }: { invites: InviteRow[]; stage: U
 
   return (
     <div className="flex flex-col gap-3">
-      {stage !== "invite" && <p className="text-xs text-amber-200">초대 코드는 &lsquo;초대 회원&rsquo; 단계에서만 쓸 수 있어요. 미리 만들어 둘 수는 있어요.</p>}
+      {stage !== "invite" && <p className="text-xs text-warn">초대 코드는 &lsquo;초대 회원&rsquo; 단계에서만 쓸 수 있어요. 미리 만들어 둘 수는 있어요.</p>}
       <form
         className="flex flex-wrap items-end gap-2"
         onSubmit={(e) => {
@@ -157,7 +157,7 @@ export function InviteCodes({ invites, stage }: { invites: InviteRow[]; stage: U
                   {i.note && ` · ${i.note}`}
                 </span>
                 {!dead && (
-                  <button type="button" disabled={pending} onClick={() => run(() => revokeInvite(i.code), "코드를 막았어요.")} className="ml-auto text-xs text-red-300 underline">
+                  <button type="button" disabled={pending} onClick={() => run(() => revokeInvite(i.code), "코드를 막았어요.")} className="ml-auto text-xs text-danger underline">
                     막기
                   </button>
                 )}

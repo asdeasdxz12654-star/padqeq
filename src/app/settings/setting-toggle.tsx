@@ -33,7 +33,7 @@ export function SettingToggle({ kind, initial, title, help }: { kind: keyof type
       <span>
         {title}
         <span className="block text-xs text-quiet">{help}</span>
-        {error && <span className="block text-xs text-red-300">{error}</span>}
+        {error && <span className="block text-xs text-danger">{error}</span>}
       </span>
     </label>
   );

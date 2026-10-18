@@ -132,12 +132,12 @@ export function EventForm({
         </label>
       )}
       {error && (
-        <p role="alert" className="text-sm text-red-300">
+        <p role="alert" className="text-sm text-danger">
           {error}
         </p>
       )}
       {done && doneMessage && (
-        <p role="status" className="text-sm text-emerald-400">
+        <p role="status" className="text-sm text-ok">
           {doneMessage}
         </p>
       )}

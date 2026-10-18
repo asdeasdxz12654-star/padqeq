@@ -81,7 +81,7 @@ export function LikeButton({ postId, initial, count, loginHref }: { postId: stri
         {heart}
         좋아요{likes > 0 && <span className="tabular-nums"> {likes}</span>}
       </button>
-      {error && <span className="text-xs text-red-300">{error}</span>}
+      {error && <span className="text-xs text-danger">{error}</span>}
     </span>
   );
 }

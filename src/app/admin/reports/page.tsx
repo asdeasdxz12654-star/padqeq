@@ -232,14 +232,14 @@ export default async function AdminReportsPage({ searchParams }: PageProps<"/adm
                       className="flex flex-col gap-1 rounded-xl border border-line p-3 hover:border-quiet aria-[current=true]:border-accent"
                     >
                       <span className="flex items-center gap-2 text-xs">
-                        <span className={`rounded-full px-2 py-0.5 font-semibold ${status.urgent ? "bg-red-500/20 text-red-300" : "bg-slot text-quiet"}`}>
+                        <span className={`rounded-full px-2 py-0.5 font-semibold ${status.urgent ? "bg-danger-soft text-danger" : "bg-slot text-quiet"}`}>
                           {status.urgent ? "최우선" : "일반"}
                         </span>
                         <span className="text-quiet">{REASON_LABEL[reports[0]!.reason].title}</span>
-                        {post.held_at && <span className="text-amber-300">임시 비공개</span>}
+                        {post.held_at && <span className="text-warn">임시 비공개</span>}
                       </span>
                       <span className="truncate font-medium">{post.title}</span>
-                      <span className={`text-xs ${status.overdue ? "font-semibold text-red-300" : "text-quiet"}`}>
+                      <span className={`text-xs ${status.overdue ? "font-semibold text-danger" : "text-quiet"}`}>
                         신고 {reports.length}건 · 접수 {Math.floor(status.elapsedHours)}시간 경과 · 목표 {status.targetHours}시간
                       </span>
                     </Link>
@@ -327,7 +327,7 @@ export default async function AdminReportsPage({ searchParams }: PageProps<"/adm
                       aria-current={selectedAppeal?.id === a.id ? "true" : undefined}
                       className="flex flex-col gap-1 rounded-xl border border-line p-3 hover:border-quiet aria-[current=true]:border-accent"
                     >
-                      <span className="text-xs text-amber-300">{a.post?.removed_at ? "게시 중단" : "임시 비공개"}</span>
+                      <span className="text-xs text-warn">{a.post?.removed_at ? "게시 중단" : "임시 비공개"}</span>
                       <span className="truncate font-medium">{a.post?.title}</span>
                       <span className="text-xs text-quiet">
                         @{a.post?.author?.handle ?? "?"} · 접수 {timeFormat.format(new Date(a.created_at))}
@@ -351,7 +351,7 @@ export default async function AdminReportsPage({ searchParams }: PageProps<"/adm
           {done.length === 0 && <p className="text-sm text-quiet">처리한 신고가 아직 없어요.</p>}
           {done.map((r) => (
             <li key={r.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-xl border border-line p-3 text-sm">
-              <span className={r.status === "dismissed" ? "text-quiet" : "text-emerald-400"}>{r.status === "dismissed" ? "기각" : "조치"}</span>
+              <span className={r.status === "dismissed" ? "text-quiet" : "text-ok"}>{r.status === "dismissed" ? "기각" : "조치"}</span>
               <span className="font-medium">{r.post?.title}</span>
               <span className="text-quiet">{REASON_LABEL[r.reason].title}</span>
               <span className="text-xs text-quiet">처리 {r.resolved_at ? timeFormat.format(new Date(r.resolved_at)) : "-"}</span>
@@ -539,7 +539,7 @@ async function ReportDetail({ group }: { group: { post: NonNullable<ReportRow["p
                 const s = statsOf(r.reporter?.id);
                 if (!s) return null;
                 return (
-                  <p className={`text-xs ${s.unreliable ? "text-amber-300" : "text-quiet"}`}>
+                  <p className={`text-xs ${s.unreliable ? "text-warn" : "text-quiet"}`}>
                     신고 이력 {s.total}건 · 조치 {s.actioned} · 기각 {s.dismissed}
                     {s.unreliable && " · 기각이 많아 자동 임시 비공개 인원에 세지 않아요"}
                   </p>
@@ -598,7 +598,7 @@ function CommentReports({ groups }: { groups: { comment: NonNullable<CommentRepo
       {groups.map(({ comment, reports }) => (
         <li key={comment.id} className="flex flex-col gap-3 rounded-xl border border-line p-4 text-sm">
           <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-quiet">
-            {comment.hidden_at && <span className="text-amber-300">자동으로 가려짐</span>}
+            {comment.hidden_at && <span className="text-warn">자동으로 가려짐</span>}
             {comment.author && (
               <Link href={`/admin/members/${comment.author.id}`} className="hover:underline">
                 @{comment.author.handle} · 회원 관리
@@ -654,7 +654,7 @@ function BoardReports({ groups }: { groups: { post: BoardReportRow["post"]; repl
           <li key={reply?.id ?? post.id} className="flex flex-col gap-3 rounded-xl border border-line p-4 text-sm">
             <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-quiet">
               <span>{reply ? "답글" : "글"}</span>
-              {target.hidden_at && <span className="text-amber-300">자동으로 가려짐</span>}
+              {target.hidden_at && <span className="text-warn">자동으로 가려짐</span>}
               {target.author && (
                 <Link href={`/admin/members/${target.author.id}`} className="hover:underline">
                   @{target.author.handle} · 회원 관리

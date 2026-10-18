@@ -55,7 +55,7 @@ export function CommentDecisionForm({ commentId }: { commentId: string }) {
         placeholder="처리 사유 (필수 · 내부 기록)"
         className="min-h-11 rounded-xl border border-line bg-bg px-3 text-base"
       />
-      {error && <p role="alert" className="text-sm text-red-300">{error}</p>}
+      {error && <p role="alert" className="text-sm text-danger">{error}</p>}
       <button type="submit" disabled={!decision || !note.trim() || pending} className="min-h-11 self-start rounded-xl bg-accent px-5 font-semibold text-on-accent disabled:opacity-50">
         {pending ? "처리 중…" : "처리 완료"}
       </button>

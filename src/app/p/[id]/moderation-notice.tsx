@@ -28,33 +28,33 @@ export async function ModerationNotice({ postId, removed, actionAt }: { postId: 
   return (
     <section
       aria-labelledby="moderation-heading"
-      className="mx-4 mb-4 flex flex-col gap-3 rounded-xl border border-amber-400/40 bg-amber-400/10 p-4 text-sm md:mx-0"
+      className="mx-4 mb-4 flex flex-col gap-3 rounded-xl border border-warn-line bg-warn-soft p-4 text-sm md:mx-0"
     >
-      <h2 id="moderation-heading" className="font-semibold text-amber-200">
+      <h2 id="moderation-heading" className="font-semibold text-warn">
         {removed ? "운영 정책에 따라 게시가 중단된 글이에요" : "신고로 임시 비공개 중이에요"}
       </h2>
-      <p className="leading-relaxed text-amber-100/90">
+      <p className="leading-relaxed text-warn">
         {removed
           ? "다른 사람에게는 보이지 않고, 직접 다시 게시할 수 없어요. 문제가 없다고 생각하시면 소명해 주세요."
           : "운영자가 확인할 때까지 다른 사람에게는 보이지 않아요. 촬영 동의를 받았거나 권리에 문제가 없다면 소명해 주세요."}
       </p>
 
       {open ? (
-        <p className="rounded-lg bg-bg/40 px-3 py-2 text-amber-100/90">
+        <p className="rounded-lg bg-bg/40 px-3 py-2 text-warn">
           {timeFormat.format(new Date(open.created_at))}에 보낸 소명을 검토하고 있어요. 결과는 알림으로 알려 드릴게요.
         </p>
       ) : (
         <>
           {lastRejected && (
-            <p className="rounded-lg bg-bg/40 px-3 py-2 text-amber-100/90">
+            <p className="rounded-lg bg-bg/40 px-3 py-2 text-warn">
               {lastRejected.resolved_at ? `${timeFormat.format(new Date(lastRejected.resolved_at))}에 ` : ""}
               검토한 결과 조치를 유지하기로 했어요.
             </p>
           )}
           {usedForThisAction ? (
-            <p className="text-amber-100/90">이 조치에는 이미 소명했어요. 다른 의견이 있으면 1:1 문의로 알려 주세요.</p>
+            <p className="text-warn">이 조치에는 이미 소명했어요. 다른 의견이 있으면 1:1 문의로 알려 주세요.</p>
           ) : expired ? (
-            <p className="text-amber-100/90">조치 후 {APPEAL_DAYS}일이 지나 소명 기간이 끝났어요. 1:1 문의로 알려 주세요.</p>
+            <p className="text-warn">조치 후 {APPEAL_DAYS}일이 지나 소명 기간이 끝났어요. 1:1 문의로 알려 주세요.</p>
           ) : (
             <AppealForm postId={postId} deadline={dayFormat.format(deadline)} />
           )}

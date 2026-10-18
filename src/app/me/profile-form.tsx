@@ -57,7 +57,7 @@ export function ProfileForm({ displayName, bio, links }: { displayName: string; 
         ))}
       </fieldset>
       {message && (
-        <p role="status" className={`text-sm ${message.ok ? "text-emerald-400" : "text-red-300"}`}>
+        <p role="status" className={`text-sm ${message.ok ? "text-ok" : "text-danger"}`}>
           {message.text}
         </p>
       )}

@@ -79,7 +79,7 @@ export function LocationForm({ tagId, tagName, current }: { tagId: string; tagNa
           </button>
         </div>
         {searchError && (
-          <p role="alert" className="text-sm text-red-300">
+          <p role="alert" className="text-sm text-danger">
             {searchError}
           </p>
         )}
@@ -149,7 +149,7 @@ export function LocationForm({ tagId, tagName, current }: { tagId: string; tagNa
         </button>
       </div>
       {error && (
-        <p role="alert" className="text-sm text-red-300">
+        <p role="alert" className="text-sm text-danger">
           {error}
         </p>
       )}

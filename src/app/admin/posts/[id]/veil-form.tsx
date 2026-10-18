@@ -72,7 +72,7 @@ export function VeilForm({ postId, current, byStaff }: { postId: string; current
         </div>
       )}
       {error && (
-        <p role="alert" className="text-sm text-red-300">
+        <p role="alert" className="text-sm text-danger">
           {error}
         </p>
       )}

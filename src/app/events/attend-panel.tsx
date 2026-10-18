@@ -72,12 +72,12 @@ export function AttendPanel({
         </form>
       )}
       {saved && (
-        <p role="status" className="text-xs text-emerald-400">
+        <p role="status" className="text-xs text-ok">
           저장했어요.
         </p>
       )}
       {error && (
-        <p role="alert" className="text-xs text-red-300">
+        <p role="alert" className="text-xs text-danger">
           {error}
         </p>
       )}

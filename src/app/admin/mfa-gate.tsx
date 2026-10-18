@@ -54,7 +54,7 @@ export function MfaGate() {
       <h1 className="text-2xl font-bold">운영자 2단계 인증</h1>
       {state.step === "loading" && <p className="text-sm text-quiet">확인하는 중…</p>}
       {state.step === "error" && (
-        <p role="alert" className="text-sm text-red-300">
+        <p role="alert" className="text-sm text-danger">
           {state.message}
         </p>
       )}
@@ -93,7 +93,7 @@ export function MfaGate() {
             />
           </label>
           {error && (
-            <p role="alert" className="text-sm text-red-300">
+            <p role="alert" className="text-sm text-danger">
               {error}
             </p>
           )}

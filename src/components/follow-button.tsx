@@ -34,7 +34,7 @@ export function FollowButton({ target, initial }: { target: FollowTarget; initia
         {following ? "팔로우 중" : "팔로우"}
       </button>
       {error && (
-        <p role="alert" className="text-xs text-red-300">
+        <p role="alert" className="text-xs text-danger">
           {error}
         </p>
       )}

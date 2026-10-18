@@ -53,7 +53,7 @@ export function SaveButton({ postId, initial }: { postId: string; initial: boole
         {saved ? "저장됨" : "저장"}
       </button>
       {error && (
-        <p role="alert" className="text-xs text-red-300">
+        <p role="alert" className="text-xs text-danger">
           {error}
         </p>
       )}

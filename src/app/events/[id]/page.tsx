@@ -74,7 +74,7 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
       </Link>
 
       {!official && (
-        <p className="mt-4 rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
+        <p className="mt-4 rounded-xl border border-warn-line bg-warn-soft px-4 py-3 text-sm text-warn">
           {event.status === "proposed" ? "검토 중인 제안이에요. 운영자가 승인하면 모두에게 보여요." : `등록하지 않은 제안이에요.${event.review_note ? ` 사유: ${event.review_note}` : ""}`}
         </p>
       )}

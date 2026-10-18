@@ -49,7 +49,7 @@ export function AppealForm({ postId, deadline }: { postId: string; deadline: str
       }}
     >
       <label className="flex flex-col gap-1.5">
-        <span className="text-amber-100/90">
+        <span className="text-warn">
           소명 내용 <span className="text-xs">(10~1,000자 · 이 조치에 한 번 · {deadline}까지)</span>
         </span>
         <textarea
@@ -61,7 +61,7 @@ export function AppealForm({ postId, deadline }: { postId: string; deadline: str
           className="rounded-xl border border-line bg-bg px-3 py-2 text-base text-text"
         />
       </label>
-      <label className="flex flex-col gap-1.5 text-amber-100/90">
+      <label className="flex flex-col gap-1.5 text-warn">
         <span>
           증빙 <span className="text-xs">(선택 · 동의서 · 촬영 당시 대화 등 사진 {MAX_APPEAL_FILES}장까지 · 운영자만 보고 처리 90일 뒤 지워져요)</span>
         </span>
@@ -81,13 +81,13 @@ export function AppealForm({ postId, deadline }: { postId: string; deadline: str
           className="text-sm text-text file:mr-3 file:min-h-11 file:rounded-xl file:border file:border-line file:bg-bg file:px-3 file:text-text"
         />
         {fileError && (
-          <span role="alert" className="text-xs text-red-300">
+          <span role="alert" className="text-xs text-danger">
             {fileError}
           </span>
         )}
       </label>
       {error && (
-        <p role="alert" className="text-red-300">
+        <p role="alert" className="text-danger">
           {error}
         </p>
       )}

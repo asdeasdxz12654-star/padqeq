@@ -64,12 +64,12 @@ export function InquiryForm({ errorRef }: { errorRef: string | null }) {
       </label>
       {errorRef && <p className="text-xs text-quiet">오류 번호 {errorRef}가 함께 전달돼요.</p>}
       {error && (
-        <p role="alert" className="text-sm text-red-300">
+        <p role="alert" className="text-sm text-danger">
           {error}
         </p>
       )}
       {sent && (
-        <p role="status" className="text-sm text-emerald-400">
+        <p role="status" className="text-sm text-ok">
           문의를 남겼어요. 답변이 달리면 알려 드릴게요.
         </p>
       )}

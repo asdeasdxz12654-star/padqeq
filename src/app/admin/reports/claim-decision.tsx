@@ -25,7 +25,7 @@ export function ClaimDecision({ claimId }: { claimId: string }) {
         거절
       </button>
       {error && (
-        <p role="alert" className="text-sm text-red-300">
+        <p role="alert" className="text-sm text-danger">
           {error}
         </p>
       )}

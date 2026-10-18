@@ -31,7 +31,7 @@ export function HidePostButton({ postId }: { postId: string }) {
       >
         {pending ? "숨기는 중…" : "게시 중단 (숨기기)"}
       </button>
-      {error && <p className="text-xs text-red-300">{error}</p>}
+      {error && <p className="text-xs text-danger">{error}</p>}
     </div>
   );
 }

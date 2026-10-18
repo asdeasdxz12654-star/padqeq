@@ -88,7 +88,7 @@ export function PostsTable({ rows, trash, categoryLabel }: { rows: AdminPostRow[
             {actions.map((a) => (
               <label
                 key={a}
-                className={`cursor-pointer rounded-full border px-3 py-1.5 text-sm has-checked:border-text has-checked:bg-text has-checked:text-bg ${BULK_LABEL[a].danger ? "border-red-400/60 text-red-300" : "border-line"}`}
+                className={`cursor-pointer rounded-full border px-3 py-1.5 text-sm has-checked:border-text has-checked:bg-text has-checked:text-bg ${BULK_LABEL[a].danger ? "border-danger-line text-danger" : "border-line"}`}
               >
                 <input type="radio" name="bulk-action" checked={action === a} onChange={() => setAction(a)} className="sr-only" />
                 {BULK_LABEL[a].label}
@@ -109,7 +109,7 @@ export function PostsTable({ rows, trash, categoryLabel }: { rows: AdminPostRow[
                   <span>
                     확인 문구 <span className="text-xs text-quiet">&lsquo;{PURGE_CONFIRM}&rsquo; 입력</span>
                   </span>
-                  <input value={confirm} onChange={(e) => setConfirm(e.target.value)} className="min-h-11 rounded-xl border border-red-400/60 bg-bg px-3 text-base" />
+                  <input value={confirm} onChange={(e) => setConfirm(e.target.value)} className="min-h-11 rounded-xl border border-danger-line bg-bg px-3 text-base" />
                 </label>
               )}
               <button
@@ -125,7 +125,7 @@ export function PostsTable({ rows, trash, categoryLabel }: { rows: AdminPostRow[
         </div>
       )}
       {message && (
-        <p role={message.ok ? "status" : "alert"} className={`text-sm ${message.ok ? "text-quiet" : "text-red-300"}`}>
+        <p role={message.ok ? "status" : "alert"} className={`text-sm ${message.ok ? "text-quiet" : "text-danger"}`}>
           {message.text}
         </p>
       )}
@@ -182,12 +182,12 @@ export function PostsTable({ rows, trash, categoryLabel }: { rows: AdminPostRow[
                   <td className="px-2 py-2 text-quiet">{categoryLabel[r.category] ?? r.category}</td>
                   <td className="px-2 py-2 tabular-nums text-quiet">{r.shot_year}</td>
                   <td className="px-2 py-2">
-                    <span className={state === "게시됨" ? "text-quiet" : "text-amber-300"}>
+                    <span className={state === "게시됨" ? "text-quiet" : "text-warn"}>
                       {state}
                       {state === "예약" && r.scheduled_at ? ` ${dateFormat.format(new Date(r.scheduled_at))}` : ""}
                     </span>
                   </td>
-                  <td className={`px-2 py-2 tabular-nums ${reports ? "font-semibold text-red-300" : "text-quiet"}`}>{reports}</td>
+                  <td className={`px-2 py-2 tabular-nums ${reports ? "font-semibold text-danger" : "text-quiet"}`}>{reports}</td>
                   <td className="px-2 py-2 tabular-nums text-quiet">
                     {trash && r.quarantined_at
                       ? "보존 (격리)"

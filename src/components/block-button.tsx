@@ -39,7 +39,7 @@ export function BlockButton({ userId, handle, initial }: { userId: string; handl
       >
         {blocked ? "차단 풀기" : "차단"}
       </button>
-      {error && <span className="text-xs text-red-300">{error}</span>}
+      {error && <span className="text-xs text-danger">{error}</span>}
     </span>
   );
 }

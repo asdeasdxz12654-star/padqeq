@@ -78,7 +78,7 @@ export function WatermarkCheck({ postId }: { postId: string }) {
         {message && <p className="text-xs text-quiet">{message}</p>}
         {rows && best && (
           <div className="flex flex-col gap-1.5">
-            <p className={best.score >= MATCH_THRESHOLD ? "font-semibold text-emerald-400" : "text-quiet"}>
+            <p className={best.score >= MATCH_THRESHOLD ? "font-semibold text-ok" : "text-quiet"}>
               {best.score >= MATCH_THRESHOLD
                 ? `${best.position + 1}번째 사진과 일치해요 (강도 ${best.score.toFixed(1)})`
                 : "이 게시물의 워터마크를 찾지 못했어요."}

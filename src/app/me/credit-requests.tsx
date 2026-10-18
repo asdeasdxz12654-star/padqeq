@@ -58,7 +58,7 @@ export function CreditRequests({ requests }: { requests: CreditRequest[] }) {
           </li>
         ))}
       </ul>
-      {error && <p className="mt-2 text-sm text-red-300">{error}</p>}
+      {error && <p className="mt-2 text-sm text-danger">{error}</p>}
     </section>
   );
 }

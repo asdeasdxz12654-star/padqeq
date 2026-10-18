@@ -72,13 +72,13 @@ export function EventAdminEditor({
               router.refresh();
             });
           }}
-          className="min-h-11 self-start rounded-xl border border-line px-4 text-sm text-red-300"
+          className="min-h-11 self-start rounded-xl border border-line px-4 text-sm text-danger"
         >
           행사 지우기
         </button>
       )}
       {error && (
-        <p role="alert" className="text-sm text-red-300">
+        <p role="alert" className="text-sm text-danger">
           {error}
         </p>
       )}

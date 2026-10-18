@@ -93,13 +93,13 @@ export default async function AdminMemberPage({ params }: PageProps<"/admin/memb
         <div className="flex flex-wrap gap-1.5 text-xs md:ml-auto">
           {member.role !== "member" && <span className="rounded-full border border-line px-2 py-0.5">{ROLE_LABEL[member.role]}</span>}
           <span className="rounded-full border border-line px-2 py-0.5">{member.can_upload ? "업로드 권한 있음" : "업로드 권한 없음"}</span>
-          {suspended && <span className="rounded-full bg-red-500/20 px-2 py-0.5 text-red-300">정지 중</span>}
+          {suspended && <span className="rounded-full bg-danger-soft px-2 py-0.5 text-danger">정지 중</span>}
           {member.deletion_requested_at && <span className="rounded-full border border-line px-2 py-0.5 text-quiet">탈퇴 유예</span>}
         </div>
       </header>
 
       {suspended && (
-        <p className="rounded-xl border border-red-400/40 bg-red-400/10 px-4 py-3 text-sm text-red-100">
+        <p className="rounded-xl border border-danger-line bg-danger-soft px-4 py-3 text-sm text-danger">
           {timeFormat.format(new Date(suspended.suspended_until))}까지 정지 · 회원에게 보이는 사유: {suspended.reason}
         </p>
       )}
@@ -116,7 +116,7 @@ export default async function AdminMemberPage({ params }: PageProps<"/admin/memb
           </>
         )}
         <dt className="text-quiet">한 신고</dt>
-        <dd className={madeReports?.unreliable ? "text-amber-300" : undefined}>
+        <dd className={madeReports?.unreliable ? "text-warn" : undefined}>
           {madeReports
             ? `${madeReports.total}건 · 조치 ${madeReports.actioned} · 기각 ${madeReports.dismissed}${madeReports.unreliable ? " · 신뢰 낮음 (자동 임시 비공개에 세지 않음)" : ""}`
             : "없음"}
@@ -205,7 +205,7 @@ export default async function AdminMemberPage({ params }: PageProps<"/admin/memb
           <ul className="flex flex-col gap-2">
             {received.map((r) => (
               <li key={r.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-xl border border-line p-3 text-sm">
-                <span className={r.status === "open" ? "text-amber-300" : r.status === "actioned" ? "text-emerald-400" : "text-quiet"}>
+                <span className={r.status === "open" ? "text-warn" : r.status === "actioned" ? "text-ok" : "text-quiet"}>
                   {r.status === "open" ? "대기" : r.status === "actioned" ? "조치" : "기각"}
                 </span>
                 {r.post && (
@@ -233,7 +233,7 @@ export default async function AdminMemberPage({ params }: PageProps<"/admin/memb
               <li key={p.id}>
                 <Link href={`/p/${p.id}`} className="flex items-baseline gap-3 px-4 py-2.5 text-sm hover:bg-surface">
                   <span className="min-w-0 flex-1 truncate">{p.title}</span>
-                  <span className={`shrink-0 text-xs ${p.held_at || p.status === "hidden" ? "text-amber-300" : "text-quiet"}`}>
+                  <span className={`shrink-0 text-xs ${p.held_at || p.status === "hidden" ? "text-warn" : "text-quiet"}`}>
                     {p.held_at ? "임시 비공개" : STATUS_LABEL[p.status]}
                   </span>
                   <span className="shrink-0 text-xs text-quiet">{dateFormat.format(new Date(p.created_at))}</span>

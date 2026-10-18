@@ -13,13 +13,13 @@ const primary = "min-h-11 rounded-xl bg-accent px-5 font-semibold text-on-accent
 function Feedback({ error, done }: { error: string | null; done: string | null }) {
   if (error) {
     return (
-      <p role="alert" className="text-sm text-red-300">
+      <p role="alert" className="text-sm text-danger">
         {error}
       </p>
     );
   }
   return done ? (
-    <p role="status" className="text-sm text-emerald-400">
+    <p role="status" className="text-sm text-ok">
       {done}
     </p>
   ) : null;
@@ -171,7 +171,7 @@ function DeleteNoticeButton({ id }: { id: string }) {
           }
         });
       }}
-      className="min-h-11 rounded-xl border border-line px-4 text-sm text-red-300"
+      className="min-h-11 rounded-xl border border-line px-4 text-sm text-danger"
     >
       지우기
     </button>
@@ -210,7 +210,7 @@ export function SwitchesForm({ current }: { current: SiteSwitches }) {
       }}
     >
       {SWITCHES.map(([key, label, help]) => (
-        <label key={key} className="flex cursor-pointer items-start gap-3 rounded-lg border border-line p-3 has-checked:border-amber-400">
+        <label key={key} className="flex cursor-pointer items-start gap-3 rounded-lg border border-line p-3 has-checked:border-warn-line">
           <input
             type="checkbox"
             checked={state[key]}

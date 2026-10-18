@@ -42,7 +42,7 @@ export function CollectPanel({ postId, collections }: { postId: string; collecti
           </label>
         ))}
         {error && (
-          <p role="alert" className="text-xs text-red-300">
+          <p role="alert" className="text-xs text-danger">
             {error}
           </p>
         )}

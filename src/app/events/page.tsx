@@ -144,7 +144,7 @@ export default async function EventsPage({ searchParams }: PageProps<"/events">)
             <thead>
               <tr>
                 {WEEKDAYS.map((d, i) => (
-                  <th key={d} scope="col" className={`py-1 font-medium ${i === 0 ? "text-red-300" : "text-quiet"}`}>
+                  <th key={d} scope="col" className={`py-1 font-medium ${i === 0 ? "text-danger" : "text-quiet"}`}>
                     {d}
                   </th>
                 ))}

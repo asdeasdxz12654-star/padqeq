@@ -96,7 +96,7 @@ export function PushSettings({ publicKey }: { publicKey: string | null }) {
         </button>
       )}
       {error && (
-        <p role="alert" className="text-xs text-red-300">
+        <p role="alert" className="text-xs text-danger">
           {error}
         </p>
       )}

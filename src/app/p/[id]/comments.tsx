@@ -162,7 +162,7 @@ function CommentItem({ comment, ctx, isTop }: { comment: CommentView; ctx: Ctx; 
         </div>
       )}
       {error && (
-        <p role="alert" className="text-xs text-red-300">
+        <p role="alert" className="text-xs text-danger">
           {error}
         </p>
       )}
@@ -228,7 +228,7 @@ function CommentForm({
         className="rounded-xl border border-line bg-bg px-3 py-2 text-base"
       />
       {error && (
-        <p role="alert" className="text-xs text-red-300">
+        <p role="alert" className="text-xs text-danger">
           {error}
         </p>
       )}
@@ -299,7 +299,7 @@ function ReportForm({ commentId, onDone }: { commentId: string; onDone: () => vo
         취소
       </button>
       {error && (
-        <p role="alert" className="w-full text-xs text-red-300">
+        <p role="alert" className="w-full text-xs text-danger">
           {error}
         </p>
       )}

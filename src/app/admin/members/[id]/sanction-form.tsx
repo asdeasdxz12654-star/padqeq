@@ -106,7 +106,7 @@ export function SanctionForm({ memberId, options }: { memberId: string; options:
           className="rounded-xl border border-line bg-bg px-3 py-2 text-base"
         />
       </label>
-      {error && <p role="alert" className="text-sm text-red-300">{error}</p>}
+      {error && <p role="alert" className="text-sm text-danger">{error}</p>}
       {done && <p role="status" className="text-sm text-quiet">{done}</p>}
       <button
         type="submit"

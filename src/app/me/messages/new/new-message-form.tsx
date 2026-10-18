@@ -27,7 +27,7 @@ export function NewMessageForm({ recipient }: { recipient: string }) {
       </label>
       <textarea id="new-message" value={body} onChange={(e) => setBody(e.target.value)} maxLength={2000} rows={5} required className="rounded-xl border border-line bg-bg px-3 py-2 text-base" />
       {error && (
-        <p role="alert" className="text-sm text-red-300">
+        <p role="alert" className="text-sm text-danger">
           {error}
         </p>
       )}

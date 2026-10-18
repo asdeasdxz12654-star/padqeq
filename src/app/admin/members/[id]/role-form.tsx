@@ -75,7 +75,7 @@ export function RoleForm({ memberId, current }: { memberId: string; current: "me
         <p className="text-xs text-quiet">운영 화면은 Cloudflare Access로도 막혀 있어요. 이 회원의 로그인 이메일을 Access 허용 목록에 넣어 주세요.</p>
       )}
       {error && (
-        <p role="alert" className="text-sm text-red-300">
+        <p role="alert" className="text-sm text-danger">
           {error}
         </p>
       )}

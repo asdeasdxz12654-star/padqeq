@@ -129,7 +129,7 @@ export default async function AdminTagsPage({ searchParams }: PageProps<"/admin/
               </Link>
               <span className="flex flex-wrap items-center gap-1.5 text-xs">
                 <span className="rounded-full border border-line px-2 py-0.5">{TAG_KIND_LABEL[t.kind]}</span>
-                {t.status === "pending" && <span className="rounded-full bg-amber-400/20 px-2 py-0.5 text-amber-200">승인 대기</span>}
+                {t.status === "pending" && <span className="rounded-full bg-warn-soft px-2 py-0.5 text-warn">승인 대기</span>}
                 {(t.kind === "place" || t.kind === "event") && (
                   <span className={`rounded-full px-2 py-0.5 ${t.lat === null ? "border border-line text-quiet" : "bg-accent/20"}`}>{t.lat === null ? "위치 없음" : "지도에 있음"}</span>
                 )}

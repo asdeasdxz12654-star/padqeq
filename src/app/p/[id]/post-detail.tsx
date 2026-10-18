@@ -139,7 +139,7 @@ export async function PostDetail({ id }: { id: string }) {
       {isAuthor && (post.removed_at || (post.status === "published" && post.held_at)) ? (
         <ModerationNotice postId={post.id} removed={Boolean(post.removed_at)} actionAt={(post.removed_at ?? post.held_at)!} />
       ) : post.status === "published" && post.held_at ? (
-        <p className="mx-4 mb-4 rounded-lg border border-amber-400/40 bg-amber-400/10 px-3 py-2 text-sm text-amber-200 md:mx-0">
+        <p className="mx-4 mb-4 rounded-lg border border-warn-line bg-warn-soft px-3 py-2 text-sm text-warn md:mx-0">
           신고로 임시 비공개 중이에요. 운영자가 확인할 때까지 다른 사람에게는 보이지 않아요.
         </p>
       ) : null}
@@ -226,7 +226,7 @@ export async function PostDetail({ id }: { id: string }) {
                   <span className="rounded-full border border-line px-2 py-0.5">{VISIBILITY_LABEL[post.visibility].title} 공개</span>
                 )}
                 {post.scheduled_at && Date.parse(post.scheduled_at) > Date.parse(new Date().toISOString()) && (
-                  <span className="rounded-full border border-amber-400/60 px-2 py-0.5 text-amber-200">
+                  <span className="rounded-full border border-warn-line px-2 py-0.5 text-warn">
                     예약 {dateTimeFormat.format(new Date(post.scheduled_at))}
                   </span>
                 )}

@@ -69,7 +69,7 @@ export default async function AdminHomePage() {
       </header>
 
       {switchOn && (
-        <p className="rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
+        <p className="rounded-xl border border-warn-line bg-warn-soft px-4 py-3 text-sm text-warn">
           긴급 스위치가 켜져 있어요 ({[switches.readOnly && "읽기 전용", switches.signupClosed && "가입 중단", switches.uploadsClosed && "업로드 중단"].filter(Boolean).join(" · ")}).{" "}
           <Link href="/admin/support?tab=system" className="underline underline-offset-2">
             스위치 보기
@@ -123,7 +123,7 @@ export default async function AdminHomePage() {
                 <Link href={t.href} className="flex items-center gap-3 rounded-xl border border-line px-4 py-3 text-sm hover:border-quiet">
                   <span
                     className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${
-                      t.level === "긴급" ? "bg-red-500/20 text-red-300" : t.level === "주의" ? "bg-amber-400/20 text-amber-200" : "border border-line text-quiet"
+                      t.level === "긴급" ? "bg-danger-soft text-danger" : t.level === "주의" ? "bg-warn-soft text-warn" : "border border-line text-quiet"
                     }`}
                   >
                     {t.level}
@@ -146,10 +146,10 @@ export default async function AdminHomePage() {
             <li key={k.label}>
               <Link
                 href={k.href ?? "/admin"}
-                className={`flex h-full flex-col gap-1 rounded-xl border p-4 hover:border-quiet ${k.alert ? "border-red-400/70" : "border-line"}`}
+                className={`flex h-full flex-col gap-1 rounded-xl border p-4 hover:border-quiet ${k.alert ? "border-danger-line" : "border-line"}`}
               >
                 <span className="text-xs text-quiet">{k.label}</span>
-                <span className={`text-2xl font-bold tabular-nums ${k.alert ? "text-red-300" : ""}`}>{k.value.toLocaleString("ko-KR")}</span>
+                <span className={`text-2xl font-bold tabular-nums ${k.alert ? "text-danger" : ""}`}>{k.value.toLocaleString("ko-KR")}</span>
               </Link>
             </li>
           ))}
@@ -197,9 +197,9 @@ export default async function AdminHomePage() {
           운영 상태
         </h2>
         <ul className="grid gap-2 sm:grid-cols-3">
-          <li className={`flex flex-col gap-1 rounded-xl border p-4 ${backupNow === "ok" ? "border-line" : backupNow === "unknown" ? "border-line" : "border-red-400/70"}`}>
+          <li className={`flex flex-col gap-1 rounded-xl border p-4 ${backupNow === "ok" ? "border-line" : backupNow === "unknown" ? "border-line" : "border-danger-line"}`}>
             <span className="text-xs text-quiet">DB 백업 (매일 02:00)</span>
-            <span className={`text-xl font-bold ${backupNow === "ok" ? "" : backupNow === "unknown" ? "text-quiet" : "text-red-300"}`}>{BACKUP_LABEL[backupNow]}</span>
+            <span className={`text-xl font-bold ${backupNow === "ok" ? "" : backupNow === "unknown" ? "text-quiet" : "text-danger"}`}>{BACKUP_LABEL[backupNow]}</span>
             <span className="text-xs text-quiet">
               {backup?.latest
                 ? `마지막 ${timeFormat.format(new Date(backup.latest.at))} · ${formatBytes(backup.latest.size)} · ${backup.days}일 치 보관`
@@ -234,7 +234,7 @@ export default async function AdminHomePage() {
               <Link href={c.href} className="flex h-full flex-col gap-1 rounded-xl border border-line p-4 hover:border-quiet">
                 <span className="flex items-center justify-between font-semibold">
                   {c.title}
-                  <span className={`rounded-full px-2 text-sm ${c.count ? "bg-amber-400/20 text-amber-200" : "text-quiet"}`}>{c.count}</span>
+                  <span className={`rounded-full px-2 text-sm ${c.count ? "bg-warn-soft text-warn" : "text-quiet"}`}>{c.count}</span>
                 </span>
                 <span className="text-xs text-quiet">{c.help}</span>
               </Link>

@@ -84,7 +84,7 @@ export function YearShareCard({ year, handle, content }: { year: number; handle:
         </button>
       )}
       {error && (
-        <p role="alert" className="text-sm text-red-300">
+        <p role="alert" className="text-sm text-danger">
           {error}
         </p>
       )}

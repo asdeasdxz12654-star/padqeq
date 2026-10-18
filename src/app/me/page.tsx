@@ -81,7 +81,7 @@ export default async function MePage() {
   return (
     <div className="mx-auto max-w-xl md:max-w-2xl px-4 pt-10 pb-16 md:px-6">
       {full?.deletion_requested_at && (
-        <p className="mb-6 rounded-xl border border-red-400/40 bg-red-400/10 px-4 py-3 text-sm text-red-200">
+        <p className="mb-6 rounded-xl border border-danger-line bg-danger-soft px-4 py-3 text-sm text-danger">
           계정 삭제가 예약돼 있어요. 다른 사람에게는 내 프로필과 게시물이 보이지 않아요.{" "}
           <Link href="/settings" className="font-semibold underline underline-offset-2">
             설정에서 취소
@@ -162,7 +162,7 @@ export default async function MePage() {
           )}
           <Link href="/admin/reports" className="rounded-xl border border-line px-4 py-2 text-sm hover:border-quiet">
             신고 처리
-            {openReports.count ? <span className="ml-2 rounded-full bg-red-500/20 px-2 text-red-300">{openReports.count}</span> : null}
+            {openReports.count ? <span className="ml-2 rounded-full bg-danger-soft px-2 text-danger">{openReports.count}</span> : null}
           </Link>
           <Link href="/admin/members" className="rounded-xl border border-line px-4 py-2 text-sm hover:border-quiet">
             회원 관리
@@ -177,7 +177,7 @@ export default async function MePage() {
               </Link>
               <Link href="/admin/support" className="rounded-xl border border-line px-4 py-2 text-sm hover:border-quiet">
                 고객센터 운영
-                {openInquiries.count ? <span className="ml-2 rounded-full bg-red-500/20 px-2 text-red-300">{openInquiries.count}</span> : null}
+                {openInquiries.count ? <span className="ml-2 rounded-full bg-danger-soft px-2 text-danger">{openInquiries.count}</span> : null}
               </Link>
               <Link href="/admin/audit" className="rounded-xl border border-line px-4 py-2 text-sm hover:border-quiet">
                 감사 로그

@@ -30,7 +30,7 @@ export function AdultConfirm({ reason }: { reason: string }) {
         <input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} required className="min-h-11 rounded-xl border border-line bg-bg px-3 text-base" />
       </label>
       {message && (
-        <p role="alert" className="text-sm text-amber-200">
+        <p role="alert" className="text-sm text-warn">
           {message}
         </p>
       )}

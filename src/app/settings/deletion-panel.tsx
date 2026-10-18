@@ -26,12 +26,12 @@ export function DeletionPanel({ handle, requestedAt }: { handle: string; request
   if (requestedAt) {
     const purgeOn = new Date(Date.parse(requestedAt) + 30 * 86_400_000);
     return (
-      <div className="flex flex-col gap-3 rounded-xl border border-red-400/40 bg-red-400/10 p-4 text-sm">
-        <p className="font-semibold text-red-200">계정 삭제가 예약돼 있어요</p>
-        <p className="leading-relaxed text-red-100/90">
+      <div className="flex flex-col gap-3 rounded-xl border border-danger-line bg-danger-soft p-4 text-sm">
+        <p className="font-semibold text-danger">계정 삭제가 예약돼 있어요</p>
+        <p className="leading-relaxed text-danger">
           {dateFormat.format(purgeOn)} 이후 계정과 게시물이 영구 삭제돼요. 그 전까지 내 프로필과 게시물은 다른 사람에게 보이지 않아요.
         </p>
-        {error && <p className="text-red-300">{error}</p>}
+        {error && <p className="text-danger">{error}</p>}
         <button
           type="button"
           disabled={pending}
@@ -73,14 +73,14 @@ export function DeletionPanel({ handle, requestedAt }: { handle: string; request
           autoComplete="off"
           autoCapitalize="none"
           spellCheck={false}
-          className="min-h-11 rounded-xl border border-line bg-surface px-3 text-base outline-none focus:border-red-400"
+          className="min-h-11 rounded-xl border border-line bg-surface px-3 text-base outline-none focus:border-danger-line"
         />
       </label>
-      {error && <p className="text-red-300">{error}</p>}
+      {error && <p className="text-danger">{error}</p>}
       <button
         type="submit"
         disabled={pending || !matches}
-        className="min-h-11 self-start rounded-xl border border-red-400 px-5 font-semibold text-red-300 disabled:opacity-40"
+        className="min-h-11 self-start rounded-xl border border-danger-line px-5 font-semibold text-danger disabled:opacity-40"
       >
         {pending ? "요청하는 중…" : "계정 삭제 요청"}
       </button>

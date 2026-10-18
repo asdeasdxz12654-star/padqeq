@@ -141,7 +141,7 @@ export function BundleCard({
       <section className="flex items-center gap-3 rounded-2xl border border-line p-4">
         <span className="font-semibold">묶음 {index + 1}</span>
         <span className="truncate text-sm text-quiet">{bundle.title}</span>
-        <span className="ml-auto text-sm text-emerald-400">게시됨</span>
+        <span className="ml-auto text-sm text-ok">게시됨</span>
         <Link href={`/p/${state.postId}`} className="text-sm text-accent underline underline-offset-4">
           보기
         </Link>
@@ -157,7 +157,7 @@ export function BundleCard({
         </h2>
         {!locked && (
           <span
-            className={`rounded-full px-2 py-0.5 text-xs font-bold ${problem ? "bg-amber-400/20 text-amber-200" : "bg-emerald-400/15 text-emerald-400"}`}
+            className={`rounded-full px-2 py-0.5 text-xs font-bold ${problem ? "bg-warn-soft text-warn" : "bg-ok-soft text-ok"}`}
           >
             {problem ? "정보 필요" : "게시 준비됨"}
           </span>
@@ -221,7 +221,7 @@ export function BundleCard({
                 </span>
               )}
               {photo.status === "error" && (
-                <span className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-bg/70 p-1 text-center text-[10px] text-red-300">
+                <span className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-bg/70 p-1 text-center text-[10px] text-danger">
                   {photo.error}
                   {photo.retryable && onRetryPhoto && (
                     <button type="button" onClick={() => onRetryPhoto(photo.id)} className="rounded-full border border-line px-2 py-0.5 text-text">
@@ -352,7 +352,7 @@ export function BundleCard({
                 : "이 묶음 게시"}
         </button>
         {problem && !working && <span className="text-xs text-quiet">{problem}</span>}
-        {state.kind === "error" && <span className="text-xs text-red-300">{state.message}</span>}
+        {state.kind === "error" && <span className="text-xs text-danger">{state.message}</span>}
       </footer>
     </section>
   );
@@ -408,7 +408,7 @@ export function CategoryAndConsent({
         <div className="grid gap-3 rounded-xl border border-line p-3 md:grid-cols-2">
           <p className="text-xs font-semibold md:col-span-2">
             촬영 동의 기록 <span className="font-normal text-quiet">(비공개 · 운영자만 열람)</span>
-            {!isAdmin && <span className="block text-red-300">지금은 운영자만 사람이 나오는 사진을 게시할 수 있어요.</span>}
+            {!isAdmin && <span className="block text-danger">지금은 운영자만 사람이 나오는 사진을 게시할 수 있어요.</span>}
           </p>
           <label className="flex flex-col gap-1 text-sm">
             사진 속 인물

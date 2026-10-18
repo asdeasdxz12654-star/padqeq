@@ -37,7 +37,7 @@ export function InviteForm() {
         />
       </label>
       {error && (
-        <p role="alert" className="text-sm text-red-300">
+        <p role="alert" className="text-sm text-danger">
           {error}
         </p>
       )}

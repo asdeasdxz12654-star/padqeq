@@ -67,7 +67,7 @@ export function PostActions({ id, mine, closed, isCasting, canReport }: { id: st
       </div>
       {reporting && <ReportForm postId={id} replyId={null} onDone={() => setReporting(false)} />}
       {error && (
-        <p role="alert" className="text-xs text-red-300">
+        <p role="alert" className="text-xs text-danger">
           {error}
         </p>
       )}
@@ -115,7 +115,7 @@ function ReportForm({ postId, replyId, onDone }: { postId: string; replyId: stri
       <button type="submit" disabled={pending} className="min-h-10 rounded-xl border border-line px-3 text-sm">
         신고하기
       </button>
-      {error && <p className="w-full text-xs text-red-300">{error}</p>}
+      {error && <p className="w-full text-xs text-danger">{error}</p>}
     </form>
   );
 }
@@ -174,7 +174,7 @@ export function Replies({
             className="rounded-xl border border-line bg-bg px-3 py-2 text-base"
           />
           {error && (
-            <p role="alert" className="text-xs text-red-300">
+            <p role="alert" className="text-xs text-danger">
               {error}
             </p>
           )}
@@ -254,7 +254,7 @@ function ReplyItem({ postId, reply, viewerId, postAuthorId }: { postId: string; 
       )}
       {mode === "report" && <ReportForm postId={postId} replyId={reply.id} onDone={() => setMode("idle")} />}
       {error && (
-        <p role="alert" className="text-xs text-red-300">
+        <p role="alert" className="text-xs text-danger">
           {error}
         </p>
       )}
@@ -313,7 +313,7 @@ export function CastingApply({ postId, recipient }: { postId: string; recipient:
         인사말
         <textarea value={body} onChange={(e) => setBody(e.target.value)} maxLength={2000} rows={3} required className="rounded-xl border border-line bg-bg px-3 py-2 text-base" />
       </label>
-      <div className="rounded-xl border border-amber-400/40 bg-amber-400/10 p-3 text-xs leading-relaxed text-amber-100">
+      <div className="rounded-xl border border-warn-line bg-warn-soft p-3 text-xs leading-relaxed text-warn">
         <ul className="list-disc pl-5">
           {SAFETY_GUIDE.map((g) => (
             <li key={g}>{g}</li>
@@ -325,7 +325,7 @@ export function CastingApply({ postId, recipient }: { postId: string; recipient:
         </label>
       </div>
       {(submitError ?? error) && (
-        <p role="alert" className="text-sm text-red-300">
+        <p role="alert" className="text-sm text-danger">
           {submitError ?? error}
         </p>
       )}

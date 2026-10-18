@@ -61,7 +61,7 @@ export function CollectionForm({
         나만 보기 <span className="text-xs text-quiet">(끄면 내 프로필의 컬렉션에 보여요)</span>
       </label>
       {error && (
-        <p role="alert" className="text-sm text-red-300">
+        <p role="alert" className="text-sm text-danger">
           {error}
         </p>
       )}
