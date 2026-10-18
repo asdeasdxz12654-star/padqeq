@@ -7,6 +7,7 @@ import { ShareButton } from "@/components/share-button";
 import { FollowButton } from "@/components/follow-button";
 import { FeedList } from "@/components/feed-list";
 import { ProtectedPhoto } from "@/components/protected-photo";
+import { YearBook } from "@/components/year-book";
 import { YearShelf } from "@/components/year-shelf";
 import { getViewer } from "@/lib/auth/viewer";
 import { loadCollectionCards } from "@/lib/collections/load";
@@ -42,6 +43,9 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
   if (!profile) notFound();
 
   const year = parseYearParam(query.year);
+  // 한 해를 펼쳤을 때의 달 목차 (연도를 골랐을 때만 뜻이 있다)
+  const monthParam = Number(query.month);
+  const month = year !== null && Number.isInteger(monthParam) && monthParam >= 1 && monthParam <= 12 ? monthParam : null;
   // 탭: 작업물(직접 올린 글) · 크레딧된 작업(남이 올렸고 내가 승인한 글) (S-09 ⑤)
   const tab = query.tab === "credits" ? "credits" : query.tab === "collections" ? "collections" : "works";
   const isMe = viewer?.id === profile.id;
@@ -66,7 +70,8 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
   const cover = featured.find((f) => f.id === profile.cover_post_id)?.cover ?? null;
   const pinned = profile.pinned_post_ids.flatMap((id) => featured.filter((f) => f.id === id));
   // 작업물: 고정 글을 맨 앞에(전체 보기일 때) · 크레딧된 작업: 남이 올린 글만
-  const scope: FeedScope = tab === "credits" ? { kind: "credits", memberId: profile.id } : { kind: "author", authorId: profile.id, year };
+  const scope: FeedScope =
+    tab === "credits" ? { kind: "credits", memberId: profile.id } : { kind: "author", authorId: profile.id, year, month };
   const first = tab === "collections" ? { items: [], next: null } : await loadScopePage(scope);
   const tabClass =
     "inline-flex min-h-10 items-center border-b-2 border-transparent px-1 text-sm aria-[current=page]:border-text aria-[current=page]:font-semibold";
@@ -81,7 +86,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
             supabase.rpc("author_year_counts", { author: profile.id, max_years: 12 }),
             Promise.all(
               years.slice(0, 12).map(async (y) => {
-                const page = await loadScopePage({ kind: "author", authorId: profile.id, year: y });
+                const page = await loadScopePage({ kind: "author", authorId: profile.id, year: y, month: null });
                 return [y, page.items[0] ?? null] as const;
               }),
             ),
@@ -99,6 +104,13 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
             };
           });
         })()
+      : [];
+  // 한 해를 펼쳤으면 달 목차도 받는다 (속표지)
+  const book =
+    tab === "works" && year !== null
+      ? await supabase.rpc("author_year_months", { author: profile.id, target_year: year }).then(({ data }) =>
+          (data ?? []).map((m) => ({ month: m.month, posts: Number(m.posts), photos: Number(m.photos) })),
+        )
       : [];
 
   return (
@@ -230,6 +242,19 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
 
       <h2 className="sr-only">{tab === "works" ? "작업물" : tab === "credits" ? "크레딧된 작업" : "컬렉션"}</h2>
       {tab === "works" && <YearShelf years={shelf.filter((y) => y.count > 0)} selected={year} hrefFor={(y) => (y === null ? base : `${base}?year=${y}`)} />}
+      {/* 책장에서 한 해를 고르면 그 책이 펼쳐진다: 속표지(숫자 · 달 목차) 다음에 그해 사진 */}
+      {tab === "works" && year !== null && shelf.length > 0 && (
+        <YearBook
+          handle={profile.handle}
+          year={year}
+          photos={shelf.find((y) => y.year === year)?.count ?? 0}
+          events={shelf.find((y) => y.year === year)?.events ?? 0}
+          partners={shelf.find((y) => y.year === year)?.partners ?? 0}
+          months={book}
+          selectedMonth={month}
+          hrefFor={(m) => (m === null ? `${base}?year=${year}` : `${base}?year=${year}&month=${m}`)}
+        />
+      )}
       {tab === "collections" ? (
         <div className="pt-4">
           <CollectionCards items={collections} empty={isMe ? "아직 만든 컬렉션이 없어요. 마이 › 내 컬렉션에서 만들 수 있어요." : "공개한 컬렉션이 아직 없어요."} />

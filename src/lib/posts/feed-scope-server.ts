@@ -39,7 +39,8 @@ export async function filterForScope(scope: FeedScope): Promise<FeedFilter | nul
       return { ...NONE, year: scope.year, tagIds: [scope.tagId, ...(data ?? []).map((t) => t.id)] };
     }
     case "author":
-      return { ...NONE, year: scope.year, authorId: scope.authorId };
+      // 달은 연도와 함께일 때만 뜻이 있다 (촬영 날짜가 그해 그 달인 글)
+      return { ...NONE, year: scope.year, authorId: scope.authorId, month: scope.year === null ? null : scope.month };
     case "credits": {
       const ids = await creditedPostIds(scope.memberId);
       return ids.length ? { ...NONE, postIds: ids } : null;

@@ -12,6 +12,8 @@ const MAX_IDS = 200;
 
 export type FeedFilter = {
   year: number | null;
+  /** 촬영 달 (1~12). year와 함께 쓴다 — 한 해를 펼쳐 그 달만 볼 때 */
+  month?: number | null;
   category: Category | null;
   query: SearchQuery | null;
   /** 이 태그 중 하나라도 붙은 글 (태그 허브 · 행사 · 연관 게시물) */
@@ -174,6 +176,12 @@ async function feedQuery(
     .limit(o.max);
   if (f.tagIds) q = q.in("post_tags.tag_id", f.tagIds.slice(0, 1000));
   if (f.year !== null) q = q.eq("shot_year", f.year);
+  if (f.year !== null && f.month) {
+    // 그해 그 달에 찍은 글 (촬영 날짜를 적지 않은 글은 빠진다)
+    const from = `${f.year}-${String(f.month).padStart(2, "0")}-01`;
+    const to = f.month === 12 ? `${f.year + 1}-01-01` : `${f.year}-${String(f.month + 1).padStart(2, "0")}-01`;
+    q = q.gte("shot_on", from).lt("shot_on", to);
+  }
   if (f.category !== null) q = q.eq("category", f.category);
   if (f.authorId) q = q.eq("author_id", f.authorId);
   if (f.authorIds) q = q.in("author_id", f.authorIds);

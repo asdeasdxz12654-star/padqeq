@@ -31,8 +31,8 @@ export const feedScopeSchema = z.discriminatedUnion("kind", [
   }),
   /** 태그 허브 (작품이면 캐릭터 사진도) */
   z.object({ kind: z.literal("tag"), tagId: z.uuid(), year }),
-  /** 프로필 작업물 */
-  z.object({ kind: z.literal("author"), authorId: z.uuid(), year }),
+  /** 프로필 작업물. month는 한 해를 펼쳐 달 목차에서 고른 달 (연도가 있을 때만 쓴다) */
+  z.object({ kind: z.literal("author"), authorId: z.uuid(), year, month: z.int().min(1).max(12).nullable().default(null) }),
   /** 프로필 크레딧된 작업 (남이 올렸고 승인된 글) */
   z.object({ kind: z.literal("credits"), memberId: z.uuid() }),
 ]);

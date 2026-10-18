@@ -2339,6 +2339,14 @@ export type Database = {
           shot_year: number
         }[]
       }
+      author_year_months: {
+        Args: { author: string; target_year: number }
+        Returns: {
+          month: number
+          photos: number
+          posts: number
+        }[]
+      }
     }
     Enums: {
       appeal_status: "open" | "accepted" | "rejected"
