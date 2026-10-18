@@ -6,7 +6,8 @@ import { ProtectedPhoto } from "./protected-photo";
 // 연도 손글씨 (책장에서만 받는다)
 const pen = Nanum_Pen_Script({ weight: "400", preload: false, display: "swap" });
 
-export type ShelfYear = { year: number; count: number; more: boolean; cover: FeedItem | null };
+/** count는 그해 사진 장수. 행사 · 함께한 사람은 표지에만 쓴다 (author_year_counts) */
+export type ShelfYear = { year: number; count: number; events: number; partners: number; cover: FeedItem | null };
 
 // 책등 색은 그해 표지 사진의 대표 색(photos.color)을 쓴다. 아직 색을 못 구한 해만 차분한 색을 차례로.
 const SPINES = ["#d9d4ca", "#c9d3dc", "#d3dccb", "#e2d3cf", "#d8d0e0", "#e4dccb"];
@@ -41,7 +42,7 @@ export function YearShelf({ years, selected, hrefFor }: { years: ShelfYear[]; se
           prefetch={false}
           href={hrefFor(selected === latest!.year ? null : latest!.year)}
           aria-current={selected === latest!.year ? "page" : undefined}
-          aria-label={`${latest!.year}년 · 사진 ${latest!.count}${latest!.more ? "장 이상" : "장"}`}
+          aria-label={`${latest!.year}년 · 사진 ${latest!.count}장${latest!.events > 0 ? ` · 행사 ${latest!.events}개` : ""}${latest!.partners > 0 ? ` · 함께한 사람 ${latest!.partners}명` : ""}`}
           className="flex w-36 shrink-0 flex-col border border-line bg-bg p-2 pb-3 shadow-[3px_3px_0_var(--line)] aria-[current=page]:outline-2 aria-[current=page]:outline-accent md:w-44"
         >
           <span className="block aspect-[4/5] overflow-hidden bg-slot [&_picture]:h-full">
@@ -57,9 +58,11 @@ export function YearShelf({ years, selected, hrefFor }: { years: ShelfYear[]; se
             )}
           </span>
           <span className={`${pen.className} mt-2 text-3xl leading-none`}>{latest!.year}</span>
+          {/* 표지에만 그해를 요약한다 (시안 23: 사진 184 · 행사 6 · 함께한 사람 9) */}
           <span className="text-xs text-quiet">
-            사진 {latest!.count}
-            {latest!.more ? "+" : ""}
+            {[`사진 ${latest!.count}`, latest!.events > 0 && `행사 ${latest!.events}`, latest!.partners > 0 && `함께한 사람 ${latest!.partners}`]
+              .filter(Boolean)
+              .join(" · ")}
           </span>
         </Link>
         {rest.map((y, i) => (
@@ -68,7 +71,7 @@ export function YearShelf({ years, selected, hrefFor }: { years: ShelfYear[]; se
             prefetch={false}
             href={hrefFor(selected === y.year ? null : y.year)}
             aria-current={selected === y.year ? "page" : undefined}
-            aria-label={`${y.year}년 · 사진 ${y.count}${y.more ? "장 이상" : "장"}`}
+            aria-label={`${y.year}년 · 사진 ${y.count}장`}
             style={{
               background: spineColor(y, i),
               color: inkOn(spineColor(y, i)),
@@ -77,10 +80,7 @@ export function YearShelf({ years, selected, hrefFor }: { years: ShelfYear[]; se
             className="flex h-56 shrink-0 flex-col items-center justify-between border border-black/10 py-3 aria-[current=page]:outline-2 aria-[current=page]:outline-accent md:h-64"
           >
             <span className={`${pen.className} text-3xl leading-none [writing-mode:vertical-rl]`}>{y.year}</span>
-            <span className="text-[11px] [writing-mode:vertical-rl]">
-              {y.count}
-              {y.more ? "+" : ""}장
-            </span>
+            <span className="text-[11px] [writing-mode:vertical-rl]">{y.count}장</span>
             {/* 해담의 해. 책등이 붉은 해에도 묻히지 않게 글자색으로 테두리를 두른다 */}
             <span aria-hidden="true" className="size-2.5 rounded-full bg-sun outline outline-1 outline-current" />
           </Link>

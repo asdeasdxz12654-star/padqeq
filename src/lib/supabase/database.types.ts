@@ -2330,6 +2330,15 @@ export type Database = {
           year: number
         }[]
       }
+      author_year_counts: {
+        Args: { author: string; max_years?: number }
+        Returns: {
+          events: number
+          partners: number
+          photos: number
+          shot_year: number
+        }[]
+      }
     }
     Enums: {
       appeal_status: "open" | "accepted" | "rejected"

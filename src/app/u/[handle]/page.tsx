@@ -72,15 +72,33 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
     "inline-flex min-h-10 items-center border-b-2 border-transparent px-1 text-sm aria-[current=page]:border-text aria-[current=page]:font-semibold";
   // 이 회원이 사진을 올린 촬영 연도만 (S-09 ⑥)
   const years = profile.years.toSorted((a, b) => b - a);
-  // 연도 책장: 해마다 표지 한 장 · 장수 (최근 12년까지)
+  // 연도 책장: 해마다 표지 한 장 · 사진 · 행사 · 함께한 사람 (최근 12년까지)
+  // 숫자는 DB가 한 번에 세어 준다 (author_year_counts). 표지 사진만 해마다 따로 받는다.
   const shelf =
     tab === "works"
-      ? await Promise.all(
-          years.slice(0, 12).map(async (y) => {
-            const page = await loadScopePage({ kind: "author", authorId: profile.id, year: y });
-            return { year: y, count: page.items.length, more: page.next !== null, cover: page.items[0] ?? null };
-          }),
-        )
+      ? await (async () => {
+          const [{ data: stats }, covers] = await Promise.all([
+            supabase.rpc("author_year_counts", { author: profile.id, max_years: 12 }),
+            Promise.all(
+              years.slice(0, 12).map(async (y) => {
+                const page = await loadScopePage({ kind: "author", authorId: profile.id, year: y });
+                return [y, page.items[0] ?? null] as const;
+              }),
+            ),
+          ]);
+          const byYear = new Map((stats ?? []).map((s) => [s.shot_year, s]));
+          const cover = new Map(covers);
+          return years.slice(0, 12).map((y) => {
+            const s = byYear.get(y);
+            return {
+              year: y,
+              count: Number(s?.photos ?? 0),
+              events: Number(s?.events ?? 0),
+              partners: Number(s?.partners ?? 0),
+              cover: cover.get(y) ?? null,
+            };
+          });
+        })()
       : [];
 
   return (
