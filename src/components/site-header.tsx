@@ -60,19 +60,14 @@ export async function SiteHeader() {
               )}
               {viewer?.profile && <NotificationBell unread={unread} />}
               {viewer?.profile ? (
-                // PC에는 하단 탭이 없어 '마이'를 여기 둔다. @핸들은 남들이 보는 내 페이지로 (핸들 본래 뜻)
-                <>
-                  <Link prefetch={false} href="/me" className="hidden min-h-11 items-center text-quiet hover:text-text md:flex">
-                    마이
-                  </Link>
-                  <Link
-                    prefetch={false}
-                    href={profileHref(viewer.profile.handle)}
-                    className="hidden min-h-11 max-w-32 items-center truncate text-quiet hover:text-text lg:flex"
-                  >
-                    @{viewer.profile.handle}
-                  </Link>
-                </>
+                // 내 공개 프로필 (핸들이 곧 그 페이지의 주소다). 마이는 그 화면의 '마이' 버튼으로 간다
+                <Link
+                  prefetch={false}
+                  href={profileHref(viewer.profile.handle)}
+                  className="hidden min-h-11 max-w-40 items-center truncate text-quiet hover:text-text md:flex"
+                >
+                  @{viewer.profile.handle}
+                </Link>
               ) : (
                 <Link prefetch={false} href="/login" className="flex min-h-11 items-center px-1 text-quiet hover:text-text">
                   로그인

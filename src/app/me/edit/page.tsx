@@ -3,7 +3,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { withNext } from "@/lib/auth/next-path";
 import { getViewer } from "@/lib/auth/viewer";
+import { loadScopePage } from "@/lib/posts/feed-scope-server";
 import { createClient } from "@/lib/supabase/server";
+import { CoverPicker } from "./cover-picker";
 import { ProfileForm } from "../profile-form";
 
 export const metadata: Metadata = { title: "프로필 고치기", robots: { index: false } };
@@ -16,20 +18,36 @@ export default async function ProfileEditPage() {
   const { profile } = viewer;
 
   const supabase = await createClient();
-  const { data: full } = await supabase.from("profiles").select("bio, links").eq("id", viewer.id).single();
+  const [{ data: full }, recent] = await Promise.all([
+    supabase.from("profiles").select("bio, links, cover_post_id").eq("id", viewer.id).single(),
+    // 커버로 고를 수 있는 내 사진 (최근 것부터)
+    loadScopePage({ kind: "author", authorId: viewer.id, year: null, month: null }),
+  ]);
 
   return (
-    <div className="mx-auto max-w-xl px-4 pt-10 pb-16 md:px-6">
+    <div className="mx-auto max-w-2xl px-4 pt-10 pb-16 md:px-6">
       <header className="flex flex-col gap-4">
         <Link href="/me" className="text-sm text-quiet hover:text-text">
           ‹ 마이
         </Link>
         <h1 className="text-2xl font-bold">프로필 고치기</h1>
       </header>
-      <div className="mt-6">
+
+      <section aria-labelledby="cover-heading" className="mt-8 border-t border-line pt-8">
+        <h2 id="cover-heading" className="text-lg font-semibold">
+          커버 사진
+        </h2>
+        <p className="mt-1 mb-3 text-sm text-quiet">프로필 맨 위에 넓게 걸리는 사진이에요.</p>
+        <CoverPicker posts={recent.items} initial={full?.cover_post_id ?? null} />
+      </section>
+
+      <section aria-labelledby="info-heading" className="mt-8 border-t border-line pt-8">
+        <h2 id="info-heading" className="mb-4 text-lg font-semibold">
+          이름 · 소개 · 링크
+        </h2>
         <ProfileForm displayName={profile.display_name} bio={full?.bio ?? ""} links={full?.links ?? []} />
-      </div>
-      <p className="mt-3 text-xs text-quiet">핸들(@{profile.handle})은 크레딧 태그의 기준이라 바꿀 수 없어요.</p>
+        <p className="mt-3 text-xs text-quiet">핸들(@{profile.handle})은 크레딧 태그의 기준이라 바꿀 수 없어요.</p>
+      </section>
     </div>
   );
 }
