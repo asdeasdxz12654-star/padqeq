@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { FeedList } from "@/components/feed-list";
 import { EventSection, ExhibitionSection, HomeHero, LatestSection, PicksRow, SeasonSection, ShelfSection, TagSection } from "@/components/home/home-sections";
 import { OnThisDay } from "@/components/on-this-day";
@@ -34,15 +35,17 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
   const scope: FeedScope = { kind: "home", year, feed };
   const sectionsView = feed === "recommended" && year === null;
   const member = Boolean(viewer?.profile);
-  const [years, first, memories, picks, sections] = await Promise.all([
-    supabase.rpc("published_shot_years"),
+  // 기본 홈: 첫 화면(큰 사진 · 이맘때 · 오늘의 픽)만 먼저 그려 보내고, 나머지 섹션은 뒤이어 (큰 사진을 빨리 받기 시작하게)
+  const [years, first, memories, picks] = await Promise.all([
+    sectionsView ? null : supabase.rpc("published_shot_years"),
     sectionsView ? Promise.resolve({ items: [], next: null }) : loadScopePage(scope),
     // N년 전 이맘때 · 오늘의 픽 · 섹션은 기본 홈에서만
     sectionsView ? loadOnThisDay() : Promise.resolve([]),
     sectionsView ? loadDailyPicks() : Promise.resolve(null),
-    sectionsView ? loadHomeSections() : Promise.resolve(null),
   ]);
-  if (years.error) throw years.error;
+  // 오늘의 픽이 없으면 가장 최근 사진을 큰 칸에
+  const heroPick = picks?.items[0] ?? (sectionsView ? ((await loadScopePage({ kind: "home", year: null, feed: "latest" })).items[0] ?? null) : null);
+  if (years?.error) throw years.error;
 
   const href = (opts: { year: number | null; feed: HomeFeed }) => {
     const q = new URLSearchParams();
@@ -71,24 +74,19 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
           </Link>
         ))}
       </nav>
-      {sections ? (
+      {sectionsView ? (
         <div id="sections" className="flex scroll-mt-16 flex-col gap-10 pb-16 md:gap-14">
-          <HomeHero pick={picks?.items[0] ?? sections.latest[0] ?? null} member={member} />
+          <HomeHero pick={heroPick} member={member} />
           <OnThisDay items={memories} />
           {/* 큰 칸에 쓴 첫 픽은 줄에서 뺀다 */}
           <PicksRow items={picks?.items.slice(1) ?? []} />
-          <ExhibitionSection shows={sections.exhibitions} />
-          {sections.shelves.map((shelf) => (
-            <ShelfSection key={shelf.category} shelf={shelf} />
-          ))}
-          <SeasonSection shelf={sections.season} />
-          <EventSection events={sections.events} />
-          <TagSection tags={sections.tags} />
-          <LatestSection items={sections.latest} member={member} />
+          <Suspense fallback={<SectionsSkeleton />}>
+            <RestSections member={member} />
+          </Suspense>
         </div>
       ) : (
         <>
-          <YearChips chips={buildYearChips(years.data.map((row) => row.year))} selected={year} hrefFor={(y) => href({ year: y, feed })} />
+          <YearChips chips={buildYearChips((years?.data ?? []).map((row) => row.year))} selected={year} hrefFor={(y) => href({ year: y, feed })} />
           {feed === "recommended" && year !== null && (
             <p className="px-4 pb-2 text-xs text-quiet md:px-6">연도를 고르면 그해 사진을 최신순으로 보여 줘요.</p>
           )}
@@ -119,6 +117,36 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
           )}
         </>
       )}
+    </div>
+  );
+}
+
+/** 첫 화면 아래 섹션: 전시 · 분류별 · 계절 · 행사 · 많이 찍는 작품 · 새로 담긴 사진 */
+async function RestSections({ member }: { member: boolean }) {
+  const sections = await loadHomeSections();
+  return (
+    <>
+      <ExhibitionSection shows={sections.exhibitions} />
+      {sections.shelves.map((shelf) => (
+        <ShelfSection key={shelf.category} shelf={shelf} />
+      ))}
+      <SeasonSection shelf={sections.season} />
+      <EventSection events={sections.events} />
+      <TagSection tags={sections.tags} />
+      <LatestSection items={sections.latest} member={member} />
+    </>
+  );
+}
+
+function SectionsSkeleton() {
+  return (
+    <div aria-busy="true" className="flex flex-col gap-3 px-4 md:px-6">
+      <div className="h-6 w-32 rounded-md bg-slot motion-safe:animate-pulse" />
+      <div className="flex gap-3 overflow-hidden">
+        {Array.from({ length: 5 }, (_, i) => (
+          <div key={i} className="aspect-[4/5] w-40 shrink-0 rounded-lg bg-slot motion-safe:animate-pulse md:w-1/5" />
+        ))}
+      </div>
     </div>
   );
 }
