@@ -27,6 +27,8 @@ const TABS: { feed: HomeFeed; label: string; memberOnly?: boolean }[] = [
 export default async function HomePage({ searchParams }: PageProps<"/">) {
   const params = await searchParams;
   const year = parseYearParam(params.year);
+  // 기본 홈이면 로그인 확인을 기다리지 않고 첫 화면 조회부터 시작한다 (?feed가 없으면 늘 추천)
+  const early = params.feed === undefined && year === null ? { memories: loadOnThisDay(), picks: loadDailyPicks(), latest: loadScopePage({ kind: "home", year: null, feed: "latest" }) } : null;
   const viewer = await getViewer();
   const feed = parseHomeFeed(params.feed, Boolean(viewer?.profile));
   const supabase = await createClient();
@@ -40,11 +42,12 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
     sectionsView ? null : supabase.rpc("published_shot_years"),
     sectionsView ? Promise.resolve({ items: [], next: null }) : loadScopePage(scope),
     // N년 전 이맘때 · 오늘의 픽 · 섹션은 기본 홈에서만
-    sectionsView ? loadOnThisDay() : Promise.resolve([]),
-    sectionsView ? loadDailyPicks() : Promise.resolve(null),
+    sectionsView ? (early?.memories ?? loadOnThisDay()) : Promise.resolve([]),
+    sectionsView ? (early?.picks ?? loadDailyPicks()) : Promise.resolve(null),
   ]);
   // 오늘의 픽이 없으면 가장 최근 사진을 큰 칸에
-  const heroPick = picks?.items[0] ?? (sectionsView ? ((await loadScopePage({ kind: "home", year: null, feed: "latest" })).items[0] ?? null) : null);
+  const heroPick =
+    picks?.items[0] ?? (sectionsView ? ((await (early?.latest ?? loadScopePage({ kind: "home", year: null, feed: "latest" }))).items[0] ?? null) : null);
   if (years?.error) throw years.error;
 
   const href = (opts: { year: number | null; feed: HomeFeed }) => {
