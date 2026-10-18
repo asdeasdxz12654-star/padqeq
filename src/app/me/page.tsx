@@ -113,20 +113,15 @@ export default async function MePage() {
           프로필 고치기
         </a>
       </div>
-      {/* 설정 · 로그아웃은 여기서만 들어간다 (탭바 · 헤더에 자리가 없다) */}
-      <div className="mt-2 grid grid-cols-2 gap-2">
-        <Link href="/settings" className="flex min-h-11 items-center justify-center rounded-full border border-line text-sm font-bold hover:border-quiet">
-          설정
-        </Link>
-        <form action={signOut}>
-          <button
-            type="submit"
-            className="flex min-h-11 w-full items-center justify-center rounded-full border border-line text-sm font-semibold text-quiet hover:border-quiet hover:text-text"
-          >
-            로그아웃
-          </button>
-        </form>
-      </div>
+      {/* 로그아웃은 아래 바로가기 카드에 없어서 여기 둔다 (설정은 카드에 있다) */}
+      <form action={signOut} className="mt-2">
+        <button
+          type="submit"
+          className="flex min-h-11 w-full items-center justify-center rounded-full border border-line text-sm font-semibold text-quiet hover:border-quiet hover:text-text"
+        >
+          로그아웃
+        </button>
+      </form>
 
       {/* 받은 요청함: 크레딧 승인 · 크레딧 연결 요청 (알림 화면에서도 여기로) */}
       {(creditRequests.length > 0 || creditClaims.length > 0) && (

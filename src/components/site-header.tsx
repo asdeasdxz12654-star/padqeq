@@ -3,7 +3,6 @@ import { getAdminPending } from "@/lib/admin/pending";
 import { isStaffRole } from "@/lib/auth/roles";
 import { getViewer } from "@/lib/auth/viewer";
 import { getUnreadCount } from "@/lib/notifications/unread";
-import { profileHref } from "@/lib/profiles/profile-href";
 import { HeaderNav } from "./header-nav";
 import { HeaderAutoHide } from "./header-auto-hide";
 import { HeaderSearch } from "./search-box";
@@ -60,7 +59,8 @@ export async function SiteHeader() {
               )}
               {viewer?.profile && <NotificationBell unread={unread} />}
               {viewer?.profile ? (
-                <Link prefetch={false} href={profileHref(viewer.profile.handle)} className="hidden min-h-11 max-w-40 items-center truncate text-quiet hover:text-text lg:flex">
+                // PC에는 하단 탭이 없다. 마이로 바로 보낸다 (공개 프로필은 마이 안의 '내 프로필 보기'로)
+                <Link prefetch={false} href="/me" className="hidden min-h-11 max-w-40 items-center truncate text-quiet hover:text-text md:flex">
                   @{viewer.profile.handle}
                 </Link>
               ) : (
