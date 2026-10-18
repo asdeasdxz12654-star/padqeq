@@ -47,7 +47,14 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
   const monthParam = Number(query.month);
   const month = year !== null && Number.isInteger(monthParam) && monthParam >= 1 && monthParam <= 12 ? monthParam : null;
   // 탭: 작업물(직접 올린 글) · 크레딧된 작업(남이 올렸고 내가 승인한 글) (S-09 ⑤)
-  const tab = query.tab === "credits" ? "credits" : query.tab === "collections" ? "collections" : "works";
+  const tab =
+    query.tab === "credits"
+      ? "credits"
+      : query.tab === "collections"
+        ? "collections"
+        : query.tab === "characters"
+          ? "characters"
+          : "works";
   const isMe = viewer?.id === profile.id;
   const base = profileHref(profile.handle);
   const following = viewer?.profile && !isMe ? (await getFollowedMembers(viewer.id)).some((m) => m.id === profile.id) : false;
@@ -105,6 +112,8 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
           });
         })()
       : [];
+  // 캐릭터별 (시안 23 프로필 탭): 이 회원이 올린 글에 붙은 캐릭터 태그를 많이 담은 순으로, 태그마다 한 장
+  const characters = tab === "characters" ? await authorCharacters(profile.id) : [];
   // 한 해를 펼쳤으면 달 목차도 받는다 (속표지)
   const book =
     tab === "works" && year !== null
@@ -235,12 +244,15 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
         <Link href={`${base}?tab=credits`} aria-current={tab === "credits" ? "page" : undefined} className={tabClass}>
           크레딧된 작업 {creditedIds.length > 0 && <span className="ml-1 text-quiet">{creditedIds.length}</span>}
         </Link>
+        <Link href={`${base}?tab=characters`} aria-current={tab === "characters" ? "page" : undefined} className={tabClass}>
+          캐릭터별
+        </Link>
         <Link href={`${base}?tab=collections`} aria-current={tab === "collections" ? "page" : undefined} className={tabClass}>
           컬렉션 {collections.length > 0 && <span className="ml-1 text-quiet">{collections.length}</span>}
         </Link>
       </nav>
 
-      <h2 className="sr-only">{tab === "works" ? "작업물" : tab === "credits" ? "크레딧된 작업" : "컬렉션"}</h2>
+      <h2 className="sr-only">{tab === "works" ? "작업물" : tab === "credits" ? "크레딧된 작업" : tab === "characters" ? "캐릭터별" : "컬렉션"}</h2>
       {tab === "works" && <YearShelf years={shelf.filter((y) => y.count > 0)} selected={year} hrefFor={(y) => (y === null ? base : `${base}?year=${y}`)} />}
       {/* 책장에서 한 해를 고르면 그 책이 펼쳐진다: 속표지(숫자 · 달 목차) 다음에 그해 사진 */}
       {tab === "works" && year !== null && shelf.length > 0 && (
@@ -255,7 +267,41 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
           hrefFor={(m) => (m === null ? `${base}?year=${year}` : `${base}?year=${year}&month=${m}`)}
         />
       )}
-      {tab === "collections" ? (
+      {tab === "characters" ? (
+        <div className="px-4 pt-4 md:px-6">
+          {characters.length === 0 ? (
+            <p className="py-12 text-center text-sm text-quiet">캐릭터 태그가 붙은 사진이 아직 없어요.</p>
+          ) : (
+            <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
+              {characters.map((c) => (
+                <li key={c.slug}>
+                  <Link
+                    prefetch={false}
+                    href={`/t/${encodeURIComponent(c.slug)}`}
+                    aria-label={`${c.name} · 사진 ${c.posts}개`}
+                    className="flex flex-col gap-1.5"
+                  >
+                    <span className="block aspect-[4/5] overflow-hidden rounded-xl bg-slot [&_picture]:h-full">
+                      {c.cover?.cover && !c.cover.cover.veil && (
+                        <ProtectedPhoto
+                          sources={c.cover.cover.sources}
+                          alt=""
+                          width={c.cover.cover.width}
+                          height={c.cover.cover.height}
+                          sizes="(min-width: 1024px) 160px, 33vw"
+                          className="block size-full object-cover"
+                        />
+                      )}
+                    </span>
+                    <span className="truncate text-sm font-medium">{c.name}</span>
+                    <span className="-mt-1 text-xs text-quiet tabular-nums">{c.posts}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ) : tab === "collections" ? (
         <div className="pt-4">
           <CollectionCards items={collections} empty={isMe ? "아직 만든 컬렉션이 없어요. 마이 › 내 컬렉션에서 만들 수 있어요." : "공개한 컬렉션이 아직 없어요."} />
         </div>
@@ -276,4 +322,33 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
       )}
     </div>
   );
+}
+
+/**
+ * 캐릭터별: 이 회원이 올린 글에 붙은 캐릭터 태그를 많이 담은 순으로.
+ * 태그마다 가장 최근 사진 한 장을 표지로 쓴다. 볼 수 있는 글만 (RLS).
+ */
+async function authorCharacters(authorId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("posts")
+    .select("id, published_at, post_tags!inner(tag:tags!inner(id, slug, name, kind))")
+    .eq("author_id", authorId)
+    .eq("status", "published")
+    .eq("post_tags.tag.kind", "character")
+    .order("published_at", { ascending: false })
+    .limit(2000);
+
+  // 태그마다 글 수와 가장 최근 글 (위에서 최신순으로 받았으므로 처음 만난 글이 가장 최근)
+  const byTag = new Map<string, { slug: string; name: string; posts: number; latest: string }>();
+  for (const row of data ?? []) {
+    for (const { tag } of row.post_tags) {
+      const found = byTag.get(tag.id);
+      if (found) found.posts += 1;
+      else byTag.set(tag.id, { slug: tag.slug, name: tag.name, posts: 1, latest: row.id });
+    }
+  }
+  const ranked = [...byTag.values()].sort((a, b) => b.posts - a.posts || a.name.localeCompare(b.name, "ko")).slice(0, 60);
+  const covers = new Map((await loadFeedByIds(ranked.map((c) => c.latest))).map((p) => [p.id, p]));
+  return ranked.map((c) => ({ ...c, cover: covers.get(c.latest) ?? null }));
 }
