@@ -142,7 +142,7 @@ export function SearchBox({
         aria-autocomplete="list"
         aria-activedescendant={showList && active >= 0 ? `${listId}-${active}` : undefined}
         maxLength={MAX_QUERY_LENGTH}
-        placeholder={variant === "header" ? "검색  /" : "제목 · 태그 · @핸들"}
+        placeholder={variant === "header" ? "검색 (/)" : "제목 · 태그 · @핸들"}
         enterKeyHint="search"
         autoComplete="off"
         className={`min-w-0 flex-1 rounded-xl border border-line bg-surface px-3 text-base outline-none focus:border-accent ${variant === "header" ? "min-h-10 text-sm" : "min-h-11"}`}

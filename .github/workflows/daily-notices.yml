@@ -1,0 +1,47 @@
+name: 알림 보내기
+
+# 매일 07:00 KST(22:00 UTC).
+# 백업 · 정리(DB 백업 워크플로, 02:00 KST)에서 떼어 냈다: 여기서 만든 알림은
+# claim_push_batch가 1분 안에 집어 웹 푸시로 내보내므로(worker.ts 푸시 크론),
+# 새벽에 돌리면 자고 있는 회원의 휴대폰이 울린다.
+on:
+  schedule:
+    - cron: "0 22 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: daily-notices
+  cancel-in-progress: false
+
+jobs:
+  notices:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    # 저장소 Settings › Environments › dhepa 에 비밀값을 넣는다
+    environment: dhepa
+    steps:
+      - name: psql 설치
+        run: |
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y --no-install-recommends postgresql-client-18
+
+      - name: 오늘 보낼 알림
+        env:
+          # Supabase › Connect › Session pooler 주소 (GitHub 러너는 IPv6 직접 연결 불가)
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          set -euo pipefail
+          # 비밀값을 아직 넣지 않았으면 조용히 넘어간다 (백업 워크플로와 같은 환경을 쓴다)
+          if [ -z "${SUPABASE_DB_URL:-}" ]; then
+            echo "SUPABASE_DB_URL이 없어 건너뜁니다"
+            exit 0
+          fi
+          psql() { /usr/lib/postgresql/18/bin/psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -X -q -t -A "$@"; }
+
+          echo "행사 전날 알림: $(psql -c 'select private.send_event_reminders();')건"
+          echo "행사 끝난 뒤 사진 올리기 알림: $(psql -c 'select private.send_event_photo_prompts();')건"
+          echo "N년 전 오늘 알림: $(psql -c 'select private.send_memory_alerts();')건"
+          echo "오늘 열리는 타임캡슐 알림: $(psql -c 'select private.send_time_capsules();')건"
+          echo "연말 결산 알림 (12월 8일부터): $(psql -c 'select private.send_year_review_alerts();')건"

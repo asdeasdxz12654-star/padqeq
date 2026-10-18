@@ -14,7 +14,7 @@ import { InviteForm } from "./invite-form";
 import { UploadStudio } from "./upload-studio";
 
 export const metadata: Metadata = {
-  title: "업로드",
+  title: "사진 올리기",
   robots: { index: false },
 };
 
@@ -54,7 +54,7 @@ export default async function UploadPage({ searchParams }: PageProps<"/upload">)
       <div className="mx-auto max-w-md px-4 py-24 text-center">
         {switches.uploadStage === "invite" ? (
           <>
-            <h1 className="text-xl font-bold">초대 코드로 업로드를 열어요</h1>
+            <h1 className="text-xl font-bold">초대 코드로 사진 올리기를 열어요</h1>
             <p className="mt-2 text-sm leading-relaxed text-quiet">지금은 초대받은 회원만 사진을 올릴 수 있어요. 받은 초대 코드 8자리를 넣어 주세요.</p>
             <InviteForm />
           </>
@@ -65,7 +65,7 @@ export default async function UploadPage({ searchParams }: PageProps<"/upload">)
           </>
         ) : (
           <>
-            <h1 className="text-xl font-bold">업로드는 아직 열리지 않았어요</h1>
+            <h1 className="text-xl font-bold">아직 사진을 올릴 수 없어요</h1>
             <p className="mt-2 text-sm leading-relaxed text-quiet">
               지금은 운영자만 사진을 올릴 수 있어요. 회원 업로드는 초대 방식으로 차례대로 열 예정이에요.
             </p>
@@ -105,7 +105,7 @@ export default async function UploadPage({ searchParams }: PageProps<"/upload">)
   return (
     <div className="mx-auto max-w-5xl px-4 pt-8 pb-16 md:px-6">
       <InAppBrowserNotice purpose="upload" />
-      <h1 className="text-2xl font-bold">업로드</h1>
+      <h1 className="text-2xl font-bold">사진 올리기</h1>
       <p className="mt-2 text-sm leading-relaxed text-quiet">
         사진은 이 브라우저에서 고화질로 변환한 뒤 올라가요. 원본 파일은 서버에 저장하지 않으니 따로 보관해 주세요.
       </p>

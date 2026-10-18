@@ -135,6 +135,26 @@ body {
   filter: blur(32px);
 }
 
+/* 누르는 느낌 (버튼 · 버튼처럼 쓰는 링크).
+   :where()로 감싸 우선순위를 0으로 둔다 — 화면마다 붙인 Tailwind 클래스가 그대로 이긴다.
+   글자 링크는 기존 hover:underline · hover:text-text 를 그대로 쓰고 여기서 건드리지 않는다.
+   마우스가 없는 기기(휴대폰)에서는 hover가 눌린 채로 남으므로 (hover: hover)로 막는다. */
+:where(button:not(:disabled), [role="button"], a[class*="bg-accent"], summary) {
+  transition:
+    transform 120ms ease-out,
+    opacity 120ms ease-out,
+    background-color 120ms ease-out,
+    border-color 120ms ease-out;
+}
+:where(button:not(:disabled), [role="button"], a[class*="bg-accent"], summary):active {
+  transform: scale(0.97);
+}
+@media (hover: hover) {
+  :where(button:not(:disabled), [role="button"], a[class*="bg-accent"], summary):hover {
+    opacity: 0.88;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,
@@ -142,6 +162,11 @@ body {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  /* 모션을 줄이는 설정에서는 크기 변화 대신 밝기만으로 눌린 것을 알린다 */
+  :where(button, [role="button"], a[class*="bg-accent"], summary):active {
+    transform: none;
+    opacity: 0.8;
   }
 }
 
