@@ -67,7 +67,7 @@ export default async function UploadPage({ searchParams }: PageProps<"/upload">)
           <>
             <h1 className="text-xl font-bold">업로드는 아직 열리지 않았어요</h1>
             <p className="mt-2 text-sm leading-relaxed text-quiet">
-              지금은 운영자만 사진을 올릴 수 있어요. 회원 업로드는 초대 방식으로 차례대로 열 예정이고, 열리면 알림으로 알려 드려요.
+              지금은 운영자만 사진을 올릴 수 있어요. 회원 업로드는 초대 방식으로 차례대로 열 예정이에요.
             </p>
           </>
         )}
