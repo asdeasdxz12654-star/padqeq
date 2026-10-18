@@ -24,6 +24,7 @@ import { PickButton, ProfileFeatureButtons } from "./owner-tools";
 import { HidePostButton } from "./hide-post-button";
 import { ModerationNotice } from "./moderation-notice";
 import { PhotoViewer } from "./photo-viewer";
+import { StageSwitch, StoryView } from "./story-view";
 import { Veil } from "@/components/veil";
 import { VEIL_LABEL, veilFor } from "@/lib/posts/veil";
 import { RemoveCreditButton } from "./remove-credit-button";
@@ -158,11 +159,20 @@ export async function PostDetail({ id }: { id: string }) {
           {/* 가림 표시: 내 글이거나 '바로 보기'를 켰으면 가리지 않는다 */}
           <PhotoFlip back={back}>
             <Veil postId={post.id} reason={veilFor(post.veil, isAuthor || Boolean(viewer?.showVeiled))} variant="full">
-              <PhotoViewer
-                postId={post.id}
-                initialPhotos={post.photos}
-                watermark={viewer?.profile ? `@${viewer.profile.handle}` : null}
-                canLike={Boolean(viewer?.profile) && post.status === "published" && !post.held_at}
+              {/* 3장 이상이면 세로로 이어 보기도 고를 수 있다 */}
+              <StageSwitch
+                count={post.photos.length}
+                single={
+                  <PhotoViewer
+                    postId={post.id}
+                    initialPhotos={post.photos}
+                    watermark={viewer?.profile ? `@${viewer.profile.handle}` : null}
+                    canLike={Boolean(viewer?.profile) && post.status === "published" && !post.held_at}
+                  />
+                }
+                story={
+                  <StoryView postId={post.id} initialPhotos={post.photos} watermark={viewer?.profile ? `@${viewer.profile.handle}` : null} memos={post.photoMemos} />
+                }
               />
             </Veil>
           </PhotoFlip>

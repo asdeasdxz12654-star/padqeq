@@ -2,7 +2,8 @@ import Link from "next/link";
 import { formatRange } from "@/lib/events/calendar";
 import { CATEGORY_LABEL } from "@/lib/photos/post-input";
 import type { FeedItem } from "@/lib/posts/feed";
-import type { EventShelf, Exhibition, Shelf, TagTile } from "@/lib/posts/home-sections";
+import type { EventShelf, Exhibition, SeasonShelf, Shelf, TagTile } from "@/lib/posts/home-sections";
+import { SEASON_LABEL } from "@/lib/posts/season";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { ProtectedPhoto } from "../protected-photo";
 import { Veil } from "../veil";
@@ -136,6 +137,17 @@ export function ShelfSection({ shelf }: { shelf: Shelf }) {
         sub={SHELF_SUB[shelf.category][shelf.popular ? 0 : 1]}
         href={`/explore?category=${shelf.category}${shelf.popular ? "&sort=popular" : ""}`}
       />
+      <CardRow items={shelf.items} />
+    </section>
+  );
+}
+
+/** 이 계절: 해마다 이맘때 계절에 찍은 사진 */
+export function SeasonSection({ shelf }: { shelf: SeasonShelf | null }) {
+  if (!shelf) return null;
+  return (
+    <section aria-labelledby="season-photos">
+      <SectionHead id="season-photos" title={`${SEASON_LABEL[shelf.season]}에 찍은 사진`} sub={`해마다 ${SEASON_LABEL[shelf.season]}에 담긴 사진`} />
       <CardRow items={shelf.items} />
     </section>
   );

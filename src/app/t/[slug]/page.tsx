@@ -10,7 +10,8 @@ import { TagChip } from "@/components/tag-chip";
 import { YearChips } from "@/components/year-chips";
 import { type YearCover, YearsStrip } from "@/components/years-strip";
 import { getViewer } from "@/lib/auth/viewer";
-import { loadFeedByIds } from "@/lib/posts/feed";
+import { type FeedItem, loadFeedByIds } from "@/lib/posts/feed";
+import { ProtectedPhoto } from "@/components/protected-photo";
 import type { FeedScope } from "@/lib/posts/feed-scope";
 import { loadScopePage } from "@/lib/posts/feed-scope-server";
 import { getFollowedTags } from "@/lib/follows/follows";
@@ -101,6 +102,8 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
           .then((r) => r.data ?? [])
       : Promise.resolve([]),
   ]);
+  // 캐릭터 도감 (작품 태그): 캐릭터마다 가장 최근 사진 한 장
+  const dex = tag.children.length > 0 && view === "latest" ? await characterCovers(tag.children.map((c) => c.id)) : new Map<string, FeedItem>();
   const viewHref = (v: "latest" | "popular" | "cosers") => (v === "latest" ? base : `${base}?view=${v}`);
   const following = viewer?.profile ? (await getFollowedTags(viewer.id)).some((t) => t.id === tag.id) : false;
   // 태그 관리 › 비슷한 이름에서 넘어오면 남길 태그를 미리 골라 둔다
@@ -212,13 +215,35 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
       </header>
 
       {tag.children.length > 0 && (
-        <nav aria-label="캐릭터" className="px-4 pt-4 md:px-6">
-          <ul className="flex gap-1.5 overflow-x-auto [scrollbar-width:none]">
-            {tag.children.map((c) => (
-              <li key={c.id} className="shrink-0">
-                <TagChip tag={c} />
-              </li>
-            ))}
+        <nav aria-labelledby="dex-heading" className="px-4 pt-5 md:px-6">
+          <h2 id="dex-heading" className="mb-2 text-sm font-semibold">
+            캐릭터 도감 <span className="font-normal text-quiet">{tag.children.length}</span>
+          </h2>
+          {/* 캐릭터마다 가장 최근 사진 한 장. 사진이 있는 캐릭터부터. */}
+          <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
+            {tag.children
+              .toSorted((a, b) => Number(dex.has(b.id)) - Number(dex.has(a.id)))
+              .map((c) => {
+                const cover = dex.get(c.id)?.cover;
+                return (
+                  <li key={c.id}>
+                    <Link
+                      prefetch={false}
+                      href={`/t/${encodeURIComponent(c.slug)}`}
+                      className="relative block aspect-[4/5] overflow-hidden rounded-xl bg-slot"
+                    >
+                      {cover && !cover.veil && (
+                        <div className="absolute inset-0 [&_picture]:h-full">
+                          <ProtectedPhoto sources={cover.sources} alt="" width={cover.width} height={cover.height} sizes="160px" className="block size-full object-cover" />
+                        </div>
+                      )}
+                      <span className={`absolute inset-x-0 bottom-0 px-2 py-1.5 text-xs font-bold ${cover && !cover.veil ? "bg-black/55 text-white" : "text-text"}`}>
+                        <span className="line-clamp-2 break-keep">{c.name}</span>
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
           </ul>
         </nav>
       )}
@@ -303,4 +328,25 @@ async function popularPosts(tagId: string) {
   const { data } = await supabase.rpc("tag_popular_posts", { tag: tagId, days: 30, max_rows: 40 });
   if (!data?.length) return [];
   return loadFeedByIds(data.map((r) => r.post_id));
+}
+
+/** 캐릭터마다 가장 최근에 게시된 사진 한 장 (볼 수 있는 글만) */
+async function characterCovers(tagIds: string[]): Promise<Map<string, FeedItem>> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("posts")
+    .select("id, post_tags!inner(tag_id)")
+    .in("post_tags.tag_id", tagIds)
+    .eq("status", "published")
+    .order("published_at", { ascending: false })
+    .limit(400);
+  const firstPost = new Map<string, string>();
+  for (const row of data ?? []) for (const t of row.post_tags) if (!firstPost.has(t.tag_id)) firstPost.set(t.tag_id, row.id);
+  const items = new Map((await loadFeedByIds([...firstPost.values()])).map((p) => [p.id, p]));
+  const covers = new Map<string, FeedItem>();
+  for (const [tagId, postId] of firstPost) {
+    const item = items.get(postId);
+    if (item) covers.set(tagId, item);
+  }
+  return covers;
 }

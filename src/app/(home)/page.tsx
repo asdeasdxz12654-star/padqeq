@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { FeedList } from "@/components/feed-list";
-import { EventSection, ExhibitionSection, HomeHero, LatestSection, PicksRow, ShelfSection, TagSection } from "@/components/home/home-sections";
+import { EventSection, ExhibitionSection, HomeHero, LatestSection, PicksRow, SeasonSection, ShelfSection, TagSection } from "@/components/home/home-sections";
 import { OnThisDay } from "@/components/on-this-day";
 import { YearChips } from "@/components/year-chips";
 import { getViewer } from "@/lib/auth/viewer";
@@ -21,7 +21,7 @@ const TABS: { feed: HomeFeed; label: string; memberOnly?: boolean }[] = [
   { feed: "following", label: "팔로우", memberOnly: true },
 ];
 
-// S-02 홈 (디자인 개편 v2): 기본(추천)은 주제별 섹션 — 오늘의 픽 · 이맘때 · 코스프레 · 인물 · 풍경 · 행사 · 많이 찍는 작품 · 새로 담긴 사진.
+// S-02 홈 (디자인 개편 v2): 기본(추천)은 주제별 섹션 — 오늘의 픽 · 이맘때 · 전시 · 코스프레 · 인물 · 풍경 · 계절 · 행사 · 많이 찍는 작품 · 새로 담긴 사진.
 // 최신 · 팔로우 · 촬영 연도를 고르면 예전처럼 끝없이 이어지는 사진 목록.
 export default async function HomePage({ searchParams }: PageProps<"/">) {
   const params = await searchParams;
@@ -81,6 +81,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
           {sections.shelves.map((shelf) => (
             <ShelfSection key={shelf.category} shelf={shelf} />
           ))}
+          <SeasonSection shelf={sections.season} />
           <EventSection events={sections.events} />
           <TagSection tags={sections.tags} />
           <LatestSection items={sections.latest} member={member} />

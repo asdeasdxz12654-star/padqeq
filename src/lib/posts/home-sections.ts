@@ -5,6 +5,7 @@ import type { CATEGORIES } from "@/lib/photos/post-input";
 import { createClient } from "@/lib/supabase/server";
 import { type FeedItem, loadFeedByIds } from "./feed";
 import { loadScopePage } from "./feed-scope-server";
+import { type Season, seasonOf, seasonRanges } from "./season";
 
 // 홈 '주제별 섹션' (디자인 개편 v2): 끝없는 사진 목록 대신 주제마다 몇 장씩 정리해서 보여 준다.
 // 사진이 적은 섹션은 숨긴다 (빈 섹션이 늘어서 보이지 않게).
@@ -16,6 +17,7 @@ type Category = (typeof CATEGORIES)[number];
 export type Shelf = { category: Category; items: FeedItem[]; popular: boolean };
 export type EventShelf = { id: string; name: string; startsOn: string; endsOn: string; venue: string; items: FeedItem[] };
 export type TagTile = { slug: string; name: string; total: number; cover: FeedItem | null };
+export type SeasonShelf = { season: Season; items: FeedItem[] };
 export type Exhibition = { id: string; title: string; note: string; handle: string; items: FeedItem[] };
 
 /** 전시: 운영자가 건 공개 컬렉션 (최근에 건 것 2곳). 볼 수 있는 사진이 3장 이상일 때만 */
@@ -43,6 +45,26 @@ const shift = (days: number) => {
   d.setUTCDate(d.getUTCDate() + days);
   return d.toISOString().slice(0, 10);
 };
+
+/** 이 계절에 찍은 사진 (해마다, 촬영 날짜가 있는 글만) */
+async function seasonShelf(): Promise<SeasonShelf | null> {
+  const supabase = await createClient();
+  const today = todayKst();
+  const season = seasonOf(Number(today.slice(5, 7)));
+  const { data: years } = await supabase.rpc("published_shot_years");
+  const ranges = seasonRanges(season, (years ?? []).map((r) => r.year)).slice(0, 10);
+  if (ranges.length === 0) return null;
+  const { data, error } = await supabase
+    .from("posts")
+    .select("id")
+    .eq("status", "published")
+    .or(ranges.map((r) => `and(shot_on.gte.${r.from},shot_on.lt.${r.to})`).join(","))
+    .order("shot_on", { ascending: false })
+    .limit(SHELF_SIZE);
+  if (error) throw error;
+  const items = await loadFeedByIds(data.map((r) => r.id));
+  return items.length >= SHELF_MIN ? { season, items } : null;
+}
 
 /** 분류별: 최근 좋아요가 많은 순, 모자라면 최신순 */
 async function shelf(category: Category): Promise<Shelf> {
@@ -78,7 +100,7 @@ async function tagTiles(): Promise<TagTile[]> {
 }
 
 export async function loadHomeSections() {
-  const [cosplay, model, landscape, events, tags, latest, shows] = await Promise.all([
+  const [cosplay, model, landscape, events, tags, latest, shows, seasonal] = await Promise.all([
     shelf("cosplay"),
     shelf("model"),
     shelf("landscape"),
@@ -86,6 +108,7 @@ export async function loadHomeSections() {
     tagTiles().catch(() => []),
     loadScopePage({ kind: "home", year: null, feed: "latest" }),
     exhibitions().catch(() => []),
+    seasonShelf().catch(() => null),
   ]);
   return {
     shelves: [cosplay, model, landscape].filter((s) => s.items.length >= SHELF_MIN),
@@ -93,5 +116,6 @@ export async function loadHomeSections() {
     tags: tags.length >= 3 ? tags : [],
     latest: latest.items.slice(0, 10),
     exhibitions: shows,
+    season: seasonal,
   };
 }
