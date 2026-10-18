@@ -22,6 +22,7 @@ const ANON_READABLE = [
   "events",
   "notices",
   "photos",
+  "place_guides",
   "post_tags",
   "posts",
   "profiles",
@@ -46,6 +47,7 @@ const ANON_CALLABLE = [
   "related_tags",
   "tag_cosers",
   "tag_popular_posts",
+  "tone_posts",
   "trending_works",
 ];
 
