@@ -147,7 +147,11 @@ export async function PostDetail({ id }: { id: string }) {
       {post.status !== "published" && !(isAuthor && post.removed_at) && (
         <div className="mx-4 mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line px-3 py-2 text-sm text-quiet md:mx-0">
           <p>
-            {post.status === "draft" ? "아직 게시하지 않은 초안이에요." : post.removed_at ? "운영자가 게시를 중단한 글이에요." : "게시를 중단한 글이에요. 다른 사람에게는 보이지 않아요."}
+            {post.status === "draft"
+              ? "아직 게시하지 않은 초안이에요."
+              : post.removed_at
+                ? "운영자가 게시를 중단한 글이에요."
+                : "숨긴 글이에요. 다른 사람에게는 보이지 않지만 사진은 그대로 있어요."}
           </p>
           {/* 내가 숨긴 글은 다시 게시할 수 있다 (운영자가 중단한 글은 소명으로만) */}
           {isAuthor && post.status === "hidden" && !post.removed_at && <RepublishButton postId={post.id} />}
