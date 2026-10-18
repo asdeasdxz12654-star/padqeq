@@ -6,6 +6,7 @@ import { isStaffRole } from "@/lib/auth/roles";
 import { getViewer } from "@/lib/auth/viewer";
 import { type PlaceResult, searchPlaces } from "@/lib/places/geocode";
 import { parseLatLng } from "@/lib/places/location";
+import { guideSchema } from "@/lib/places/guide";
 import { createClient } from "@/lib/supabase/server";
 
 const locationSchema = z.object({
@@ -84,4 +85,27 @@ export async function mergeTags(input: z.input<typeof mergeSchema>): Promise<{ o
   revalidatePath("/map");
   revalidatePath("/explore");
   return { ok: true, slug: target?.slug ?? "" };
+}
+
+const guideInput = z.object({ tagId: z.uuid(), guide: guideSchema });
+
+/** 촬영지 가이드 저장 (운영자). 모두 비우면 지운다. 권한 · 감사 로그는 DB 함수가 맡는다. */
+export async function savePlaceGuide(input: z.input<typeof guideInput>): Promise<{ ok: true } | { ok: false; error: string }> {
+  const parsed = guideInput.safeParse(input);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "입력을 확인해 주세요." };
+  const viewer = await getViewer();
+  if (!isStaffRole(viewer?.profile?.role)) return { ok: false, error: "운영자만 적을 수 있어요." };
+  const { tagId, guide } = parsed.data;
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_place_guide", {
+    target: tagId,
+    best_time: guide.bestTime,
+    fee: guide.fee,
+    tripod: guide.tripod,
+    parking: guide.parking,
+    tip: guide.tip,
+  });
+  if (error) return { ok: false, error: error.message.includes("not_official_place") ? "공식 장소 태그에만 적을 수 있어요." : "저장하지 못했어요. (2단계 인증이 필요해요)" };
+  revalidatePath("/t/[slug]", "page");
+  return { ok: true };
 }

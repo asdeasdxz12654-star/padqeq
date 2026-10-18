@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FeedList } from "@/components/feed-list";
+import { ToneChips } from "@/components/tone-chips";
 import { TagChip } from "@/components/tag-chip";
 import { YearChips } from "@/components/year-chips";
 import { CATEGORIES, CATEGORY_LABEL } from "@/lib/photos/post-input";
@@ -111,6 +112,9 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
       </nav>
 
       )}
+
+      {/* 색감으로 찾기 (조건이 없을 때만) */}
+      {tab === "posts" && !filtered && <ToneChips selected={null} />}
 
       {tab === "posts" && (
       <YearChips

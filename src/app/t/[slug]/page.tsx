@@ -20,6 +20,8 @@ import { formatRange } from "@/lib/events/calendar";
 import { createClient } from "@/lib/supabase/server";
 import { isStaffRole } from "@/lib/auth/roles";
 import { LocationForm } from "./location-form";
+import { GuideForm } from "./guide-form";
+import { GUIDE_FIELDS, type PlaceGuide } from "@/lib/places/guide";
 import { type MergeCandidate, MergeForm } from "./merge-form";
 import { TAG_KIND_LABEL } from "@/lib/tags/tag-rules";
 import { buildYearChips, parseYearParam } from "@/lib/year-chips";
@@ -82,7 +84,7 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
   const view = query.view === "popular" ? "popular" : query.view === "cosers" && showCosers ? "cosers" : "latest";
   // 최신: 작품 허브에는 그 작품 캐릭터 사진도 함께
   const scope: FeedScope = { kind: "tag", tagId: tag.id, year };
-  const [years, first, viewer, popular, cosers, related, placeEvents] = await Promise.all([
+  const [years, first, viewer, popular, cosers, related, placeEvents, guideRow] = await Promise.all([
     supabase.rpc("published_shot_years"),
     view === "latest" ? loadScopePage(scope) : Promise.resolve({ items: [], next: null }),
     getViewer(),
@@ -101,7 +103,18 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
           .limit(20)
           .then((r) => r.data ?? [])
       : Promise.resolve([]),
+    // 촬영지 가이드 (공식 장소 태그)
+    tag.kind === "place" && tag.status === "official"
+      ? supabase.from("place_guides").select("best_time, fee, tripod, parking, tip, updated_at").eq("tag_id", tag.id).maybeSingle().then((r) => r.data)
+      : Promise.resolve(null),
   ]);
+  const guide: PlaceGuide = {
+    bestTime: guideRow?.best_time ?? "",
+    fee: guideRow?.fee ?? "",
+    tripod: guideRow?.tripod ?? "",
+    parking: guideRow?.parking ?? "",
+    tip: guideRow?.tip ?? "",
+  };
   // 캐릭터 도감 (작품 태그): 캐릭터마다 가장 최근 사진 한 장
   const dex = tag.children.length > 0 && view === "latest" ? await characterCovers(tag.children.map((c) => c.id)) : new Map<string, FeedItem>();
   const viewHref = (v: "latest" | "popular" | "cosers") => (v === "latest" ? base : `${base}?view=${v}`);
@@ -181,6 +194,22 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
             </Link>
           </p>
         )}
+        {guideRow && (
+          <section aria-labelledby="guide-heading" className="max-w-xl rounded-xl border border-line p-4 text-sm">
+            <h2 id="guide-heading" className="mb-2 font-semibold">
+              촬영지 가이드
+            </h2>
+            <dl className="grid grid-cols-[6rem_minmax(0,1fr)] gap-x-3 gap-y-1.5">
+              {GUIDE_FIELDS.filter((f) => guide[f.key]).map((f) => (
+                <div key={f.key} className="contents">
+                  <dt className="text-quiet">{f.label}</dt>
+                  <dd>{guide[f.key]}</dd>
+                </div>
+              ))}
+            </dl>
+            <p className="mt-2 text-xs text-quiet">운영자가 확인한 정보예요. 현장 사정에 따라 바뀔 수 있어요.</p>
+          </section>
+        )}
         {placeEvents.length > 0 && (
           <section aria-labelledby="place-events-heading" className="max-w-xl text-sm">
             <h2 id="place-events-heading" className="mb-1 font-semibold">
@@ -204,6 +233,12 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
           <details className="rounded-xl border border-line p-3 text-sm">
             <summary className="cursor-pointer font-semibold">지도 위치 (운영자)</summary>
             <LocationForm tagId={tag.id} tagName={tag.name} current={tag.lat !== null && tag.lng !== null ? { lat: tag.lat, lng: tag.lng } : null} />
+          </details>
+        )}
+        {tag.kind === "place" && tag.status === "official" && isStaffRole(viewer?.profile?.role) && (
+          <details className="rounded-xl border border-line p-3 text-sm">
+            <summary className="cursor-pointer font-semibold">촬영지 가이드 고치기 (운영자)</summary>
+            <GuideForm tagId={tag.id} initial={guide} />
           </details>
         )}
         {mergeCandidates && (

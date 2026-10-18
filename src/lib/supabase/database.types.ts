@@ -1016,6 +1016,7 @@ export type Database = {
           ready_at: string | null
           post_id: string
           storage_key: string
+          tone: string | null
           taken_at: string | null
           width: number
         }
@@ -1792,6 +1793,39 @@ export type Database = {
           },
         ]
       }
+      place_guides: {
+        Row: {
+          best_time: string
+          fee: string
+          parking: string
+          tag_id: string
+          tip: string
+          tripod: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          best_time?: string
+          fee?: string
+          parking?: string
+          tag_id: string
+          tip?: string
+          tripod?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          best_time?: string
+          fee?: string
+          parking?: string
+          tag_id?: string
+          tip?: string
+          tripod?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       posts: {
         Row: {
           quarantined_at: string | null
@@ -2233,6 +2267,10 @@ export type Database = {
         Returns: { action: string; actor_handle: string | null; created_at: string; detail: Json }[]
       }
       approve_tag: { Args: { target: string }; Returns: undefined }
+      set_place_guide: {
+        Args: { best_time?: string; fee?: string; parking?: string; target: string; tip?: string; tripod?: string }
+        Returns: undefined
+      }
       set_exhibition: { Args: { target: string; on_display: boolean; note?: string }; Returns: undefined }
       bury_time_capsule: { Args: { post: string; letter: string; open_on: string }; Returns: string }
       my_time_capsules: {
@@ -2252,6 +2290,10 @@ export type Database = {
       popular_posts: {
         Args: { days?: number; max_rows?: number }
         Returns: { likes: number; post_id: string }[]
+      }
+      tone_posts: {
+        Args: { max_rows?: number; pick: string }
+        Returns: { post_id: string }[]
       }
       trending_works: {
         Args: { days?: number; max_rows?: number }
