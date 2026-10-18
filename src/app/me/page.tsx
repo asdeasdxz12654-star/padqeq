@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-// 마이: 내 프로필 바로가기 · 프로필 편집 · 로그아웃
+// 마이: 내 프로필 바로가기 · 프로필 편집 · 설정 · 로그아웃
 export default async function MePage() {
   const viewer = await getViewer();
   if (!viewer) redirect(withNext("/login", "/me"));
@@ -112,6 +112,20 @@ export default async function MePage() {
         <a href="#edit-heading" className="flex min-h-11 items-center justify-center rounded-full border border-line text-sm font-bold hover:border-quiet">
           프로필 고치기
         </a>
+      </div>
+      {/* 설정 · 로그아웃은 여기서만 들어간다 (탭바 · 헤더에 자리가 없다) */}
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        <Link href="/settings" className="flex min-h-11 items-center justify-center rounded-full border border-line text-sm font-bold hover:border-quiet">
+          설정
+        </Link>
+        <form action={signOut}>
+          <button
+            type="submit"
+            className="flex min-h-11 w-full items-center justify-center rounded-full border border-line text-sm font-semibold text-quiet hover:border-quiet hover:text-text"
+          >
+            로그아웃
+          </button>
+        </form>
       </div>
 
       {/* 받은 요청함: 크레딧 승인 · 크레딧 연결 요청 (알림 화면에서도 여기로) */}
@@ -236,11 +250,6 @@ export default async function MePage() {
         <p className="mt-3 text-xs text-quiet">핸들(@{profile.handle})은 크레딧 태그의 기준이라 바꿀 수 없어요.</p>
       </section>
 
-      <form action={signOut} className="mt-6 border-t border-line pt-6">
-        <button type="submit" className="min-h-12 w-full rounded-xl border border-line px-4 text-sm font-semibold">
-          로그아웃
-        </button>
-      </form>
     </div>
   );
 }
