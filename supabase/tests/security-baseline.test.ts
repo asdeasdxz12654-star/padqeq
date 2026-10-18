@@ -34,6 +34,9 @@ const ANON_READABLE = [
 
 // 비로그인도 부르는 함수. 푸시 두 개는 서버 비밀 토큰을 확인한다.
 const ANON_CALLABLE = [
+  // 공개 프로필의 연도 책장 · 속표지 (security invoker라 볼 수 있는 글만 세어진다)
+  "author_year_counts",
+  "author_year_months",
   "claim_push_batch",
   "creator_directory",
   "drop_push_subscriptions",
