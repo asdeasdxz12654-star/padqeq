@@ -180,7 +180,16 @@ export async function PostDetail({ id }: { id: string }) {
           {post.exif && (
             <p className="px-4 text-center font-mono text-xs leading-relaxed tracking-wide text-quiet">
               <span className="sr-only">촬영 정보: </span>
-              {post.exif}
+              {post.camera && post.exif.startsWith(post.camera) ? (
+                <>
+                  <Link prefetch={false} href={`/camera?name=${encodeURIComponent(post.camera)}`} className="underline decoration-dotted underline-offset-4 hover:text-text">
+                    {post.camera}
+                  </Link>
+                  {post.exif.slice(post.camera.length)}
+                </>
+              ) : (
+                post.exif
+              )}
             </p>
           )}
         </div>

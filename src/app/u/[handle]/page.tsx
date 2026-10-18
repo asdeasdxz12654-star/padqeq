@@ -15,6 +15,7 @@ import { CREDIT_ROLE_LABEL } from "@/lib/photos/credit-input";
 import { loadFeedByIds } from "@/lib/posts/feed";
 import type { FeedScope } from "@/lib/posts/feed-scope";
 import { creditedPostIds, loadScopePage } from "@/lib/posts/feed-scope-server";
+import { loadCollaborators } from "@/lib/profiles/collaborators";
 import { getProfileByHandle } from "@/lib/profiles/get-profile";
 import { createClient } from "@/lib/supabase/server";
 import { profileHref } from "@/lib/profiles/profile-href";
@@ -57,6 +58,8 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
       : Promise.resolve({ data: null }),
   ]);
   const iBlocked = Boolean(blockRow);
+  // 자주 함께한 사람: 크레딧으로 이어진 회원 (섭외 · 팔로우로 이어지게)
+  const collaborators = await loadCollaborators(profile.id, profile.handle, creditedIds).catch(() => []);
   // 커버 · 고정 글 (볼 수 있는 것만)
   const featuredIds = [...new Set([...(profile.cover_post_id ? [profile.cover_post_id] : []), ...profile.pinned_post_ids])];
   const featured = await loadFeedByIds(featuredIds);
@@ -142,6 +145,28 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
         <p className="text-sm text-quiet">
           게시물 <strong className="text-text">{profile.postCount}</strong> · {yearFormat.format(new Date(profile.created_at))}부터
         </p>
+
+        {collaborators.length > 0 && (
+          <section aria-labelledby="collaborators-heading" className="flex flex-col gap-1.5">
+            <h2 id="collaborators-heading" className="text-xs text-quiet">
+              자주 함께한 사람
+            </h2>
+            <ul className="flex flex-wrap gap-1.5">
+              {collaborators.map((c) => (
+                <li key={c.handle}>
+                  <Link
+                    prefetch={false}
+                    href={profileHref(c.handle)}
+                    className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-line px-3 text-sm hover:border-quiet"
+                  >
+                    <span className="max-w-40 truncate">{c.displayName}</span>
+                    <span className="text-xs text-quiet tabular-nums">{c.posts}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         {isMe ? (
           <div className="flex flex-wrap gap-2">

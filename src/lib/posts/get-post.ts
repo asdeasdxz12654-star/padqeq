@@ -64,6 +64,8 @@ export const getPost = cache(async (id: string) => {
 
   // 촬영 정보: 업로더가 보여 주기로 한 경우 첫 사진의 장비 · 설정 (S-06 ⑧)
   const firstExif = post.show_exif ? exifLine(post.photos[0]?.exif as ExifInfo | null) : null;
+  // 카메라 이름 (같은 카메라 사진 모음으로 이어진다)
+  const camera = post.show_exif ? ((post.photos[0]?.exif as ExifInfo | null)?.camera ?? null) : null;
 
   // 사진 뒷면 메모 (보이는 사진 순서대로, 몇 번째 사진인지와 함께)
   const shown = new Set(photos.map((p) => p.id));
@@ -71,7 +73,7 @@ export const getPost = cache(async (id: string) => {
     .filter((p) => shown.has(p.id))
     .flatMap((p, i) => (p.back_memo ? [{ n: i + 1, memo: p.back_memo }] : []));
 
-  return { ...post, author: post.author, photos, tags, exif: firstExif, photoMemos };
+  return { ...post, author: post.author, photos, tags, exif: firstExif, camera, photoMemos };
 });
 
 export type PostDetail = NonNullable<Awaited<ReturnType<typeof getPost>>>;

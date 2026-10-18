@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { loadMoreFeed } from "@/app/feed-actions";
 import type { FeedItem, FeedPage } from "@/lib/posts/feed";
 import type { FeedScope } from "@/lib/posts/feed-scope";
+import { foldRuns } from "@/lib/posts/fold-runs";
 import { PhotoFeed } from "./photo-feed";
 
 /**
@@ -29,6 +30,9 @@ export function FeedList({
   const [failed, setFailed] = useState(false);
   const [pending, startTransition] = useTransition();
   const sentinel = useRef<HTMLDivElement>(null);
+  // 팔로우 피드: 한 작가의 글이 줄줄이 이어지면 접는다
+  const [opened, setOpened] = useState<ReadonlySet<string>>(new Set());
+  const folded = scope.kind === "home" && scope.feed === "following" ? foldRuns(items, opened) : null;
 
   const more = () => {
     if (!next || pending) return;
@@ -58,7 +62,25 @@ export function FeedList({
 
   return (
     <>
-      <PhotoFeed items={items} empty={empty} />
+      <PhotoFeed
+        items={folded?.visible ?? items}
+        empty={empty}
+        after={(post) => {
+          const fold = folded?.folds.get(post.id);
+          return fold ? (
+            <li key={`fold-${fold.start}`} className="mb-2 break-inside-avoid xl:mb-4">
+              <button
+                type="button"
+                onClick={() => setOpened((s) => new Set(s).add(fold.start))}
+                className="flex min-h-20 w-full flex-col items-center justify-center gap-0.5 rounded-lg border border-dashed border-line px-3 py-4 text-sm hover:border-quiet"
+              >
+                <span className="font-semibold">@{fold.handle}</span>
+                <span className="text-quiet">게시물 {fold.hidden}개 더 보기</span>
+              </button>
+            </li>
+          ) : null;
+        }}
+      />
       {next && (
         <div ref={sentinel} className="flex justify-center px-4 py-8">
           <button
