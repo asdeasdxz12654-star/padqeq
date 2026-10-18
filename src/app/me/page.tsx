@@ -12,14 +12,13 @@ import { currentYearKst } from "@/lib/year-chips";
 import { signOut } from "./actions";
 import { type CreditClaim, CreditClaims } from "./credit-claims";
 import { type CreditRequest, CreditRequests } from "./credit-requests";
-import { ProfileForm } from "./profile-form";
 
 export const metadata: Metadata = {
   title: "마이",
   robots: { index: false },
 };
 
-// 마이: 내 프로필 바로가기 · 프로필 편집 · 설정 · 로그아웃
+// 마이(허브): 내 프로필 바로가기 · 받은 요청 · 바로가기 칸 · 팔로우 · 설정 · 로그아웃 (프로필 고치기는 /me/edit)
 export default async function MePage() {
   const viewer = await getViewer();
   if (!viewer) redirect(withNext("/login", "/me"));
@@ -28,7 +27,8 @@ export default async function MePage() {
 
   const supabase = await createClient();
   const [{ data: full }, openReports, creditRows, followedTags, claimRows, followedMembers, openInquiries, { data: unreadThreads }] = await Promise.all([
-    supabase.from("profiles").select("bio, links, deletion_requested_at").eq("id", viewer.id).single(),
+    // 소개 · 링크는 프로필 고치기 화면(/me/edit)에서만 쓴다
+    supabase.from("profiles").select("deletion_requested_at").eq("id", viewer.id).single(),
     isStaffRole(profile.role)
       ? supabase.from("reports").select("id", { count: "exact", head: true }).eq("status", "open")
       : Promise.resolve({ count: null }),
@@ -109,9 +109,9 @@ export default async function MePage() {
         >
           내 프로필 보기
         </Link>
-        <a href="#edit-heading" className="flex min-h-11 items-center justify-center rounded-full border border-line text-sm font-bold hover:border-quiet">
+        <Link href="/me/edit" className="flex min-h-11 items-center justify-center rounded-full border border-line text-sm font-bold hover:border-quiet">
           프로필 고치기
-        </a>
+        </Link>
       </div>
       {/* 로그아웃은 아래 바로가기 카드에 없어서 여기 둔다 (설정은 카드에 있다) */}
       <form action={signOut} className="mt-2">
@@ -237,14 +237,6 @@ export default async function MePage() {
             팔로우 피드 보기
           </Link>
         )}
-      </section>
-
-      <section aria-labelledby="edit-heading" className="mt-8 border-t border-line pt-8">
-        <h2 id="edit-heading" className="mb-4 text-lg font-semibold">
-          프로필 편집
-        </h2>
-        <ProfileForm displayName={profile.display_name} bio={full?.bio ?? ""} links={full?.links ?? []} />
-        <p className="mt-3 text-xs text-quiet">핸들(@{profile.handle})은 크레딧 태그의 기준이라 바꿀 수 없어요.</p>
       </section>
 
     </div>

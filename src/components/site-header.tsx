@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getAdminPending } from "@/lib/admin/pending";
 import { isStaffRole } from "@/lib/auth/roles";
 import { getViewer } from "@/lib/auth/viewer";
+import { profileHref } from "@/lib/profiles/profile-href";
 import { getUnreadCount } from "@/lib/notifications/unread";
 import { HeaderNav } from "./header-nav";
 import { HeaderAutoHide } from "./header-auto-hide";
@@ -59,10 +60,19 @@ export async function SiteHeader() {
               )}
               {viewer?.profile && <NotificationBell unread={unread} />}
               {viewer?.profile ? (
-                // PC에는 하단 탭이 없다. 마이로 바로 보낸다 (공개 프로필은 마이 안의 '내 프로필 보기'로)
-                <Link prefetch={false} href="/me" className="hidden min-h-11 max-w-40 items-center truncate text-quiet hover:text-text md:flex">
-                  @{viewer.profile.handle}
-                </Link>
+                // PC에는 하단 탭이 없어 '마이'를 여기 둔다. @핸들은 남들이 보는 내 페이지로 (핸들 본래 뜻)
+                <>
+                  <Link prefetch={false} href="/me" className="hidden min-h-11 items-center text-quiet hover:text-text md:flex">
+                    마이
+                  </Link>
+                  <Link
+                    prefetch={false}
+                    href={profileHref(viewer.profile.handle)}
+                    className="hidden min-h-11 max-w-32 items-center truncate text-quiet hover:text-text lg:flex"
+                  >
+                    @{viewer.profile.handle}
+                  </Link>
+                </>
               ) : (
                 <Link prefetch={false} href="/login" className="flex min-h-11 items-center px-1 text-quiet hover:text-text">
                   로그인
