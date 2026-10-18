@@ -11,7 +11,7 @@ export type Viewer = {
   /** 소셜 로그인에서 받은 이름 (가입 화면 기본값) */
   suggestedName: string;
   /** 가입(핸들 입력)을 마치지 않았으면 null */
-  profile: Pick<Tables<"profiles">, "handle" | "display_name" | "role" | "can_upload"> | null;
+  profile: Pick<Tables<"profiles">, "handle" | "display_name" | "role" | "can_upload" | "avatar_key"> | null;
   /** 지금 이용 정지 중이면 기간 · 사유 (본인만 보는 정보). 정지 중에는 profile.can_upload도 false */
   restriction: { until: string; reason: string } | null;
   /**
@@ -37,7 +37,7 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
   const [{ data: profile, error: profileError }, { data: settingsRows, error: settingsError }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("handle, display_name, role, can_upload, restriction:member_restrictions!member_restrictions_member_id_fkey(suspended_until, reason)")
+      .select("handle, display_name, role, can_upload, avatar_key, restriction:member_restrictions!member_restrictions_member_id_fkey(suspended_until, reason)")
       .eq("id", sub)
       .maybeSingle(),
     supabase.rpc("my_settings"),
@@ -69,6 +69,7 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
       display_name: profile.display_name,
       role: mfaRequired ? "member" : profile.role,
       can_upload: canUpload,
+      avatar_key: profile.avatar_key,
     },
     restriction,
     mfaRequired,

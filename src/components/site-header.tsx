@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getAdminPending } from "@/lib/admin/pending";
 import { isStaffRole } from "@/lib/auth/roles";
 import { getViewer } from "@/lib/auth/viewer";
+import { Avatar } from "@/components/avatar";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { getUnreadCount } from "@/lib/notifications/unread";
 import { HeaderNav } from "./header-nav";
@@ -64,9 +65,10 @@ export async function SiteHeader() {
                 <Link
                   prefetch={false}
                   href={profileHref(viewer.profile.handle)}
-                  className="hidden min-h-11 max-w-40 items-center truncate text-quiet hover:text-text md:flex"
+                  className="hidden min-h-11 max-w-44 items-center gap-2 text-quiet hover:text-text md:flex"
                 >
-                  @{viewer.profile.handle}
+                  <Avatar avatarKey={viewer.profile.avatar_key} size={28} />
+                  <span className="truncate">@{viewer.profile.handle}</span>
                 </Link>
               ) : (
                 <Link prefetch={false} href="/login" className="flex min-h-11 items-center px-1 text-quiet hover:text-text">
