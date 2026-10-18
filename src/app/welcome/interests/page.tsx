@@ -100,9 +100,18 @@ export default async function InterestsPage({ searchParams }: PageProps<"/welcom
         </section>
       )}
 
-      <Link href={next} className="flex min-h-12 items-center justify-center rounded-xl bg-accent font-semibold text-on-accent">
-        시작하기
-      </Link>
+      <div className="flex flex-col gap-3">
+        <Link href={next} className="flex min-h-12 items-center justify-center rounded-xl bg-accent font-semibold text-on-accent">
+          시작하기
+        </Link>
+        <p className="text-center text-sm text-quiet">
+          해담이 처음이라면{" "}
+          <Link href="/guide" className="underline underline-offset-2">
+            이용 가이드
+          </Link>
+          를 먼저 보세요.
+        </p>
+      </div>
     </div>
   );
 }

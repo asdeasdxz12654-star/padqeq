@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { withNext } from "@/lib/auth/next-path";
 import { getViewer } from "@/lib/auth/viewer";
@@ -47,6 +48,8 @@ export default async function UploadPage({ searchParams }: PageProps<"/upload">)
   }
 
   if (!viewer.profile.can_upload) {
+    // 권한이 회수된 계정(제재)에는 '그동안 할 수 있는 것'을 권하지 않는다
+    const revoked = switches.uploadStage === "open";
     return (
       <div className="mx-auto max-w-md px-4 py-24 text-center">
         {switches.uploadStage === "invite" ? (
@@ -55,7 +58,7 @@ export default async function UploadPage({ searchParams }: PageProps<"/upload">)
             <p className="mt-2 text-sm leading-relaxed text-quiet">지금은 초대받은 회원만 사진을 올릴 수 있어요. 받은 초대 코드 8자리를 넣어 주세요.</p>
             <InviteForm />
           </>
-        ) : switches.uploadStage === "open" ? (
+        ) : revoked ? (
           <>
             <h1 className="text-xl font-bold">사진을 올릴 수 없는 계정이에요</h1>
             <p className="mt-2 text-sm leading-relaxed text-quiet">운영 정책에 따라 업로드 권한이 회수됐어요. 이의가 있으면 1:1 문의로 알려 주세요.</p>
@@ -64,9 +67,27 @@ export default async function UploadPage({ searchParams }: PageProps<"/upload">)
           <>
             <h1 className="text-xl font-bold">업로드는 아직 열리지 않았어요</h1>
             <p className="mt-2 text-sm leading-relaxed text-quiet">
-              지금은 운영자만 사진을 올릴 수 있어요. 회원 업로드는 초대 방식으로 차례대로 열 예정이에요.
+              지금은 운영자만 사진을 올릴 수 있어요. 회원 업로드는 초대 방식으로 차례대로 열 예정이고, 열리면 알림으로 알려 드려요.
             </p>
           </>
+        )}
+        {!revoked && (
+          <div className="mt-10 rounded-xl border border-line p-4 text-left">
+            <h2 className="font-semibold">그동안 이런 걸 할 수 있어요</h2>
+            <ul className="mt-2 flex list-disc flex-col gap-1 pl-5 text-sm leading-relaxed text-quiet">
+              <li>마음에 드는 사진을 컬렉션에 담아 두기</li>
+              <li>좋아하는 작품 · 장소 태그와 작가 · 모델 팔로우하기</li>
+              <li>내가 찍었거나 사진에 나왔다면 크레딧 연결 요청하기</li>
+            </ul>
+            <nav aria-label="둘러보기" className="-mb-2 mt-2 flex flex-wrap gap-x-4">
+              <Link href="/explore" className="inline-flex min-h-10 items-center text-sm font-medium text-text underline underline-offset-4">
+                탐색 둘러보기
+              </Link>
+              <Link href="/guide#credits" className="inline-flex min-h-10 items-center text-sm font-medium text-text underline underline-offset-4">
+                크레딧이란?
+              </Link>
+            </nav>
+          </div>
         )}
       </div>
     );

@@ -56,6 +56,6 @@ export async function completeSignup(formData: FormData): Promise<SignupErrors> 
 
   // 상단 바 · 탭 등 모든 화면이 새 프로필로 다시 그려지게 (안 하면 브라우저에 남은 화면이 "가입 마무리"를 계속 보여 준다)
   revalidatePath("/", "layout");
-  // 가입 직후 관심 고르기 (S-01 ⑥ ⑦, 건너뛸 수 있음)
-  redirect(next === "/" ? "/welcome/interests" : `/welcome/interests?next=${encodeURIComponent(next)}`);
+  // 가입 직후 소개 → 관심 고르기 (S-01 ⑥ ⑦, 둘 다 건너뛸 수 있음)
+  redirect(next === "/" ? "/welcome/intro" : `/welcome/intro?next=${encodeURIComponent(next)}`);
 }

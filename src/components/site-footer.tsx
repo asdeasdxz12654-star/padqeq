@@ -5,6 +5,9 @@ export function SiteFooter() {
   return (
     <footer className="mx-auto mt-16 max-w-[1440px] border-t border-line px-4 pt-6 pb-8 text-xs text-quiet md:px-6">
       <nav aria-label="사이트 안내" className="-my-2 flex flex-wrap gap-x-4">
+        <Link prefetch={false} href="/guide" className="inline-flex min-h-10 items-center hover:text-text">
+          이용 가이드
+        </Link>
         <Link prefetch={false} href="/help" className="inline-flex min-h-10 items-center hover:text-text">
           고객센터
         </Link>
