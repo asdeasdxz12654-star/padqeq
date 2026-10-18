@@ -18,8 +18,11 @@ updates:
       # @types/node는 실제 실행 환경(Node 24: CI · engines)과 같은 메이저로 둔다. Node를 올릴 때 함께 올린다.
       - dependency-name: "@types/node"
         update-types: ["version-update:semver-major"]
-      # Next 16.4는 OpenNext(Cloudflare)가 아직 지원하지 않는다 (preview-props.json → 모든 요청 500, 2026-10-16 배포 사고).
-      # OpenNext가 지원하면 이 두 줄을 지우고 함께 올린다.
+      # Next 16.4는 OpenNext(Cloudflare)가 지원하지 않았다 (preview-props.json → 모든 요청 500, 2026-10-16 배포 사고).
+      # 고쳐졌다: @opennextjs/cloudflare 1.20.12 (2026-10-15 공개, PR #1356이 preview-props.json을 글롭에 넣음).
+      # 푸는 순서: ① OpenNext를 1.20.12 이상으로 올려 배포가 통과하는지 먼저 본다
+      #            ② 통과하면 이 두 줄을 지워 Next 16.4를 받는다 (한꺼번에 올리지 말 것 — 실패하면 원인이 갈린다)
+      # 둘 다 cooldown 7일에 걸려 있다: 1.20.12는 10/22, next 16.4.1은 10/21부터 제안된다.
       - dependency-name: "next"
         versions: [">=16.4.0"]
       - dependency-name: "eslint-config-next"
