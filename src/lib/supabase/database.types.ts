@@ -1927,6 +1927,7 @@ export type Database = {
           show_veiled: boolean
           credit_auto_approve: boolean
           interest_categories: Database["public"]["Enums"]["post_category"][]
+          avatar_key: string | null
           cover_post_id: string | null
           links: string[]
           pinned_post_ids: string[]
@@ -1945,6 +1946,7 @@ export type Database = {
           show_veiled?: boolean
           credit_auto_approve?: boolean
           interest_categories?: Database["public"]["Enums"]["post_category"][]
+          avatar_key?: string | null
           cover_post_id?: string | null
           links?: string[]
           pinned_post_ids?: string[]
@@ -1963,6 +1965,7 @@ export type Database = {
           show_veiled?: boolean
           credit_auto_approve?: boolean
           interest_categories?: Database["public"]["Enums"]["post_category"][]
+          avatar_key?: string | null
           cover_post_id?: string | null
           links?: string[]
           pinned_post_ids?: string[]
@@ -2347,6 +2350,7 @@ export type Database = {
           posts: number
         }[]
       }
+      set_my_avatar: { Args: { key: string | null }; Returns: undefined }
     }
     Enums: {
       appeal_status: "open" | "accepted" | "rejected"

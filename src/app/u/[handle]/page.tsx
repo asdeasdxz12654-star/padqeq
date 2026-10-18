@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Avatar } from "@/components/avatar";
 import { BlockButton } from "@/components/block-button";
 import { CollectionCards } from "@/components/collection-cards";
 import { ShareButton } from "@/components/share-button";
@@ -139,9 +140,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
       )}
       <header className="flex flex-col gap-3 px-4 pt-8 pb-2 md:px-6">
         <div className="flex items-center gap-4">
-          <div aria-hidden="true" className="flex size-16 shrink-0 items-center justify-center rounded-full bg-slot text-xl font-bold text-quiet">
-            {profile.display_name.slice(0, 1)}
-          </div>
+          <Avatar avatarKey={profile.avatar_key} size={64} />
           <div className="min-w-0">
             <h1 className="truncate text-xl font-bold">{profile.display_name}</h1>
             <p className="flex items-center gap-2 text-sm text-quiet">

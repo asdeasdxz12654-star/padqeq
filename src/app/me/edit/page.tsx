@@ -5,6 +5,7 @@ import { withNext } from "@/lib/auth/next-path";
 import { getViewer } from "@/lib/auth/viewer";
 import { loadScopePage } from "@/lib/posts/feed-scope-server";
 import { createClient } from "@/lib/supabase/server";
+import { AvatarForm } from "./avatar-form";
 import { CoverPicker } from "./cover-picker";
 import { ProfileForm } from "../profile-form";
 
@@ -19,7 +20,7 @@ export default async function ProfileEditPage() {
 
   const supabase = await createClient();
   const [{ data: full }, recent] = await Promise.all([
-    supabase.from("profiles").select("bio, links, cover_post_id").eq("id", viewer.id).single(),
+    supabase.from("profiles").select("bio, links, cover_post_id, avatar_key").eq("id", viewer.id).single(),
     // 커버로 고를 수 있는 내 사진 (최근 것부터)
     loadScopePage({ kind: "author", authorId: viewer.id, year: null, month: null }),
   ]);
@@ -32,6 +33,14 @@ export default async function ProfileEditPage() {
         </Link>
         <h1 className="text-2xl font-bold">프로필 고치기</h1>
       </header>
+
+      <section aria-labelledby="avatar-heading" className="mt-8 border-t border-line pt-8">
+        <h2 id="avatar-heading" className="text-lg font-semibold">
+          프로필 사진
+        </h2>
+        <p className="mt-1 mb-3 text-sm text-quiet">올리지 않으면 빈 자리로 둬요.</p>
+        <AvatarForm initial={full?.avatar_key ?? null} />
+      </section>
 
       <section aria-labelledby="cover-heading" className="mt-8 border-t border-line pt-8">
         <h2 id="cover-heading" className="text-lg font-semibold">

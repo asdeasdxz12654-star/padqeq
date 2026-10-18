@@ -7,6 +7,7 @@ import { getViewer } from "@/lib/auth/viewer";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { createClient } from "@/lib/supabase/server";
 import { getFollowedMembers, getFollowedTags } from "@/lib/follows/follows";
+import { Avatar } from "@/components/avatar";
 import { TagChip } from "@/components/tag-chip";
 import { currentYearKst } from "@/lib/year-chips";
 import { signOut } from "./actions";
@@ -28,7 +29,7 @@ export default async function MePage() {
   const supabase = await createClient();
   const [{ data: full }, openReports, creditRows, followedTags, claimRows, followedMembers, openInquiries, { data: unreadThreads }] = await Promise.all([
     // 소개 · 링크는 프로필 고치기 화면(/me/edit)에서만 쓴다
-    supabase.from("profiles").select("deletion_requested_at").eq("id", viewer.id).single(),
+    supabase.from("profiles").select("deletion_requested_at, avatar_key").eq("id", viewer.id).single(),
     isStaffRole(profile.role)
       ? supabase.from("reports").select("id", { count: "exact", head: true }).eq("status", "open")
       : Promise.resolve({ count: null }),
@@ -89,9 +90,7 @@ export default async function MePage() {
         </p>
       )}
       <div className="flex items-center gap-4">
-        <div aria-hidden="true" className="flex size-16 shrink-0 items-center justify-center rounded-full bg-slot text-xl font-bold text-quiet">
-          {profile.display_name.slice(0, 1)}
-        </div>
+        <Avatar avatarKey={full?.avatar_key} size={64} />
         <div className="min-w-0">
           <h1 className="truncate text-xl font-bold">{profile.display_name}</h1>
           <p className="text-sm text-quiet">

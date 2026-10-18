@@ -16,7 +16,7 @@ export const getProfileByHandle = cache(async (rawHandle: string) => {
   const supabase = await createClient();
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("id, handle, display_name, bio, role, created_at, cover_post_id, links, pinned_post_ids")
+    .select("id, handle, display_name, bio, role, created_at, cover_post_id, links, pinned_post_ids, avatar_key")
     .eq("handle", handle)
     .maybeSingle();
   if (error) throw error;
