@@ -260,7 +260,7 @@ export default async function CommunityPage({ searchParams }: PageProps<"/commun
           <section aria-labelledby="rail-events" className="rounded-2xl border border-line p-4">
             <h2 id="rail-events" className="flex items-center justify-between font-bold">
               다가오는 행사
-              <Link href="/events" className="text-xs font-normal text-quiet hover:underline">
+              <Link href="/events" className="-my-3.5 flex min-h-11 items-center pl-3 text-xs font-normal text-quiet hover:underline">
                 캘린더 ›
               </Link>
             </h2>
