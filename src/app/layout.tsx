@@ -22,7 +22,8 @@ const plexKr = IBM_Plex_Sans_KR({
   weight: ["400", "700"],
   variable: "--font-plex-kr",
   preload: false,
-  display: "swap",
+  // 늦게 온 글꼴로 화면을 다시 그리지 않는다: 첫 방문에 바로 준비되지 않으면 기기 글꼴로 보이고, 다음 방문부터 (저장된) Plex로
+  display: "optional",
 });
 
 export const metadata: Metadata = {
