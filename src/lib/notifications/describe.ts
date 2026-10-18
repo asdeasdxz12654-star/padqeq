@@ -93,6 +93,8 @@ export function describeNotification({ kind, actorHandle, post, event = null, bo
       return { text: `${who}이 나를 크레딧으로 태그해 자동으로 승인했어요. 원하지 않으면 게시물에서 뺄 수 있어요.`, href: postHref };
     case "year_review":
       return { text: "올해 담은 사진을 돌아보는 '나의 한 해'가 열렸어요.", href: "/me/year" };
+    case "time_capsule":
+      return { text: "예전에 묻어 둔 타임캡슐이 오늘 열렸어요. 그날의 나에게서 온 편지를 읽어 봐요.", href: "/memories#capsules" };
     case "memory_today":
       return { text: "오늘은 예전에 담아 둔 사진이 있는 날이에요. 그날의 추억을 다시 봐요.", href: "/memories" };
     case "inquiry_answered":
@@ -114,7 +116,7 @@ export const NOTIFICATION_GROUP_LABEL: Record<NotificationGroup, string> = {
 
 export function notificationGroup(kind: NotificationKind): NotificationGroup {
   if (kind.startsWith("credit_")) return "credit";
-  if (kind === "post_liked" || kind === "comment_added" || kind === "comment_replied" || kind === "comment_mentioned" || kind === "memory_today" || kind === "year_review") {
+  if (kind === "post_liked" || kind === "comment_added" || kind === "comment_replied" || kind === "comment_mentioned" || kind === "memory_today" || kind === "time_capsule" || kind === "year_review") {
     return "reaction";
   }
   if (kind.startsWith("message_") || kind.startsWith("event_") || kind === "board_replied") return "community";

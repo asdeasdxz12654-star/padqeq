@@ -3,7 +3,7 @@ import { todayKst } from "@/lib/auth/signup-input";
 import { listEvents } from "@/lib/events/load";
 import type { CATEGORIES } from "@/lib/photos/post-input";
 import { createClient } from "@/lib/supabase/server";
-import type { FeedItem } from "./feed";
+import { type FeedItem, loadFeedByIds } from "./feed";
 import { loadScopePage } from "./feed-scope-server";
 
 // 홈 '주제별 섹션' (디자인 개편 v2): 끝없는 사진 목록 대신 주제마다 몇 장씩 정리해서 보여 준다.
@@ -16,6 +16,27 @@ type Category = (typeof CATEGORIES)[number];
 export type Shelf = { category: Category; items: FeedItem[]; popular: boolean };
 export type EventShelf = { id: string; name: string; startsOn: string; endsOn: string; venue: string; items: FeedItem[] };
 export type TagTile = { slug: string; name: string; total: number; cover: FeedItem | null };
+export type Exhibition = { id: string; title: string; note: string; handle: string; items: FeedItem[] };
+
+/** 전시: 운영자가 건 공개 컬렉션 (최근에 건 것 2곳). 볼 수 있는 사진이 3장 이상일 때만 */
+async function exhibitions(): Promise<Exhibition[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("collections")
+    .select("id, title, description, exhibit_note, owner:profiles!collections_owner_id_fkey(handle)")
+    .not("exhibited_at", "is", null)
+    .order("exhibited_at", { ascending: false })
+    .limit(2);
+  if (error) throw error;
+  const shown = await Promise.all(
+    data.map(async (c) => {
+      const { data: rows } = await supabase.from("collection_posts").select("post_id").eq("collection_id", c.id).order("added_at", { ascending: false }).limit(5);
+      const items = await loadFeedByIds((rows ?? []).map((r) => r.post_id));
+      return { id: c.id, title: c.title, note: c.exhibit_note || c.description.slice(0, 120), handle: c.owner?.handle ?? "", items };
+    }),
+  );
+  return shown.filter((e) => e.items.length >= 3 && e.handle);
+}
 
 const shift = (days: number) => {
   const d = new Date(`${todayKst()}T00:00:00Z`);
@@ -57,18 +78,20 @@ async function tagTiles(): Promise<TagTile[]> {
 }
 
 export async function loadHomeSections() {
-  const [cosplay, model, landscape, events, tags, latest] = await Promise.all([
+  const [cosplay, model, landscape, events, tags, latest, shows] = await Promise.all([
     shelf("cosplay"),
     shelf("model"),
     shelf("landscape"),
     eventShelves().catch(() => []),
     tagTiles().catch(() => []),
     loadScopePage({ kind: "home", year: null, feed: "latest" }),
+    exhibitions().catch(() => []),
   ]);
   return {
     shelves: [cosplay, model, landscape].filter((s) => s.items.length >= SHELF_MIN),
     events,
     tags: tags.length >= 3 ? tags : [],
     latest: latest.items.slice(0, 10),
+    exhibitions: shows,
   };
 }

@@ -9,6 +9,7 @@ import { getViewer } from "@/lib/auth/viewer";
 import { loadFeedByIds } from "@/lib/posts/feed";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { createClient } from "@/lib/supabase/server";
+import { ExhibitForm } from "./exhibit-form";
 
 
 // 볼 수 있는 컬렉션만 (공개 · 내 것, RLS). 없거나 볼 수 없으면 같은 화면.
@@ -17,7 +18,7 @@ const getCollection = cache(async (id: string) => {
   const supabase = await createClient();
   const { data } = await supabase
     .from("collections")
-    .select("id, owner_id, title, description, is_public, owner:profiles!collections_owner_id_fkey(handle, display_name)")
+    .select("id, owner_id, title, description, is_public, exhibited_at, exhibit_note, owner:profiles!collections_owner_id_fkey(handle, display_name)")
     .eq("id", id)
     .maybeSingle();
   return data?.owner ? { ...data, owner: data.owner } : null;
@@ -37,6 +38,7 @@ export default async function CollectionPage({ params }: PageProps<"/c/[id]">) {
   const [collection, viewer] = await Promise.all([getCollection((await params).id), getViewer()]);
   if (!collection) notFound();
   const isOwner = viewer?.id === collection.owner_id;
+  const isAdmin = viewer?.profile?.role === "admin";
 
   const supabase = await createClient();
   const { data: rows } = await supabase
@@ -55,9 +57,13 @@ export default async function CollectionPage({ params }: PageProps<"/c/[id]">) {
             @{collection.owner.handle}의 컬렉션
           </Link>
           {!collection.is_public && " · 나만 보기"}
+          {collection.exhibited_at && " · 해담 전시"}
         </p>
         <h1 className="text-2xl font-bold">{collection.title}</h1>
         {collection.description && <p className="max-w-2xl whitespace-pre-line text-sm leading-relaxed">{collection.description}</p>}
+        {isAdmin && collection.is_public && (
+          <ExhibitForm id={collection.id} exhibited={collection.exhibited_at !== null} note={collection.exhibit_note} />
+        )}
         {isOwner && (
           <details className="mt-2 max-w-xl rounded-xl border border-line p-4">
             <summary className="cursor-pointer text-sm font-semibold">컬렉션 고치기</summary>

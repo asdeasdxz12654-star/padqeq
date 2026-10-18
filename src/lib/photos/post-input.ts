@@ -32,6 +32,8 @@ export const masterPhoto = z
     slotId: z.uuid().optional(),
     /** 사진 지문 (dHash 16진수 16자리) */
     phash: z.string().regex(/^[0-9a-f]{16}$/),
+    /** 대표 색 (#rrggbb, 사진이 뜨기 전 자리 색) */
+    color: z.string().regex(/^#[0-9a-f]{6}$/).optional(),
     /** 촬영 정보 (장비 · 설정, 각 60자) */
     exif: z
       .object({

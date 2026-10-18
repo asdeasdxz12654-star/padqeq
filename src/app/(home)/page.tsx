@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { FeedList } from "@/components/feed-list";
-import { EventSection, HomeHero, LatestSection, PicksRow, ShelfSection, TagSection } from "@/components/home/home-sections";
+import { EventSection, ExhibitionSection, HomeHero, LatestSection, PicksRow, ShelfSection, TagSection } from "@/components/home/home-sections";
 import { OnThisDay } from "@/components/on-this-day";
 import { YearChips } from "@/components/year-chips";
 import { getViewer } from "@/lib/auth/viewer";
@@ -77,6 +77,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
           <OnThisDay items={memories} />
           {/* 큰 칸에 쓴 첫 픽은 줄에서 뺀다 */}
           <PicksRow items={picks?.items.slice(1) ?? []} />
+          <ExhibitionSection shows={sections.exhibitions} />
           {sections.shelves.map((shelf) => (
             <ShelfSection key={shelf.category} shelf={shelf} />
           ))}

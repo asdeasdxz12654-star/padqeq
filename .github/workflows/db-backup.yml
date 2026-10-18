@@ -95,6 +95,7 @@ jobs:
           echo "행사 전날 알림: $(psql -c 'select private.send_event_reminders();')건"
           echo "행사 끝난 뒤 사진 올리기 알림: $(psql -c 'select private.send_event_photo_prompts();')건"
           echo "N년 전 오늘 알림: $(psql -c 'select private.send_memory_alerts();')건"
+          echo "오늘 열리는 타임캡슐 알림: $(psql -c 'select private.send_time_capsules();')건"
           echo "연말 결산 알림 (12월 8일부터): $(psql -c 'select private.send_year_review_alerts();')건"
           echo "아무도 없는 대화 삭제: $(psql -c 'select private.purge_orphan_threads();')건"
           echo "휴지통 30일 지난 게시물 영구 삭제: $(psql -c 'select private.purge_trashed_posts();')건"

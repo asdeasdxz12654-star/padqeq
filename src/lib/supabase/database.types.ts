@@ -192,6 +192,8 @@ export type Database = {
         Row: {
           created_at: string
           description: string
+          exhibit_note: string
+          exhibited_at: string | null
           id: string
           is_public: boolean
           owner_id: string
@@ -201,6 +203,8 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string
+          exhibit_note?: string
+          exhibited_at?: string | null
           id?: string
           is_public?: boolean
           owner_id: string
@@ -210,6 +214,8 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string
+          exhibit_note?: string
+          exhibited_at?: string | null
           id?: string
           is_public?: boolean
           owner_id?: string
@@ -949,11 +955,58 @@ export type Database = {
           },
         ]
       }
+      time_capsules: {
+        Row: {
+          created_at: string
+          id: string
+          letter: string
+          open_on: string
+          opened_at: string | null
+          owner_id: string
+          post_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          letter: string
+          open_on: string
+          opened_at?: string | null
+          owner_id: string
+          post_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          letter?: string
+          open_on?: string
+          opened_at?: string | null
+          owner_id?: string
+          post_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_capsules_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_capsules_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       photos: {
         Row: {
           exif: Json | null
           alt_text: string
+          back_memo: string
           bytes: number
+          color: string | null
           created_at: string
           height: number
           id: string
@@ -969,7 +1022,9 @@ export type Database = {
         Insert: {
           exif?: Json | null
           alt_text?: string
+          back_memo?: string
           bytes: number
+          color?: string | null
           created_at?: string
           height: number
           id?: string
@@ -985,7 +1040,9 @@ export type Database = {
         Update: {
           exif?: Json | null
           alt_text?: string
+          back_memo?: string
           bytes?: number
+          color?: string | null
           created_at?: string
           height?: number
           id?: string
@@ -2176,6 +2233,12 @@ export type Database = {
         Returns: { action: string; actor_handle: string | null; created_at: string; detail: Json }[]
       }
       approve_tag: { Args: { target: string }; Returns: undefined }
+      set_exhibition: { Args: { target: string; on_display: boolean; note?: string }; Returns: undefined }
+      bury_time_capsule: { Args: { post: string; letter: string; open_on: string }; Returns: string }
+      my_time_capsules: {
+        Args: never
+        Returns: { id: string; post_id: string | null; open_on: string; created_at: string; letter: string | null }[]
+      }
       create_official_tag: {
         Args: {
           aliases?: string[]
@@ -2276,6 +2339,7 @@ export type Database = {
         | "comment_hidden"
         | "event_reminder"
         | "event_photos"
+        | "time_capsule"
         | "event_approved"
         | "event_rejected"
         | "board_replied"
@@ -2475,6 +2539,7 @@ export const Constants = {
         "comment_hidden",
         "event_reminder",
         "event_photos",
+        "time_capsule",
         "event_approved",
         "event_rejected",
         "board_replied",

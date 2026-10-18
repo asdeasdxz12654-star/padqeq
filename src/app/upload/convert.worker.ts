@@ -13,7 +13,7 @@ import { embedWatermark, SEED_BYTES, seedToHex } from "@/lib/photos/watermark";
 export type ConvertRequest = { id: string; file: File } | { id: string; bitmap: ImageBitmap };
 export type ConvertMessage =
   | { id: string; type: "progress"; done: number; total: number }
-  | { id: string; type: "done"; width: number; height: number; seed: string; phash: string; files: Record<VariantName, Blob> }
+  | { id: string; type: "done"; width: number; height: number; seed: string; phash: string; color: string; files: Record<VariantName, Blob> }
   | { id: string; type: "error"; message: string };
 
 // DOM 타입과 WebWorker 타입을 함께 켜면 충돌하므로 필요한 부분만 적는다
@@ -33,6 +33,18 @@ function resize(source: CanvasImageSource & { width: number; height: number }, w
     current = draw(current, w, h);
   }
   return w === width && h === height && current instanceof OffscreenCanvas ? current : draw(current, width, height);
+}
+
+/** RGBA 픽셀의 평균 색 (#rrggbb) */
+function averageColor(data: Uint8ClampedArray): string {
+  let r = 0, g = 0, b = 0;
+  const n = data.length / 4;
+  for (let i = 0; i < data.length; i += 4) {
+    r += data[i]!;
+    g += data[i + 1]!;
+    b += data[i + 2]!;
+  }
+  return `#${[r, g, b].map((v) => Math.round(v / n).toString(16).padStart(2, "0")).join("")}`;
 }
 
 function draw(source: CanvasImageSource, width: number, height: number, background?: string): OffscreenCanvas {
@@ -74,6 +86,7 @@ async function convert(request: ConvertRequest) {
   let previous: OffscreenCanvas | ImageBitmap = bitmap;
   let marked: OffscreenCanvas | null = null;
   let phash = "";
+  let color = "";
   let done = 0;
   for (const name of ["4000", "2560", "1200", "400"] as const) {
     const size = variantSize(master.width, master.height, name);
@@ -89,6 +102,8 @@ async function convert(request: ConvertRequest) {
     if (name === "4000") marked = canvas;
     // 사진 지문: 가장 작은 변환본을 9×8로 줄여서 (재업로드 차단 · 중복 경고용)
     if (name === "400") phash = dHash(draw(canvas, PHASH_WIDTH, PHASH_HEIGHT).getContext("2d")!.getImageData(0, 0, PHASH_WIDTH, PHASH_HEIGHT).data);
+    // 대표 색: 사진이 뜨기 전 자리를 칠할 평균 색 (8×8로 줄여 평균)
+    if (name === "400") color = averageColor(draw(canvas, 8, 8).getContext("2d")!.getImageData(0, 0, 8, 8).data);
     previous = canvas;
     post({ id, type: "progress", done: ++done, total });
   }
@@ -100,7 +115,7 @@ async function convert(request: ConvertRequest) {
   post({ id, type: "progress", done: ++done, total });
 
   bitmap.close();
-  post({ id, type: "done", width: master.width, height: master.height, seed: seedToHex(seed), phash, files });
+  post({ id, type: "done", width: master.width, height: master.height, seed: seedToHex(seed), phash, color, files });
 }
 
 // 한 번에 한 장씩 (메모리 · CPU 보호)

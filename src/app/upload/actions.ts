@@ -61,6 +61,7 @@ export async function createDraft(input: DraftInput): Promise<Result<{ postId: s
         bytes: p.bytes,
         alt_text: p.altText,
         taken_at: p.takenAt,
+        color: p.color ?? null,
       })),
     )
     .select("id, position");

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { formatRange } from "@/lib/events/calendar";
 import { CATEGORY_LABEL } from "@/lib/photos/post-input";
 import type { FeedItem } from "@/lib/posts/feed";
-import type { EventShelf, Shelf, TagTile } from "@/lib/posts/home-sections";
+import type { EventShelf, Exhibition, Shelf, TagTile } from "@/lib/posts/home-sections";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { ProtectedPhoto } from "../protected-photo";
 import { Veil } from "../veil";
@@ -147,6 +147,54 @@ export function PicksRow({ items }: { items: FeedItem[] }) {
     <section aria-labelledby="more-picks">
       <SectionHead id="more-picks" title="오늘의 픽" sub="운영자가 고른 오늘의 사진" />
       <CardRow items={items} />
+    </section>
+  );
+}
+
+/** 전시: 운영자가 고른 컬렉션 한 곳을 전시실처럼 (큰 한 장 + 작은 넷 · 제목 · 소개 · 모은 사람) */
+export function ExhibitionSection({ shows }: { shows: Exhibition[] }) {
+  if (shows.length === 0) return null;
+  return (
+    <section aria-labelledby="exhibitions" className="flex flex-col gap-8">
+      {shows.map((show, n) => (
+        <div key={show.id}>
+          <SectionHead id={n === 0 ? "exhibitions" : `exhibition-${show.id}`} title={n === 0 ? "전시" : show.title} />
+          <Link prefetch={false} href={`/c/${show.id}`} className="mx-4 block overflow-hidden rounded-2xl border border-line hover:border-quiet md:mx-6">
+            <div className="grid gap-0.5 bg-slot md:grid-cols-[3fr_2fr]">
+              <div className="aspect-[4/3] overflow-hidden [&_picture]:h-full md:aspect-auto md:h-[28rem]">
+                {show.items[0]?.cover && (
+                  <Veil postId={show.items[0].id} reason={show.items[0].cover.veil} fill>
+                    <ProtectedPhoto
+                      sources={show.items[0].cover.sources}
+                      alt={show.items[0].cover.alt}
+                      width={show.items[0].cover.width}
+                      height={show.items[0].cover.height}
+                      sizes="(min-width: 768px) 60vw, 100vw"
+                      className="block size-full object-cover"
+                    />
+                  </Veil>
+                )}
+              </div>
+              <div className="hidden grid-cols-2 grid-rows-2 gap-0.5 md:grid">
+                {show.items.slice(1, 5).map((p) => (
+                  <div key={p.id} className="overflow-hidden [&_picture]:h-full">
+                    {p.cover && (
+                      <Veil postId={p.id} reason={p.cover.veil} fill>
+                        <ProtectedPhoto sources={p.cover.sources} alt={p.cover.alt} width={p.cover.width} height={p.cover.height} sizes="20vw" className="block size-full object-cover" />
+                      </Veil>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="flex flex-col gap-1 px-5 py-4">
+              {n === 0 && <p className="text-xl font-bold">{show.title}</p>}
+              {show.note && <p className="text-sm leading-relaxed">{show.note}</p>}
+              <p className="text-xs text-quiet">@{show.handle}님이 모은 사진 · 전시 보러 가기 ›</p>
+            </div>
+          </Link>
+        </div>
+      ))}
     </section>
   );
 }

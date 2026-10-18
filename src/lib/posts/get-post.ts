@@ -27,7 +27,7 @@ export const getPost = cache(async (id: string) => {
     .select(
       `id, title, body, category, status, held_at, removed_at, shot_year, shot_on, published_at, has_people, author_id, visibility, scheduled_at, comment_policy, show_exif, veil, veil_by_staff,
        author:profiles!posts_author_id_fkey(handle, display_name),
-       photos(id, storage_key, width, height, alt_text, is_panorama, position, ready_at, exif),
+       photos(id, storage_key, width, height, alt_text, back_memo, is_panorama, position, ready_at, exif),
        credits(id, role, status, member_id, external_label, external_url, member:profiles!credits_member_id_fkey(handle, display_name)),
        post_tags(tag:tags(id, slug, name, kind))`,
     )
@@ -65,7 +65,13 @@ export const getPost = cache(async (id: string) => {
   // 촬영 정보: 업로더가 보여 주기로 한 경우 첫 사진의 장비 · 설정 (S-06 ⑧)
   const firstExif = post.show_exif ? exifLine(post.photos[0]?.exif as ExifInfo | null) : null;
 
-  return { ...post, author: post.author, photos, tags, exif: firstExif };
+  // 사진 뒷면 메모 (보이는 사진 순서대로, 몇 번째 사진인지와 함께)
+  const shown = new Set(photos.map((p) => p.id));
+  const photoMemos = post.photos
+    .filter((p) => shown.has(p.id))
+    .flatMap((p, i) => (p.back_memo ? [{ n: i + 1, memo: p.back_memo }] : []));
+
+  return { ...post, author: post.author, photos, tags, exif: firstExif, photoMemos };
 });
 
 export type PostDetail = NonNullable<Awaited<ReturnType<typeof getPost>>>;

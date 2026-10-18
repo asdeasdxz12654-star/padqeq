@@ -9,7 +9,11 @@ import { Veil } from "../veil";
 export function PhotoCard({ post, sizes, priority = false, meta }: { post: FeedItem; sizes: string; priority?: boolean; meta?: string }) {
   return (
     <article className="relative">
-      <div className="aspect-[4/5] overflow-hidden rounded-xl bg-slot [&_picture]:h-full">
+      {/* 사진이 뜨기 전에는 그 사진의 대표 색으로 (가림 표시가 있으면 회색 그대로) */}
+      <div
+        className="aspect-[4/5] overflow-hidden rounded-xl bg-slot [&_picture]:h-full"
+        style={post.cover?.color && !post.cover.veil ? { backgroundColor: post.cover.color } : undefined}
+      >
         {post.cover && (
           <Veil postId={post.id} reason={post.cover.veil} fill>
             <ProtectedPhoto

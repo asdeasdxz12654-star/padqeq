@@ -10,6 +10,8 @@ export type PhotoBack = {
   date: string;
   places: string[];
   memo: string;
+  /** 사진마다 남긴 뒷면 메모 (n번째 사진) */
+  photoMemos: { n: number; memo: string }[];
   people: { role: string; name: string }[];
   exif: string | null;
 };
@@ -36,6 +38,16 @@ export function PhotoFlip({ back, children }: { back: PhotoBack; children: React
             {back.places.length > 0 && <p className="text-2xl leading-tight">{back.places.join(" · ")}</p>}
             <span className="h-px bg-[#d8d2c6]" />
             {back.memo && <p className="text-2xl leading-snug whitespace-pre-line">{back.memo}</p>}
+            {back.photoMemos.length > 0 && (
+              <ul className="flex flex-col gap-1.5 text-2xl leading-snug">
+                {back.photoMemos.map((m) => (
+                  <li key={m.n} className="whitespace-pre-line">
+                    {back.photoMemos.length > 1 || m.n > 1 ? <span className="mr-1.5 text-[#c54a40]">{m.n}.</span> : null}
+                    {m.memo}
+                  </li>
+                ))}
+              </ul>
+            )}
             {back.people.length > 0 && (
               <p className="text-2xl leading-snug">
                 {back.people.map((p) => `${p.role} ${p.name}`).join(" · ")}

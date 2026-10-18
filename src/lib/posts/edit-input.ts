@@ -25,7 +25,18 @@ export const editSchema = z
     shotOn: z.iso.date({ error: "촬영 날짜를 확인해 주세요." }).nullable(),
     tagIds: z.array(z.uuid()).max(MAX_TAGS_PER_POST, `태그는 ${MAX_TAGS_PER_POST}개까지예요.`),
     alts: z
-      .array(z.object({ photoId: z.uuid(), altText: z.string().trim().max(300, "사진 설명은 300자까지예요.").refine(noControl) }))
+      .array(
+        z.object({
+          photoId: z.uuid(),
+          altText: z.string().trim().max(300, "사진 설명은 300자까지예요.").refine(noControl),
+          /** 사진 뒷면 메모 (줄바꿈 가능, 200자) */
+          backMemo: z
+            .string()
+            .transform((v) => v.replace(/\r\n?/g, "\n").trim())
+            .pipe(z.string().max(200, "뒷면 메모는 200자까지예요.").refine(noControl, "쓸 수 없는 문자가 있어요."))
+            .default(""),
+        }),
+      )
       .max(MAX_PHOTOS_PER_POST),
     photoOrder: z.array(z.uuid()).min(1, "사진은 1장 이상 남겨 주세요.").max(MAX_PHOTOS_PER_POST),
     credits: z.object({

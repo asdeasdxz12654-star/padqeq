@@ -63,6 +63,7 @@ export async function publishBundle(
         takenAt: p.takenAt,
         watermarkSeed: p.result!.seed,
         phash: p.result!.phash,
+        color: p.result!.color,
         exif: p.exif ?? null,
         ...(p.slotId && { slotId: p.slotId }),
       })),

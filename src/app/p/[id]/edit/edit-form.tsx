@@ -22,7 +22,7 @@ type Initial = {
   shotYear: number;
   shotOn: string | null;
   tags: TagOption[];
-  photos: { id: string; altText: string; width: number; height: number; sources: PhotoSources | null }[];
+  photos: { id: string; altText: string; backMemo: string; width: number; height: number; sources: PhotoSources | null }[];
   /** 기존 크레딧은 key가 "id:<크레딧 id>" */
   credits: CreditDraft[];
   visibility: Visibility;
@@ -52,6 +52,7 @@ export function EditForm({ initial, isAdmin, viewerHandle }: { initial: Initial;
   const [veil, setVeil] = useState(initial.veil);
   const [scheduledAt, setScheduledAt] = useState(toKstLocal(initial.scheduledAt));
   const [alts, setAlts] = useState<Record<string, string>>(() => Object.fromEntries(initial.photos.map((p) => [p.id, p.altText])));
+  const [memos, setMemos] = useState<Record<string, string>>(() => Object.fromEntries(initial.photos.map((p) => [p.id, p.backMemo])));
   // 남길 사진 (보여 줄 순서대로)
   const [order, setOrder] = useState(() => initial.photos.map((p) => p.id));
   const photoById = new Map(initial.photos.map((p) => [p.id, p]));
@@ -84,7 +85,7 @@ export function EditForm({ initial, isAdmin, viewerHandle }: { initial: Initial;
             shotYear,
             shotOn: shotOn || null,
             tagIds: tags.map((t) => t.id),
-            alts: order.map((id) => ({ photoId: id, altText: alts[id] ?? "" })),
+            alts: order.map((id) => ({ photoId: id, altText: alts[id] ?? "", backMemo: memos[id] ?? "" })),
             photoOrder: order,
             credits: {
               keep: credits.flatMap((c) => (c.key.startsWith("id:") ? [c.key.slice(3)] : [])),
@@ -245,6 +246,15 @@ export function EditForm({ initial, isAdmin, viewerHandle }: { initial: Initial;
                 maxLength={300}
                 placeholder="예) 벚꽃이 핀 강변을 걷는 사람"
                 className={`${field} text-text`}
+              />
+              <span className="mt-1">뒷면 메모 (선택 · 사진 뒷면에 손글씨로 보여요)</span>
+              <textarea
+                value={memos[p.id] ?? ""}
+                onChange={(e) => setMemos((m) => ({ ...m, [p.id]: e.target.value }))}
+                maxLength={200}
+                rows={2}
+                placeholder="예) 바람이 많이 불던 날, 세 번째 컷에서 웃음이 터졌다"
+                className={`${field} min-h-16 py-2 text-text`}
               />
             </label>
             <div className="flex shrink-0 flex-col gap-1 pt-4">

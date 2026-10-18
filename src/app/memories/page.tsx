@@ -6,6 +6,7 @@ import { getViewer } from "@/lib/auth/viewer";
 import { getFollowedMembers } from "@/lib/follows/follows";
 import { loadFeedByIds } from "@/lib/posts/feed";
 import { createClient } from "@/lib/supabase/server";
+import { TimeCapsules } from "./time-capsules";
 
 export const metadata: Metadata = { title: "N년 전 오늘" };
 
@@ -99,6 +100,16 @@ export default async function MemoriesPage({ searchParams }: PageProps<"/memorie
             <PhotoFeed items={feed.filter((f) => yearsAgo.get(f.id) === y)} empty="" />
           </section>
         ))
+      )}
+
+      {viewer?.profile && (
+        <section id="capsules" aria-labelledby="capsules-heading" className="mt-14 scroll-mt-24 px-4 md:px-6">
+          <h2 id="capsules-heading" className="text-lg font-semibold">
+            타임캡슐
+          </h2>
+          <p className="mt-1 mb-4 text-sm text-quiet">사진에 묻어 둔 미래의 나에게 쓴 편지. 여는 날 아침에 알려 드려요.</p>
+          <TimeCapsules />
+        </section>
       )}
     </div>
   );

@@ -24,7 +24,10 @@ export function PhotoFeed({ items, empty }: { items: FeedItem[]; empty: string }
         <li key={post.id} className="mb-2 break-inside-avoid xl:mb-4">
           <article className="relative">
             {post.cover ? (
-              <div className={`relative overflow-hidden rounded-lg bg-slot ${post.cover.isPanorama ? "aspect-[2/1]" : ""}`}>
+              <div
+                className={`relative overflow-hidden rounded-lg bg-slot ${post.cover.isPanorama ? "aspect-[2/1]" : ""}`}
+                style={post.cover.color && !post.cover.veil ? { backgroundColor: post.cover.color } : undefined}
+              >
                 <Veil postId={post.id} reason={post.cover.veil} fill={post.cover.isPanorama}>
                   <ProtectedPhoto
                     sources={post.cover.sources}

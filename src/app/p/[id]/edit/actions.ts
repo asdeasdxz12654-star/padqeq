@@ -53,11 +53,11 @@ export async function updatePost(input: EditInput): Promise<{ ok: boolean; error
     if (arrangeError) return { ok: false, error: "사진 순서를 저장하지 못했어요." };
   }
 
-  // 사진 설명 (대체 텍스트, 남긴 사진만)
+  // 사진 설명 (대체 텍스트) · 뒷면 메모 (남긴 사진만)
   const kept = new Set(photoOrder);
   const results = await Promise.all(
-    alts.filter((a) => kept.has(a.photoId)).map(({ photoId, altText }) =>
-      supabase.from("photos").update({ alt_text: altText }).eq("id", photoId).eq("post_id", postId),
+    alts.filter((a) => kept.has(a.photoId)).map(({ photoId, altText, backMemo }) =>
+      supabase.from("photos").update({ alt_text: altText, back_memo: backMemo }).eq("id", photoId).eq("post_id", postId),
     ),
   );
   if (results.some((r) => r.error)) return { ok: false, error: "사진 설명을 저장하지 못했어요." };

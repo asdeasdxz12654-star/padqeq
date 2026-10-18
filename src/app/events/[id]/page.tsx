@@ -8,7 +8,7 @@ import { todayKst } from "@/lib/auth/signup-input";
 import { getViewer } from "@/lib/auth/viewer";
 import { formatRange } from "@/lib/events/calendar";
 import { cosList } from "@/lib/events/cos-list";
-import { attendeeCounts, getEvent, myAttendance } from "@/lib/events/load";
+import { attendeeCounts, eventSeries, getEvent, myAttendance } from "@/lib/events/load";
 import type { FeedScope } from "@/lib/posts/feed-scope";
 import { loadScopePage } from "@/lib/posts/feed-scope-server";
 import { profileHref } from "@/lib/profiles/profile-href";
@@ -34,7 +34,7 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
 
   const supabase = await createClient();
   const scope: FeedScope | null = event.tag_id ? { kind: "tag", tagId: event.tag_id, year: null } : null;
-  const [counts, mine, attendees, tag, place, photos] = await Promise.all([
+  const [counts, mine, attendees, tag, place, photos, series] = await Promise.all([
     official ? attendeeCounts([event.id]) : Promise.resolve(new Map<string, number>()),
     viewer?.profile ? myAttendance(viewer.id, [event.id]) : Promise.resolve(new Map()),
     official
@@ -51,7 +51,11 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
       ? supabase.from("tags").select("slug, name, lat, lng").eq("id", event.place_tag_id).eq("status", "official").maybeSingle()
       : Promise.resolve({ data: null }),
     scope ? loadScopePage(scope) : Promise.resolve({ items: [], next: null }),
+    official ? eventSeries(event) : Promise.resolve([]),
   ]);
+  // 같은 해에 두 번 열리면 월까지 (예: 2026.01 · 2026.08)
+  const seriesLabel = (startsOn: string) =>
+    series.filter((e) => e.starts_on.slice(0, 4) === startsOn.slice(0, 4)).length > 1 ? startsOn.slice(0, 7).replace("-", ".") : startsOn.slice(0, 4);
   const publicAttendees = (attendees.data ?? []).filter((a) => a.user);
   // 코스 목록 (S-12 ③): 공개한 참가자의 코스 메모를 캐릭터별로
   const costumes = cosList(publicAttendees.map((a) => ({ handle: a.user!.handle, cosNote: a.cos_note })));
@@ -129,6 +133,22 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
               </Link>
             )}
           </p>
+          {series.length > 0 && (
+            <nav aria-label="해마다 같은 행사" className="mt-1 flex flex-wrap items-center gap-1.5 text-sm">
+              <span className="mr-1 text-quiet">해마다</span>
+              {series.map((e) => (
+                <Link
+                  key={e.id}
+                  href={`/events/${e.id}`}
+                  prefetch={false}
+                  aria-current={e.id === event.id ? "page" : undefined}
+                  className="inline-flex min-h-9 items-center rounded-full border border-line px-3 tabular-nums hover:border-quiet aria-[current=page]:border-text aria-[current=page]:bg-text aria-[current=page]:text-bg"
+                >
+                  {seriesLabel(e.starts_on)}
+                </Link>
+              ))}
+            </nav>
+          )}
           {event.description && <p className="mt-2 text-sm leading-relaxed whitespace-pre-line">{event.description}</p>}
           {official && tag.data && point && (
             <div className="mt-2 flex flex-col gap-1.5">

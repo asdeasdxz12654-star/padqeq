@@ -16,6 +16,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ClaimCreditButton } from "./claim-credit-button";
 import { PhotoFeed } from "@/components/photo-feed";
 import { ShareButton } from "@/components/share-button";
+import { BuryCapsule } from "./bury-capsule";
 import { CollectPanel } from "./collect-panel";
 import { Comments } from "./comments";
 import { LikeButton } from "./like-button";
@@ -126,6 +127,7 @@ export async function PostDetail({ id }: { id: string }) {
     date: post.shot_on ? post.shot_on.replaceAll("-", ". ") : `${post.shot_year}년`,
     places: post.tags.filter((t) => t.kind === "place" || t.kind === "event").map((t) => t.name),
     memo: post.body ? post.body.slice(0, 280) : post.title,
+    photoMemos: post.photoMemos,
     people: credits.filter((c) => c.status !== "pending").map((c) => ({ role: CREDIT_ROLE_LABEL[c.role], name: c.member ? `@${c.member.handle}` : (c.external_label ?? "") })),
     exif: post.exif,
   };
@@ -262,6 +264,11 @@ export async function PostDetail({ id }: { id: string }) {
                   {canCollect && (
                     <MenuGroup title="컬렉션에 담기">
                       <CollectPanel postId={post.id} collections={myCollections} />
+                    </MenuGroup>
+                  )}
+                  {canCollect && post.status === "published" && (
+                    <MenuGroup title="미래의 나에게">
+                      <BuryCapsule postId={post.id} />
                     </MenuGroup>
                   )}
                   {isAuthor && (

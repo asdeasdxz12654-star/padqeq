@@ -31,7 +31,7 @@ export const MAX_SESSION_PHOTOS = 500;
 /** 변환은 끝났지만 아직 올리지 못한 사진이 이만큼이면 다음 변환을 기다린다 */
 const MAX_WAITING_UPLOADS = 3;
 
-type Result = { width: number; height: number; seed: string; phash: string; bytes: number; files: Record<VariantName, Blob> | null };
+type Result = { width: number; height: number; seed: string; phash: string; color: string; bytes: number; files: Record<VariantName, Blob> | null };
 
 export type Photo = {
   id: string;
@@ -117,7 +117,7 @@ export function useConverter({ stage = false }: { stage?: boolean } = {}) {
       const gone = removed.current.has(m.id);
       if (m.type === "error") patch(m.id, { status: "error", error: m.message });
       else if (!gone) {
-        const result: Result = { width: m.width, height: m.height, seed: m.seed, phash: m.phash, bytes: m.files["4000"].size, files: m.files };
+        const result: Result = { width: m.width, height: m.height, seed: m.seed, phash: m.phash, color: m.color, bytes: m.files["4000"].size, files: m.files };
         const preview = URL.createObjectURL(m.files["400"]);
         urls.current.add(preview);
         patch(m.id, { status: stage ? "uploading" : "ready", progress: stage ? 0 : 1, preview, result });

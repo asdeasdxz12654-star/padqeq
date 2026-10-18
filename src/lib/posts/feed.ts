@@ -43,6 +43,8 @@ export type FeedItem = {
     height: number;
     alt: string;
     isPanorama: boolean;
+    /** 대표 색 (사진이 뜨기 전 자리 색). 예전 사진은 null */
+    color: string | null;
     sources: PhotoSources;
     /** 가림 표시 (보는 사람이 '바로 보기'를 켰으면 null) */
     veil: VeilReason | null;
@@ -53,9 +55,9 @@ export type FeedPage = { items: FeedItem[]; next: string | null };
 
 // 게시물 + 대표 사진 1장 + 볼 수 있는 사진 수. 태그로 거를 때는 post_tags를 함께 조인한다 (볼 수 있는 연결만, RLS).
 const SELECT =
-  "id, title, category, shot_year, published_at, veil, author:profiles!posts_author_id_fkey(handle), photos(storage_key, width, height, alt_text, is_panorama, position), photo_count:photos(count)";
+  "id, title, category, shot_year, published_at, veil, author:profiles!posts_author_id_fkey(handle), photos(storage_key, width, height, alt_text, is_panorama, position, color), photo_count:photos(count)";
 const TAGGED_SELECT =
-  "id, title, category, shot_year, published_at, veil, author:profiles!posts_author_id_fkey(handle), photos(storage_key, width, height, alt_text, is_panorama, position), photo_count:photos(count), post_tags!inner(tag_id)";
+  "id, title, category, shot_year, published_at, veil, author:profiles!posts_author_id_fkey(handle), photos(storage_key, width, height, alt_text, is_panorama, position, color), photo_count:photos(count), post_tags!inner(tag_id)";
 
 type Row = {
   id: string;
@@ -65,7 +67,7 @@ type Row = {
   published_at: string | null;
   veil: VeilReason | null;
   author: { handle: string } | null;
-  photos: { storage_key: string; width: number; height: number; alt_text: string; is_panorama: boolean | null; position: number }[];
+  photos: { storage_key: string; width: number; height: number; alt_text: string; is_panorama: boolean | null; position: number; color: string | null }[];
   photo_count: { count: number }[];
 };
 
@@ -227,6 +229,7 @@ async function toItems(rows: Row[]): Promise<FeedItem[]> {
                 height: photo.height,
                 alt: photo.alt_text || post.title,
                 isPanorama: Boolean(photo.is_panorama),
+                color: photo.color,
                 sources,
                 // 내 글은 가리지 않는다
                 veil: veilFor(post.veil, showVeiled || (Boolean(viewer?.profile) && post.author?.handle === viewer?.profile?.handle)),

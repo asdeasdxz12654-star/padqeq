@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { seriesKey, seriesPattern } from "./series";
 
 export type EventRow = {
   id: string;
@@ -78,4 +79,21 @@ export async function myAttendance(userId: string, ids?: string[]): Promise<Map<
   const { data, error } = await query.limit(500);
   if (error) throw error;
   return new Map(data.map((r) => [r.event_id, { isPublic: r.is_public, cosNote: r.cos_note }]));
+}
+
+/** 해마다 같은 행사 (이 행사 포함, 시작일 순). 같은 이름의 다른 해 행사가 없으면 빈 목록 */
+export async function eventSeries(event: Pick<EventRow, "id" | "name">): Promise<Pick<EventRow, "id" | "name" | "starts_on">[]> {
+  const key = seriesKey(event.name);
+  if (!key) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("events")
+    .select("id, name, starts_on")
+    .eq("status", "official")
+    .ilike("name", seriesPattern(key))
+    .order("starts_on")
+    .limit(40);
+  if (error) throw error;
+  const same = data.filter((e) => seriesKey(e.name) === key);
+  return same.length >= 2 && same.some((e) => e.id === event.id) ? same : [];
 }
