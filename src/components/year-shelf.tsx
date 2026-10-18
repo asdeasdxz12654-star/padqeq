@@ -8,8 +8,24 @@ const pen = Nanum_Pen_Script({ weight: "400", preload: false, display: "swap" })
 
 export type ShelfYear = { year: number; count: number; more: boolean; cover: FeedItem | null };
 
-// 책등 색: 사진 대표 색을 아직 저장하지 않아서, 차분한 색을 차례로 (글자는 늘 먹색)
+// 책등 색은 그해 표지 사진의 대표 색(photos.color)을 쓴다. 아직 색을 못 구한 해만 차분한 색을 차례로.
 const SPINES = ["#d9d4ca", "#c9d3dc", "#d3dccb", "#e2d3cf", "#d8d0e0", "#e4dccb"];
+
+/** 책등 글자색: 배경이 어두우면 흰 글자 (대비 확보) */
+function inkOn(hex: string): string {
+  const v = (i: number) => {
+    const c = parseInt(hex.slice(1 + i * 2, 3 + i * 2), 16) / 255;
+    return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  };
+  // 상대 휘도 (WCAG). 0.42를 넘으면 밝은 색으로 보고 먹색 글자를 쓴다.
+  return 0.2126 * v(0) + 0.7152 * v(1) + 0.0722 * v(2) > 0.42 ? "#111111" : "#ffffff";
+}
+
+/** 그해 책등 색: 표지 사진의 대표 색 → 없으면 차분한 기본 색 */
+function spineColor(year: ShelfYear, index: number): string {
+  const color = year.cover?.cover?.color;
+  return color && /^#[0-9a-f]{6}$/i.test(color) ? color : SPINES[index % SPINES.length]!;
+}
 
 /**
  * 연도 책장 (해담다움): 프로필에 해마다 한 권씩 책이 꽂힌다. 가장 최근 해는 표지가 보이게, 지난해는 책등으로.
@@ -53,15 +69,20 @@ export function YearShelf({ years, selected, hrefFor }: { years: ShelfYear[]; se
             href={hrefFor(selected === y.year ? null : y.year)}
             aria-current={selected === y.year ? "page" : undefined}
             aria-label={`${y.year}년 · 사진 ${y.count}${y.more ? "장 이상" : "장"}`}
-            style={{ background: SPINES[i % SPINES.length], width: `${Math.min(64, 40 + Math.round(Math.sqrt(y.count) * 4))}px` }}
-            className="flex h-56 shrink-0 flex-col items-center justify-between border border-black/10 py-3 text-[#111111] aria-[current=page]:outline-2 aria-[current=page]:outline-accent md:h-64"
+            style={{
+              background: spineColor(y, i),
+              color: inkOn(spineColor(y, i)),
+              width: `${Math.min(64, 40 + Math.round(Math.sqrt(y.count) * 4))}px`,
+            }}
+            className="flex h-56 shrink-0 flex-col items-center justify-between border border-black/10 py-3 aria-[current=page]:outline-2 aria-[current=page]:outline-accent md:h-64"
           >
             <span className={`${pen.className} text-3xl leading-none [writing-mode:vertical-rl]`}>{y.year}</span>
             <span className="text-[11px] [writing-mode:vertical-rl]">
               {y.count}
               {y.more ? "+" : ""}장
             </span>
-            <span aria-hidden="true" className="size-2.5 rounded-full bg-sun" />
+            {/* 해담의 해. 책등이 붉은 해에도 묻히지 않게 글자색으로 테두리를 두른다 */}
+            <span aria-hidden="true" className="size-2.5 rounded-full bg-sun outline outline-1 outline-current" />
           </Link>
         ))}
       </div>

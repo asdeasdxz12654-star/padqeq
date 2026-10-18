@@ -32,7 +32,8 @@ export default async function TonePage({ searchParams }: PageProps<"/tone">) {
         <h1 className="text-2xl font-bold">{tone ? `${TONE_LABEL[tone]} 색감` : "색감으로 찾기"}</h1>
         <p className="text-sm text-quiet">첫 사진의 대표 색으로 골랐어요. 색이 저장된 사진(새로 올린 사진)부터 모여요.</p>
       </header>
-      <ToneChips selected={tone} />
+      {/* 이 화면은 위에 제목이 있다 */}
+      <ToneChips selected={tone} heading={false} />
       <div className="pt-4">
         <PhotoFeed items={items} empty={tone ? "이 색감의 사진이 아직 없어요." : "위에서 색감을 골라 주세요."} />
       </div>

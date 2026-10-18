@@ -132,7 +132,9 @@ export default async function MePage() {
         </section>
       )}
 
-      <nav aria-label="바로가기" className="mt-8 grid grid-cols-2 gap-2 md:grid-cols-4">
+      {/* 아래 묶음마다 가는 선으로 나눠 둔다 (여백만으로는 어디서 끊기는지 알기 어렵다) */}
+      <h2 className="mt-8 border-t border-line pt-8 text-lg font-semibold">바로가기</h2>
+      <nav aria-label="바로가기" className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-4">
         {[
           { href: "/me/saved", title: "저장한 사진", sub: "나만 보는 모음", icon: "M6 4h12v17l-6-4-6 4z" },
           { href: "/me/collections", title: "내 컬렉션", sub: "이름 붙인 묶음", icon: "M4 6h16v12H4zM4 10h16" },
@@ -163,7 +165,7 @@ export default async function MePage() {
       </nav>
 
       {isStaffRole(profile.role) && (
-        <nav aria-label="운영" className="mt-8 flex flex-wrap gap-2">
+        <nav aria-label="운영" className="mt-8 flex flex-wrap gap-2 border-t border-line pt-8">
           {profile.role === "admin" && (
             <Link href="/admin" className="rounded-xl border border-line px-4 py-2 text-sm font-semibold hover:border-quiet">
               운영 홈
@@ -196,7 +198,7 @@ export default async function MePage() {
         </nav>
       )}
 
-      <section aria-labelledby="follows-heading" className="mt-10 flex flex-col gap-4">
+      <section aria-labelledby="follows-heading" className="mt-8 flex flex-col gap-4 border-t border-line pt-8">
         <h2 id="follows-heading" className="text-lg font-semibold">
           팔로우 <span className="text-sm font-normal text-quiet">나만 볼 수 있어요</span>
         </h2>
@@ -237,7 +239,7 @@ export default async function MePage() {
         )}
       </section>
 
-      <section aria-labelledby="edit-heading" className="mt-10">
+      <section aria-labelledby="edit-heading" className="mt-8 border-t border-line pt-8">
         <h2 id="edit-heading" className="mb-4 text-lg font-semibold">
           프로필 편집
         </h2>
