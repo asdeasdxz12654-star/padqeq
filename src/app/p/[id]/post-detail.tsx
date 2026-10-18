@@ -10,6 +10,7 @@ import { loadFeed } from "@/lib/posts/feed";
 import { getPost } from "@/lib/posts/get-post";
 import { getSiteSwitches } from "@/lib/support/switches";
 import { todayKst } from "@/lib/auth/signup-input";
+import { Avatar } from "@/components/avatar";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { TagChip } from "@/components/tag-chip";
 import { createClient } from "@/lib/supabase/server";
@@ -198,12 +199,8 @@ export async function PostDetail({ id }: { id: string }) {
           <header className="flex flex-col gap-3">
             {/* 작가 줄 */}
             <div className="flex items-center gap-3">
-              <Link
-                href={profileHref(post.author.handle)}
-                aria-label={`@${post.author.handle} 프로필`}
-                className="flex size-11 shrink-0 items-center justify-center rounded-full bg-surface text-base font-bold"
-              >
-                {(post.author.display_name || post.author.handle).slice(0, 1)}
+              <Link href={profileHref(post.author.handle)} aria-label={`@${post.author.handle} 프로필`} className="shrink-0">
+                <Avatar avatarKey={post.author.avatar_key} size={44} />
               </Link>
               <div className="min-w-0 flex-1">
                 <Link href={profileHref(post.author.handle)} className="block truncate font-bold hover:underline">

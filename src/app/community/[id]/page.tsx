@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { z } from "zod";
+import { Avatar } from "@/components/avatar";
 import { getViewer } from "@/lib/auth/viewer";
 import { BOARD_LABEL, CASTING_KIND_LABEL, TERMS_LABEL } from "@/lib/boards/labels";
 import { profileHref } from "@/lib/profiles/profile-href";
@@ -20,7 +21,7 @@ const getBoardPost = cache(async (id: string) => {
   const { data, error } = await supabase
     .from("board_posts")
     .select(
-      "id, board, title, body, region, casting_kind, casting_terms, shoot_on, closed_at, hidden_at, edited_at, created_at, author_id, author:profiles!board_posts_author_id_fkey(handle, display_name)",
+      "id, board, title, body, region, casting_kind, casting_terms, shoot_on, closed_at, hidden_at, edited_at, created_at, author_id, author:profiles!board_posts_author_id_fkey(handle, display_name, avatar_key)",
     )
     .eq("id", id)
     .maybeSingle();
@@ -46,7 +47,7 @@ export default async function BoardPostPage({ params }: PageProps<"/community/[i
       ? Promise.resolve({ data: [] })
       : supabase
           .from("board_replies")
-          .select("id, body, hidden_at, edited_at, created_at, author:profiles!board_replies_author_id_fkey(id, handle)")
+          .select("id, body, hidden_at, edited_at, created_at, author:profiles!board_replies_author_id_fkey(id, handle, avatar_key)")
           .eq("board_post_id", post.id)
           .order("created_at")
           .limit(500),
@@ -54,7 +55,18 @@ export default async function BoardPostPage({ params }: PageProps<"/community/[i
     viewer?.profile && isCasting && !mine ? supabase.rpc("am_i_adult").then((r) => Boolean(r.data)) : Promise.resolve(false),
   ]);
   const replies: ReplyView[] = (replyRows ?? []).flatMap((r) =>
-    r.author ? [{ id: r.id, body: r.body, hidden: r.hidden_at !== null, edited: r.edited_at !== null, createdAt: r.created_at, author: r.author }] : [],
+    r.author
+      ? [
+          {
+            id: r.id,
+            body: r.body,
+            hidden: r.hidden_at !== null,
+            edited: r.edited_at !== null,
+            createdAt: r.created_at,
+            author: { id: r.author.id, handle: r.author.handle, avatarKey: r.author.avatar_key },
+          },
+        ]
+      : [],
   );
   const closedReason = !viewer?.profile
     ? null
@@ -86,8 +98,8 @@ export default async function BoardPostPage({ params }: PageProps<"/community/[i
         </p>
         <h1 className="text-2xl font-bold">{post.title}</h1>
         <p className="text-sm">
-          <Link href={profileHref(post.author.handle)} className="font-semibold hover:underline">
-            @{post.author.handle}
+          <Link href={profileHref(post.author.handle)} className="flex items-center gap-1.5 font-semibold hover:underline">
+            <Avatar avatarKey={post.author.avatar_key} size={20} />@{post.author.handle}
           </Link>
           <span className="text-quiet">
             {" "}

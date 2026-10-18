@@ -7,6 +7,7 @@ import { useState, useTransition } from "react";
 import { CASTING_FORM_FIELDS, type CastingForm, SAFETY_GUIDE } from "@/lib/boards/labels";
 import { COMMENT_REPORT_REASONS } from "@/lib/comments/input";
 import { REASON_LABEL } from "@/lib/moderation/reasons";
+import { Avatar } from "@/components/avatar";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { addReply, applyCasting, closeBoardPost, deleteBoardPost, deleteReply, editReply, reportBoard } from "../actions";
 
@@ -120,7 +121,7 @@ function ReportForm({ postId, replyId, onDone }: { postId: string; replyId: stri
   );
 }
 
-export type ReplyView = { id: string; body: string; hidden: boolean; edited: boolean; createdAt: string; author: { id: string; handle: string } };
+export type ReplyView = { id: string; body: string; hidden: boolean; edited: boolean; createdAt: string; author: { id: string; handle: string; avatarKey: string | null } };
 
 export function Replies({
   postId,
@@ -197,8 +198,8 @@ function ReplyItem({ postId, reply, viewerId, postAuthorId }: { postId: string; 
   return (
     <article className="flex flex-col gap-1">
       <p className="flex flex-wrap gap-x-2 text-xs text-quiet">
-        <Link href={profileHref(reply.author.handle)} className="font-semibold text-text hover:underline">
-          @{reply.author.handle}
+        <Link href={profileHref(reply.author.handle)} className="flex items-center gap-1.5 font-semibold text-text hover:underline">
+          <Avatar avatarKey={reply.author.avatarKey} size={20} />@{reply.author.handle}
         </Link>
         <time dateTime={reply.createdAt}>{dateFormat.format(new Date(reply.createdAt))}</time>
         {reply.edited && <span>수정됨</span>}

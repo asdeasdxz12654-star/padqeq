@@ -26,7 +26,7 @@ export const getPost = cache(async (id: string) => {
     .from("posts")
     .select(
       `id, title, body, category, status, held_at, removed_at, shot_year, shot_on, published_at, has_people, author_id, visibility, scheduled_at, comment_policy, show_exif, veil, veil_by_staff,
-       author:profiles!posts_author_id_fkey(handle, display_name),
+       author:profiles!posts_author_id_fkey(handle, display_name, avatar_key),
        photos(id, storage_key, width, height, alt_text, back_memo, is_panorama, position, ready_at, exif),
        credits(id, role, status, member_id, external_label, external_url, member:profiles!credits_member_id_fkey(handle, display_name)),
        post_tags(tag:tags(id, slug, name, kind))`,

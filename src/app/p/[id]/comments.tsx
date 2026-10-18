@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { COMMENT_MAX, COMMENT_REPORT_REASONS } from "@/lib/comments/input";
+import { Avatar } from "@/components/avatar";
 import type { CommentView } from "@/lib/comments/load";
 import { splitMentions } from "@/lib/comments/mentions";
 import { REASON_LABEL } from "@/lib/moderation/reasons";
@@ -103,8 +104,8 @@ function CommentItem({ comment, ctx, isTop }: { comment: CommentView; ctx: Ctx; 
   return (
     <article aria-label={`@${comment.author.handle}의 댓글`} className="flex flex-col gap-1">
       <p className="flex flex-wrap items-center gap-x-2 text-xs text-quiet">
-        <Link href={profileHref(comment.author.handle)} className="font-semibold text-text hover:underline">
-          @{comment.author.handle}
+        <Link href={profileHref(comment.author.handle)} className="flex items-center gap-1.5 font-semibold text-text hover:underline">
+          <Avatar avatarKey={comment.author.avatarKey} size={20} />@{comment.author.handle}
         </Link>
         <time dateTime={comment.createdAt}>{dateFormat.format(new Date(comment.createdAt))}</time>
         {comment.edited && <span>수정됨</span>}

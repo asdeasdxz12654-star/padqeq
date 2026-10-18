@@ -8,7 +8,7 @@ export type CommentView = {
   hidden: boolean;
   edited: boolean;
   createdAt: string;
-  author: { id: string; handle: string; displayName: string };
+  author: { id: string; handle: string; displayName: string; avatarKey: string | null };
   replies: CommentView[];
 };
 
@@ -17,7 +17,7 @@ export async function getComments(postId: string): Promise<{ comments: CommentVi
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("comments")
-    .select("id, parent_id, body, pinned, hidden_at, edited_at, created_at, author:profiles!comments_author_id_fkey(id, handle, display_name)")
+    .select("id, parent_id, body, pinned, hidden_at, edited_at, created_at, author:profiles!comments_author_id_fkey(id, handle, display_name, avatar_key)")
     .eq("post_id", postId)
     .order("created_at")
     .limit(1000);
@@ -34,7 +34,7 @@ export async function getComments(postId: string): Promise<{ comments: CommentVi
       hidden: c.hidden_at !== null,
       edited: c.edited_at !== null,
       createdAt: c.created_at,
-      author: { id: c.author.id, handle: c.author.handle, displayName: c.author.display_name },
+      author: { id: c.author.id, handle: c.author.handle, displayName: c.author.display_name, avatarKey: c.author.avatar_key },
       replies: [],
     });
   }
