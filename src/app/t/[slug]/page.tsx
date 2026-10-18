@@ -8,6 +8,7 @@ import { MiniMap } from "@/components/mini-map";
 import { PhotoFeed } from "@/components/photo-feed";
 import { TagChip } from "@/components/tag-chip";
 import { YearChips } from "@/components/year-chips";
+import { YearCompare } from "@/components/year-compare";
 import { type YearCover, YearsStrip } from "@/components/years-strip";
 import { getViewer } from "@/lib/auth/viewer";
 import { type FeedItem, loadFeedByIds } from "@/lib/posts/feed";
@@ -146,6 +147,10 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
   }
   const stripTitle =
     tag.kind === "place" ? "같은 자리, 다른 해" : tag.kind === "character" ? "해마다 같은 캐릭터" : "해마다 담긴 " + tag.name;
+  // 밀어 비교 (시안 24): 가장 오래된 해 ↔ 가장 최근 해.
+  // 가림 표시가 붙은 사진은 눌러야 보이므로 겹쳐 보기에 쓰지 않는다.
+  const open = yearCovers.filter((y) => y.cover?.cover && !y.cover.cover.veil);
+  const compare = open.length >= 2 ? { newer: open[0]!, older: open[open.length - 1]! } : null;
 
   return (
     <div className="mx-auto max-w-[1440px]">
@@ -311,7 +316,29 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
 
       {view === "latest" && (
         <>
-          <YearsStrip title={stripTitle} sub="해마다 한 장씩 · 누르면 그해 사진만" years={yearCovers} hrefFor={(y) => `${base}?year=${y}`} />
+          {compare && (
+            <section aria-labelledby="compare-heading" className="px-4 pt-6 md:px-6">
+              <h2 id="compare-heading" className="text-lg font-bold">
+                {stripTitle}
+              </h2>
+              <p className="mb-3 text-sm text-quiet">
+                {compare.older.year}년과 {compare.newer.year}년을 겹쳐 봐요.
+              </p>
+              <div className="max-w-xl">
+                <YearCompare
+                  older={{ year: compare.older.year, item: compare.older.cover! }}
+                  newer={{ year: compare.newer.year, item: compare.newer.cover! }}
+                />
+              </div>
+            </section>
+          )}
+          {/* 비교를 띄웠으면 아래 줄은 '다른 해 고르기' 노릇을 한다 (시안 24의 해 줄) */}
+          <YearsStrip
+            title={compare ? "해마다 한 장씩" : stripTitle}
+            sub="누르면 그해 사진만 봐요"
+            years={yearCovers}
+            hrefFor={(y) => `${base}?year=${y}`}
+          />
           <YearChips
             chips={buildYearChips(years.data.map((r) => r.year))}
             selected={year}
