@@ -250,7 +250,7 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
       </header>
 
       {tag.children.length > 0 && (
-        <nav aria-labelledby="dex-heading" className="px-4 pt-5 md:px-6">
+        <nav aria-labelledby="dex-heading" className="mt-5 border-t border-line px-4 pt-5 md:px-6">
           <h2 id="dex-heading" className="mb-2 text-sm font-semibold">
             캐릭터 도감 <span className="font-normal text-quiet">{tag.children.length}</span>
           </h2>
@@ -284,7 +284,7 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
       )}
 
       {related.length > 0 && (
-        <nav aria-label="관련 태그" className="px-4 pt-4 md:px-6">
+        <nav aria-label="관련 태그" className="mt-4 border-t border-line px-4 pt-4 md:px-6">
           <h2 className="mb-2 text-xs text-quiet">함께 많이 붙는 태그</h2>
           <ul className="flex gap-1.5 overflow-x-auto [scrollbar-width:none]">
             {related.map((t) => (

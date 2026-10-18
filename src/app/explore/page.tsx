@@ -260,7 +260,9 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
         </p>
       )}
 
+      {/* 고르는 곳(분류 · 색감 · 연도 · 정렬)과 보는 곳을 선으로 나눈다 */}
       {tab === "posts" && (
+        <div className="border-t border-line pt-3">
         <FeedList
           key={JSON.stringify(scope)}
           scope={scope}
@@ -273,6 +275,7 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
                 : "아직 담긴 사진이 없어요."
           }
         />
+        </div>
       )}
     </div>
   );

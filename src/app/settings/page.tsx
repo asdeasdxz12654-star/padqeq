@@ -58,7 +58,8 @@ export default async function SettingsPage() {
           </a>
         ))}
       </nav>
-    <div className="flex min-w-0 flex-col gap-10">
+    {/* 묶음이 13개라 여백만으로는 어디서 끊기는지 알기 어렵다. 묶음마다 가는 선으로 나눈다 */}
+    <div className="flex min-w-0 flex-col gap-8 [&>section]:border-t [&>section]:border-line [&>section]:pt-8">
       <header className="flex items-center gap-3">
         <Link href="/me" className="text-sm text-quiet hover:text-text">
           ‹ 마이

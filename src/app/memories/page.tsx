@@ -93,7 +93,7 @@ export default async function MemoriesPage({ searchParams }: PageProps<"/memorie
         </div>
       ) : (
         years.map((y) => (
-          <section key={y} aria-labelledby={`years-${y}`} className="mt-8">
+          <section key={y} aria-labelledby={`years-${y}`} className="mt-8 border-t border-line pt-8">
             <h2 id={`years-${y}`} className="mb-3 px-4 text-lg font-semibold md:px-6">
               {y}년 전 <span className="text-sm font-normal text-quiet">· {Number(today.slice(0, 4)) - y}</span>
             </h2>
@@ -103,7 +103,7 @@ export default async function MemoriesPage({ searchParams }: PageProps<"/memorie
       )}
 
       {viewer?.profile && (
-        <section id="capsules" aria-labelledby="capsules-heading" className="mt-14 scroll-mt-24 px-4 md:px-6">
+        <section id="capsules" aria-labelledby="capsules-heading" className="mt-12 scroll-mt-24 border-t border-line px-4 pt-8 md:px-6">
           <h2 id="capsules-heading" className="text-lg font-semibold">
             타임캡슐
           </h2>

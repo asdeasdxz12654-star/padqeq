@@ -106,6 +106,9 @@ export default async function EventsPage({ searchParams }: PageProps<"/events">)
         </nav>
       )}
 
+      {/* 고르는 곳(보기 방식 · 지역)과 행사 목록을 나눈다 */}
+      <hr className="mt-4 border-t border-line" />
+
       {located ? (
         <div className="mt-4 flex flex-col gap-4">
           <MapExplorer

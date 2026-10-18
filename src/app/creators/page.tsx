@@ -84,6 +84,9 @@ export default async function CreatorsPage({ searchParams }: PageProps<"/creator
         </Link>
       </div>
 
+      {/* 고르는 곳(역할 · 지역 · 섭외)과 목록을 나눈다 */}
+      <hr className="mt-5 border-t border-line" />
+
       {creators.length === 0 ? (
         <p className="mt-8 rounded-xl border border-line p-8 text-center text-sm text-quiet">조건에 맞는 크리에이터가 아직 없어요.</p>
       ) : (

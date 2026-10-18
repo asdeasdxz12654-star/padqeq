@@ -39,8 +39,9 @@ export default async function YearReviewPage({ searchParams }: PageProps<"/me/ye
   );
   const busiest = busiestMonth(review.months);
 
+  // 앞의 요약 · 처음과 끝은 카드라 이미 나뉜다. 제목이 달린 묶음(달마다 · 분류 · 태그 · 함께한 사람 · 사진)만 선으로 나눈다
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-10 px-4 pt-10 pb-16 md:px-6">
+    <div className="mx-auto flex max-w-3xl flex-col gap-8 px-4 pt-10 pb-16 md:px-6 [&>section[aria-labelledby]]:border-t [&>section[aria-labelledby]]:border-line [&>section[aria-labelledby]]:pt-8">
       <header className="flex flex-col gap-4">
         <Link href="/me" className="text-sm text-quiet hover:text-text">
           ‹ 마이
