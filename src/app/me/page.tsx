@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Avatar } from "@/components/avatar";
 import { FeedList } from "@/components/feed-list";
+import { InstallCard } from "@/components/install-card";
 import { YearShelf } from "@/components/year-shelf";
 import { getAdminPending } from "@/lib/admin/pending";
 import { withNext } from "@/lib/auth/next-path";
@@ -156,6 +157,9 @@ export default async function MePage() {
         <Link href="/me/follows" className="flex min-h-11 items-center text-sm text-quiet hover:text-text">
           팔로우 · 태그 {followedTags.length} · 회원 {followedMembers.length} ›
         </Link>
+
+        {/* 웹앱 설치 안내 (설치했거나 닫았으면 보이지 않는다) */}
+        <InstallCard />
 
         {/* 운영진에게만: 운영 화면 하나 (나머지 메뉴는 운영 화면 왼쪽에 있다) */}
         {staff && (
