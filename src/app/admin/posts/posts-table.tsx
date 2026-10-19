@@ -16,6 +16,8 @@ export type AdminPostRow = {
   held_at: string | null;
   removed_at: string | null;
   trashed_at: string | null;
+  /** 회원이 직접 지운 글 (운영자가 휴지통에 넣은 글과 구분) */
+  trashed_by_author: boolean;
   quarantined_at: string | null;
   scheduled_at: string | null;
   published_at: string | null;
@@ -172,6 +174,7 @@ export function PostsTable({ rows, trash, categoryLabel }: { rows: AdminPostRow[
                       {r.title}
                     </Link>
                     <span className="text-xs text-quiet">
+                      {trash && r.trashed_by_author && <span className="mr-1 rounded-full border border-line px-1.5 py-0.5 text-text">작성자가 지움</span>}
                       {r.photos[0]?.count ?? 0}장{VISIBILITY[r.visibility] ? ` · ${VISIBILITY[r.visibility]}` : ""} ·{" "}
                       <Link href={`/admin/posts/${r.id}`} className="underline underline-offset-2 hover:text-text">
                         이력

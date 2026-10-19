@@ -27,7 +27,7 @@ export function describeNotification({ kind, actorHandle, post, event = null, bo
 
   switch (kind) {
     case "credit_requested":
-      // 승인 · 거절은 마이 화면에서
+      // 승인 · 거절은 마이페이지의 받은 요청에서
       return { text: `${who}이 나를 크레딧으로 태그했어요. 승인하면 내 프로필에 보여요.`, href: "/me#credit-requests" };
     case "credit_approved":
       return { text: `${who}이 크레딧을 승인했어요.`, href: postHref };

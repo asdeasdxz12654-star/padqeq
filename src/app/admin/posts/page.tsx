@@ -30,7 +30,7 @@ export default async function AdminPostsPage({ searchParams }: PageProps<"/admin
   let query = supabase
     .from("posts")
     .select(
-      "id, title, status, category, shot_year, held_at, removed_at, trashed_at, quarantined_at, scheduled_at, published_at, created_at, visibility, author:profiles!posts_author_id_fkey(handle), photos(count), reports!reports_post_id_fkey(count)",
+      "id, title, status, category, shot_year, held_at, removed_at, trashed_at, trashed_by_author, quarantined_at, scheduled_at, published_at, created_at, visibility, author:profiles!posts_author_id_fkey(handle), photos(count), reports!reports_post_id_fkey(count)",
       { count: "exact" },
     )
     .order(trash ? "trashed_at" : "created_at", { ascending: false })
@@ -89,7 +89,11 @@ export default async function AdminPostsPage({ searchParams }: PageProps<"/admin
             휴지통
           </Link>
         </nav>
-        {trash && <p className="w-full text-xs text-quiet">휴지통에 넣은 지 30일이 지나면 사진 파일까지 영구 삭제돼요. 그 전에는 복구할 수 있어요.</p>}
+        {trash && (
+          <p className="w-full text-xs text-quiet">
+            휴지통에 넣은 지 30일이 지나면 사진 파일까지 영구 삭제돼요. 그 전에는 복구할 수 있어요. &lsquo;작성자가 지움&rsquo; 표시는 회원이 직접 지운 글이라, 작성자가 마이페이지 › 내 글 관리에서 되살릴 수 있어요(운영자가 복구할 일이 아니에요).
+          </p>
+        )}
       </header>
 
       <form action="/admin/posts" className="flex gap-2 md:w-[28rem]">
