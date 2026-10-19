@@ -20,7 +20,8 @@ import { localDate, publishBundle } from "./publish-bundle";
 import { ACCEPT_INPUT, MAX_SESSION_PHOTOS, type Photo, useConverter } from "./use-converter";
 
 // 업로드 (A-02 대량 업로드 · S-08).
-// 사진을 여러 장 넣으면 촬영 시각 30분 간격으로 묶음(= 게시물)을 나눈다.
+// 기본은 고른 사진을 게시물 하나로 (20장이 넘으면 20장씩). 행사 다녀온 날처럼 많이 올릴 때는
+// '촬영 시각으로 나누기'를 켜면 촬영 시각 30분 간격으로 묶음(= 게시물)을 나눈다.
 // 묶음마다 내용을 넣고, 공통 설정은 한 번에 적용한 뒤, 차례로 게시한다.
 // 사진은 변환하자마자 미리 올려 두므로(업로드 자리) 한 번에 500장까지 다룬다.
 
@@ -66,6 +67,8 @@ export function UploadStudio({
   const [notice, setNotice] = useState<string | null>(null);
   const [common, setCommon] = useState<Common>({ category: "cosplay", hasPeople: true, consent: emptyConsent(), tags: initialTags, credits: [] });
   const [running, setRunning] = useState(false);
+  // 촬영 시각으로 여러 게시물로 나누기 (끄면 게시물 하나로)
+  const [split, setSplit] = useState(false);
 
   const photosOf = (bundle: Bundle) => bundle.photoIds.map((id) => photos[id]).filter((p): p is Photo => Boolean(p));
   const pending = bundles.filter((b) => b.state.kind !== "published");
@@ -86,9 +89,25 @@ export function UploadStudio({
     const { added, skipped } = await addFiles(Array.from(list), MAX_SESSION_PHOTOS - sessionCount);
     if (skipped.length) setNotice(`올리지 않은 파일: ${skipped.join(", ")}`);
     if (!added.length) return;
-    // 새로 넣은 사진끼리 촬영 시각으로 묶어 뒤에 붙인다 (이미 손본 묶음은 건드리지 않음)
-    const groups = groupByShootingTime(added);
-    setBundles((list) => [...list, ...groups.map((g) => newBundle(g.map((p) => p.id), common))]);
+    if (split) {
+      // 새로 넣은 사진끼리 촬영 시각으로 묶어 뒤에 붙인다 (이미 손본 묶음은 건드리지 않음)
+      const groups = groupByShootingTime(added);
+      setBundles((list) => [...list, ...groups.map((g) => newBundle(g.map((p) => p.id), common))]);
+      return;
+    }
+    // 게시물 하나로: 아직 올리기 전인 마지막 게시물에 이어 담고, 20장이 넘치면 다음 게시물로
+    setBundles((list) => {
+      const ids = added.map((p) => p.id);
+      const last = list.at(-1);
+      const open = last && last.draft === null && last.state.kind === "edit" ? last : null;
+      const room = open ? Math.max(0, MAX_PHOTOS_PER_POST - open.photoIds.length) : 0;
+      const head = ids.slice(0, room);
+      const rest = ids.slice(room);
+      const chunks: string[][] = [];
+      for (let i = 0; i < rest.length; i += MAX_PHOTOS_PER_POST) chunks.push(rest.slice(i, i + MAX_PHOTOS_PER_POST));
+      const kept = open && head.length ? list.map((b) => (b.id === open.id ? { ...b, photoIds: [...b.photoIds, ...head] } : b)) : list;
+      return [...kept, ...chunks.map((c) => newBundle(c, common))];
+    });
   }
 
   const update = (id: string, patch: Partial<Bundle>) =>
@@ -250,13 +269,13 @@ export function UploadStudio({
   const ready = pending.filter((b) => bundleProblem(b, photosOf(b)) === null);
   const hasDrafts = pending.some((b) => b.draft);
 
-  // 지금 단계: 사진 고르기 → 묶고 적기 → 게시
+  // 지금 단계: 사진 고르기 → 정보 적기 → 게시
   const step = bundles.length === 0 ? 1 : pending.length > 0 && ready.length === pending.length ? 3 : 2;
 
   return (
     <div className="mt-8 flex flex-col gap-6">
       <ol aria-label="올리기 단계" className="flex flex-wrap items-center gap-2 text-sm">
-        {(["사진 고르기", "묶고 정보 적기", "게시"] as const).map((label, i) => (
+        {(["사진 고르기", "정보 적기", "게시"] as const).map((label, i) => (
           <li key={label} className="flex items-center gap-2">
             {i > 0 && <span aria-hidden="true" className="h-px w-6 bg-line" />}
             <span
@@ -282,7 +301,9 @@ export function UploadStudio({
         <span className="text-xs leading-relaxed text-quiet">
           JPEG · HEIC(아이폰) · PNG · WebP · AVIF 장당 50MB · RAW(CR2 · CR3 · NEF · ARW · RAF · RW2 · ORF · DNG) PC 200MB · 휴대폰 100MB, 한 번에 {MAX_SESSION_PHOTOS}장까지
           <br />
-          촬영 시각이 30분 넘게 떨어지면 다른 게시물로 자동으로 나눠요 (게시물 하나에 {MAX_PHOTOS_PER_POST}장까지)
+          {split
+            ? `촬영 시각이 30분 넘게 떨어지면 다른 게시물로 나눠요 (게시물 하나에 ${MAX_PHOTOS_PER_POST}장까지)`
+            : `고른 사진은 게시물 하나로 담겨요 (${MAX_PHOTOS_PER_POST}장이 넘으면 다음 게시물로)`}
         </span>
         <input
           type="file"
@@ -294,6 +315,14 @@ export function UploadStudio({
             e.target.value = "";
           }}
         />
+      </label>
+      {/* 행사 다녀온 날처럼 많이 올릴 때만: 촬영 시각으로 나누기 (이미 만든 게시물은 그대로) */}
+      <label className="flex min-h-11 items-start gap-2.5 text-sm">
+        <input type="checkbox" checked={split} onChange={(e) => setSplit(e.target.checked)} className="mt-0.5 size-5 accent-[var(--accent)]" />
+        <span>
+          촬영 시각으로 여러 게시물로 나누기
+          <span className="block text-xs text-quiet">행사 · 출사처럼 하루에 여러 장면을 찍었을 때. 다음에 고르는 사진부터 적용돼요.</span>
+        </span>
       </label>
       {notice && <p className="text-xs text-quiet">{notice}</p>}
 
