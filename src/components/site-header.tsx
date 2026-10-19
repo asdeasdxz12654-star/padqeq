@@ -32,7 +32,7 @@ export async function SiteHeader() {
           <HaedamLogo />
         </Link>
         <HeaderNav />
-        <div className="ml-auto flex items-center gap-4 text-sm">
+        <div className="ml-auto flex items-center gap-1 text-sm md:gap-4">
           <HeaderSearch />
           {viewer && !viewer.profile ? (
             // 로그인은 했지만 핸들을 정하지 않은 상태 (가입 도중 이탈)

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { type CreditRequest, CreditRequests } from "@/app/me/credit-requests";
 import { redirect } from "next/navigation";
 import { withNext } from "@/lib/auth/next-path";
 import { getViewer } from "@/lib/auth/viewer";
@@ -39,11 +40,23 @@ export default async function NotificationsPage({ searchParams }: PageProps<"/no
       .order("id", { ascending: false })
       .limit(100),
     // 받은 요청: 나를 태그한 크레딧 · 내 글에 온 크레딧 연결 요청 (RLS: 작성자 · 요청자만)
-    supabase.from("credits").select("id", { count: "exact", head: true }).eq("member_id", viewer.id).eq("status", "pending"),
+    // 크레딧 요청은 알림 화면에서 바로 승인 · 거절한다 (예전에는 마이로 한 번 더 갔다)
+    supabase
+      .from("credits")
+      .select("id, role, post:posts!credits_post_id_fkey(id, title, author_id, author:profiles!posts_author_id_fkey(handle))")
+      .eq("member_id", viewer.id)
+      .eq("status", "pending")
+      .order("created_at", { ascending: false })
+      .limit(50),
     supabase.from("credit_claims").select("id", { count: "exact", head: true }).eq("status", "open").neq("claimant_id", viewer.id),
   ]);
   if (error) throw error;
-  const requestCount = (pendingCredits.count ?? 0) + (openClaims.count ?? 0);
+  const creditRequests: CreditRequest[] = (pendingCredits.data ?? []).flatMap((c) =>
+    c.post && c.post.author_id !== viewer.id
+      ? [{ id: c.id, role: c.role, postId: c.post.id, postTitle: c.post.title, uploader: c.post.author?.handle ?? "" }]
+      : [],
+  );
+  const claimCount = openClaims.count ?? 0;
 
   const all = data.map((n) => ({
     ...n,
@@ -60,14 +73,19 @@ export default async function NotificationsPage({ searchParams }: PageProps<"/no
   return (
     <div className="mx-auto max-w-xl md:max-w-2xl px-4 pt-10 pb-16 md:px-6">
       <h1 className="mb-4 text-2xl font-bold">알림</h1>
-      {requestCount > 0 && (
+      {creditRequests.length > 0 && (
+        <div className="mb-6 rounded-2xl border border-accent/40 bg-accent-soft/40 px-4 pb-4 [&>section]:mt-3">
+          <CreditRequests requests={creditRequests} />
+        </div>
+      )}
+      {claimCount > 0 && (
         <Link
           href="/me#requests"
           className="mb-5 flex min-h-14 items-center justify-between gap-3 rounded-2xl border border-accent/40 bg-accent-soft/40 px-4 py-3 hover:border-accent"
         >
           <span>
-            <span className="block font-bold">받은 요청 {requestCount}건</span>
-            <span className="block text-xs text-quiet">크레딧 승인 · 크레딧 연결 요청을 확인해 주세요</span>
+            <span className="block font-bold">크레딧 연결 요청 {claimCount}건</span>
+            <span className="block text-xs text-quiet">내 글의 미가입 크레딧이 자기라는 요청이에요. 마이페이지에서 확인해 주세요</span>
           </span>
           <span aria-hidden="true" className="text-quiet">
             ›

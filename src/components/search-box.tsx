@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { type Suggestions, suggestSearch } from "@/app/explore/suggest-actions";
@@ -142,7 +143,7 @@ export function SearchBox({
         aria-autocomplete="list"
         aria-activedescendant={showList && active >= 0 ? `${listId}-${active}` : undefined}
         maxLength={MAX_QUERY_LENGTH}
-        placeholder={variant === "header" ? "검색 (/)" : "제목 · 태그 · @핸들"}
+        placeholder={variant === "header" ? "작품 · 캐릭터 · @작가 검색" : "제목 · 태그 · @핸들"}
         enterKeyHint="search"
         autoComplete="off"
         className={`min-w-0 flex-1 rounded-xl border border-line bg-surface px-3 text-base outline-none focus:border-accent ${variant === "header" ? "min-h-10 text-sm" : "min-h-11"}`}
@@ -213,9 +214,22 @@ export function HeaderSearch() {
   const pathname = usePathname();
   if (pathname === "/explore") return null;
   return (
-    <div className="hidden md:block">
-      <SearchBox id="site-search" variant="header" />
-    </div>
+    <>
+      <div className="hidden md:block">
+        <SearchBox id="site-search" variant="header" />
+      </div>
+      {/* 휴대폰: 검색 아이콘 하나 (누르면 탐색의 검색칸이 바로 열린다) */}
+      <Link
+        prefetch={false}
+        href="/explore?focus=1"
+        aria-label="검색"
+        className="flex size-11 items-center justify-center text-quiet hover:text-text md:hidden"
+      >
+        <svg aria-hidden="true" viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+          <path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14zm5.2 12.2L20 20" />
+        </svg>
+      </Link>
+    </>
   );
 }
 
