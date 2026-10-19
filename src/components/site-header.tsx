@@ -66,8 +66,13 @@ export async function SiteHeader() {
                   )}
                 </Link>
               )}
-              {viewer?.profile && <MessagesLink unread={unreadThreads} />}
-              {viewer?.profile && <NotificationBell unread={unread} />}
+              {/* 메시지 · 알림은 한 묶음으로 붙여 둔다 (헤더의 다른 요소 사이 간격을 받지 않게) */}
+              {viewer?.profile && (
+                <div className="-mr-2 flex items-center md:mr-0">
+                  <MessagesLink unread={unreadThreads} />
+                  <NotificationBell unread={unread} />
+                </div>
+              )}
               {viewer?.profile ? (
                 // 내 계정 메뉴: 내 프로필 · 내 글 · 저장 · 컬렉션 · 메시지 · 설정 · 로그아웃 (휴대폰은 아래 탭 '마이')
                 <AccountMenu handle={viewer.profile.handle} avatarKey={viewer.profile.avatar_key} />
@@ -110,7 +115,7 @@ function NotificationBell({ unread }: { unread: number }) {
     <Link prefetch={false}
       href="/notifications"
       aria-label={unread > 0 ? `알림, 안 읽은 알림 ${unread}개` : "알림"}
-      className="relative -mr-2 flex size-11 items-center justify-center text-quiet hover:text-text md:mr-0"
+      className="relative flex size-11 items-center justify-center text-quiet hover:text-text"
     >
       <svg aria-hidden="true" viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
         <path d="M6 9a6 6 0 0 1 12 0c0 4.5 1.5 6.5 2.5 7.5h-17C4.5 15.5 6 13.5 6 9Z" />
