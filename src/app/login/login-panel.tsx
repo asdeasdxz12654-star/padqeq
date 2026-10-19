@@ -107,7 +107,7 @@ export function LoginPanel({ next, providers, initialError }: Props) {
 
       <p className="text-xs leading-relaxed text-quiet">
         처음이면 로그인 뒤 핸들을 정하면 가입이 끝나요. 해담은 비밀번호를 받지 않아요.
-        {providers.kakao && providers.google && " 이미 가입했다면 처음 가입한 방법으로 로그인해 주세요. 다른 방법으로 들어오면 새 계정이 만들어져요."}
+        {providers.kakao && providers.google && " 이미 가입했다면 처음 가입한 방법으로 로그인해 주세요. 다른 방법으로 들어오면 새 계정이 만들어지니, 두 방법을 함께 쓰려면 로그인 뒤 설정 › 로그인 방법에서 연결해 주세요."}
       </p>
 
       <p className="mt-6 text-center text-xs leading-relaxed text-quiet">
