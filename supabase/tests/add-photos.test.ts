@@ -60,9 +60,9 @@ describe("게시된 글에 사진 추가", () => {
     await expect(add(AUTHOR)).rejects.toThrow(/post_not_editable/);
   });
 
-  it("사람이 나오는 글은 운영자만 추가한다", async () => {
+  it("사람이 나오는 글은 촬영 동의 기록이 있어야 추가한다 (회원도, 20261216)", async () => {
     await db.exec(`update posts set has_people = true where id = '${POST}'`);
-    await expect(add(AUTHOR)).rejects.toThrow(/people_admin_only/);
+    await expect(add(AUTHOR)).rejects.toThrow(/consent_required/);
   });
 
   it("게시물당 20장까지", async () => {
