@@ -77,7 +77,7 @@ export default async function CollectionPage({ params }: PageProps<"/c/[id]">) {
       </header>
       <PhotoFeed
         items={items}
-        empty={isOwner ? "아직 담은 게시물이 없어요. 게시물 화면의 '컬렉션에 담기'로 채워 보세요." : "아직 담긴 게시물이 없어요."}
+        empty={isOwner ? "아직 담은 게시물이 없어요. 내 글 화면에서 '저장'을 누르면 컬렉션을 고를 수 있어요." : "아직 담긴 게시물이 없어요."}
       />
     </div>
   );

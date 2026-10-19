@@ -9,7 +9,7 @@ import { loadCollectionCards } from "@/lib/collections/load";
 
 export const metadata: Metadata = { title: "내 컬렉션", robots: { index: false } };
 
-// 내 컬렉션 (공개 · 나만 보기 모두). 게시물 화면의 '컬렉션에 담기'로 채운다.
+// 내 컬렉션 (공개 · 나만 보기 모두). 게시물 화면의 '저장' 창에서 채운다.
 export default async function MyCollectionsPage() {
   const viewer = await getViewer();
   if (!viewer) redirect(withNext("/login", "/me/collections"));

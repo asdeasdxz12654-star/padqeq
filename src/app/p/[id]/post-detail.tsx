@@ -19,7 +19,6 @@ import { ClaimCreditButton } from "./claim-credit-button";
 import { PhotoFeed } from "@/components/photo-feed";
 import { ShareButton } from "@/components/share-button";
 import { BuryCapsule } from "./bury-capsule";
-import { CollectPanel } from "./collect-panel";
 import { Comments } from "./comments";
 import { LikeButton } from "./like-button";
 import { PickButton, ProfileFeatureButtons } from "./owner-tools";
@@ -271,7 +270,7 @@ export async function PostDetail({ id }: { id: string }) {
                     loginHref={viewer?.profile ? null : `/login?next=${encodeURIComponent(`/p/${post.id}`)}`}
                   />
                   {canSave ? (
-                    <SaveButton postId={post.id} initial={saved} />
+                    <SaveButton postId={post.id} initial={saved} collections={canCollect ? myCollections : undefined} />
                   ) : (
                     !viewer && (
                       <Link
@@ -296,11 +295,6 @@ export async function PostDetail({ id }: { id: string }) {
                           로그인하고 신고
                         </Link>
                       )}
-                    </MenuGroup>
-                  )}
-                  {canCollect && (
-                    <MenuGroup title="컬렉션에 담기">
-                      <CollectPanel postId={post.id} collections={myCollections} />
                     </MenuGroup>
                   )}
                   {canCollect && post.status === "published" && (
