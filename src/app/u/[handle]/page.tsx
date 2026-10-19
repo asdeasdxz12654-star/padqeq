@@ -8,6 +8,7 @@ import { ShareButton } from "@/components/share-button";
 import { FollowButton } from "@/components/follow-button";
 import { FeedList } from "@/components/feed-list";
 import { ProtectedPhoto } from "@/components/protected-photo";
+import { TogetherTimeline } from "@/components/together-timeline";
 import { YearBook } from "@/components/year-book";
 import { YearShelf } from "@/components/year-shelf";
 import { getViewer } from "@/lib/auth/viewer";
@@ -17,8 +18,9 @@ import { CREDIT_ROLE_LABEL } from "@/lib/photos/credit-input";
 import { loadFeedByIds } from "@/lib/posts/feed";
 import type { FeedScope } from "@/lib/posts/feed-scope";
 import { creditedPostIds, loadScopePage } from "@/lib/posts/feed-scope-server";
-import { loadCollaborators } from "@/lib/profiles/collaborators";
+import { loadPairings } from "@/lib/profiles/collaborators";
 import { getProfileByHandle } from "@/lib/profiles/get-profile";
+import { rankCollaborators, sharedPostIds } from "@/lib/profiles/rank-collaborators";
 import { createClient } from "@/lib/supabase/server";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { parseYearParam } from "@/lib/year-chips";
@@ -71,7 +73,12 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
   ]);
   const iBlocked = Boolean(blockRow);
   // 자주 함께한 사람: 크레딧으로 이어진 회원 (섭외 · 팔로우로 이어지게)
-  const collaborators = await loadCollaborators(profile.id, profile.handle, creditedIds).catch(() => []);
+  const pairings = await loadPairings(profile.id, creditedIds).catch(() => []);
+  const collaborators = rankCollaborators(pairings, profile.handle);
+  // 함께한 기록 (?with=핸들): 그 사람과 크레딧으로 함께 이름이 오른 글을 해마다
+  const withHandle = typeof query.with === "string" ? query.with : null;
+  const partner = withHandle && withHandle !== profile.handle ? pairings.find((p) => p.handle === withHandle) : undefined;
+  const together = partner ? await loadFeedByIds(sharedPostIds(pairings, partner.handle)) : null;
   // 커버 · 고정 글 (볼 수 있는 것만)
   const featuredIds = [...new Set([...(profile.cover_post_id ? [profile.cover_post_id] : []), ...profile.pinned_post_ids])];
   const featured = await loadFeedByIds(featuredIds);
@@ -194,8 +201,10 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
                 <li key={c.handle}>
                   <Link
                     prefetch={false}
-                    href={profileHref(c.handle)}
-                    className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-line px-3 text-sm hover:border-quiet"
+                    href={`${base}?with=${encodeURIComponent(c.handle)}`}
+                    aria-label={`${c.displayName} · 함께한 기록 ${c.posts}번`}
+                    aria-current={partner?.handle === c.handle ? "page" : undefined}
+                    className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-line px-3 text-sm hover:border-quiet aria-[current=page]:border-text"
                   >
                     <span className="max-w-40 truncate">{c.displayName}</span>
                     <span className="text-xs text-quiet tabular-nums">{c.posts}</span>
@@ -236,6 +245,15 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
         )}
       </header>
 
+      {partner && together ? (
+        <TogetherTimeline
+          me={{ handle: profile.handle, displayName: profile.display_name }}
+          other={{ handle: partner.handle, displayName: partner.displayName }}
+          items={together}
+          backHref={base}
+        />
+      ) : (
+      <>
       <nav aria-label="프로필 탭" className="flex gap-6 border-b border-line px-4 md:px-6">
         <Link href={base} aria-current={tab === "works" ? "page" : undefined} className={tabClass}>
           작업물
@@ -318,6 +336,8 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
               : "아직 올린 사진이 없어요."
         }
       />
+      )}
+      </>
       )}
     </div>
   );

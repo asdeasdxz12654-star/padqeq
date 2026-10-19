@@ -16,3 +16,8 @@ export function rankCollaborators(pairs: Pairing[], selfHandle: string, max = 8)
   }
   return [...counts.values()].toSorted((a, b) => b.posts - a.posts || a.handle.localeCompare(b.handle)).slice(0, max);
 }
+
+/** 함께한 기록: 이 사람과 함께 이름이 오른 글 (한 번씩, 처음 나온 순서대로) */
+export function sharedPostIds(pairs: Pairing[], otherHandle: string): string[] {
+  return [...new Set(pairs.filter((p) => p.handle === otherHandle).map((p) => p.postId))];
+}
