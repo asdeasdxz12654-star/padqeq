@@ -48,6 +48,8 @@ const ANON_CALLABLE = [
   "published_shot_years",
   "recommended_posts",
   "related_tags",
+  // 화면 오류 번호 · 주소만 남긴다 (누가 겪었는지는 남기지 않음, 형식이 틀리면 버림)
+  "report_client_error",
   "tag_cosers",
   "tag_popular_posts",
   "tone_posts",

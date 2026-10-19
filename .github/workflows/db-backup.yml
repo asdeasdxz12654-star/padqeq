@@ -97,6 +97,7 @@ jobs:
           echo "아무도 없는 대화 삭제: $(psql -c 'select private.purge_orphan_threads();')건"
           echo "휴지통 30일 지난 게시물 영구 삭제: $(psql -c 'select private.purge_trashed_posts();')건"
           echo "게시물이 지워지고 3년 지난 촬영 동의 기록 삭제: $(psql -c 'select private.purge_old_consent_records();')건"
+          echo "30일 지난 화면 오류 기록 삭제: $(psql -c 'select private.purge_old_client_errors();')건"
           echo "3일 넘게 쓰지 않은 업로드 자리 삭제: $(psql -c 'select private.purge_stale_upload_slots();')건"
 
           # 한 번에 최대 200장(파일 1000개 = delete-objects 한도)씩, 최대 10번
