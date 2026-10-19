@@ -70,7 +70,7 @@ export function FeedList({
         after={(post) => {
           const fold = folded?.folds.get(post.id);
           return fold ? (
-            <li key={`fold-${fold.start}`} className="mb-2 break-inside-avoid xl:mb-4">
+            <li key={`fold-${fold.start}`}>
               <button
                 type="button"
                 onClick={() => setOpened((s) => new Set(s).add(fold.start))}

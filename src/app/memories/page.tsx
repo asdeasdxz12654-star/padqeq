@@ -8,7 +8,7 @@ import { loadFeedByIds } from "@/lib/posts/feed";
 import { createClient } from "@/lib/supabase/server";
 import { TimeCapsules } from "./time-capsules";
 
-export const metadata: Metadata = { title: "N년 전 오늘" };
+export const metadata: Metadata = { title: "추억" };
 
 // S-18 N년 전 오늘: 오늘과 같은 월 · 일에 찍은 지난해 사진을 해마다 묶어서. 사진이 없으면 그 주(앞뒤 3일)로 넓혀 본다.
 

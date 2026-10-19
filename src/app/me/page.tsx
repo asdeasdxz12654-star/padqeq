@@ -140,7 +140,7 @@ export default async function MePage() {
           { href: "/me/collections", title: "내 컬렉션", sub: "이름 붙인 묶음", icon: "M4 6h16v12H4zM4 10h16" },
           { href: "/me/messages", title: "메시지", sub: "대화 · 섭외 문의", icon: "M4 5h16v11H8l-4 4z", badge: unreadThreads || 0 },
           { href: "/me/year", title: `나의 ${currentYearKst()}`, sub: "한 해 돌아보기", icon: "M5 6h14v14H5zM5 10h14M9 3v4M15 3v4" },
-          { href: "/memories", title: "N년 전 오늘", sub: "예전 오늘의 사진", icon: "M12 7v5l3 2M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18z" },
+          { href: "/memories", title: "추억", sub: "이맘때 사진 · 타임캡슐", icon: "M12 7v5l3 2M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18z" },
           { href: "/me/creator", title: "크리에이터 정보", sub: "역할 · 섭외 가능", icon: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 9c.6-4 3.4-6 7-6s6.4 2 7 6" },
           { href: "/help", title: "고객센터", sub: "공지 · 1:1 문의", icon: "M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.7M12 17h.01" },
           { href: "/settings", title: "설정", sub: "계정 · 알림 · 화면", icon: "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM4 12h2M18 12h2M12 4v2M12 18v2" },

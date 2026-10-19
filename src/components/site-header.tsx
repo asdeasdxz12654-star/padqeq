@@ -2,8 +2,7 @@ import Link from "next/link";
 import { getAdminPending } from "@/lib/admin/pending";
 import { isStaffRole } from "@/lib/auth/roles";
 import { getViewer } from "@/lib/auth/viewer";
-import { Avatar } from "@/components/avatar";
-import { profileHref } from "@/lib/profiles/profile-href";
+import { AccountMenu } from "./account-menu";
 import { getUnreadCount } from "@/lib/notifications/unread";
 import { HeaderNav } from "./header-nav";
 import { HeaderAutoHide } from "./header-auto-hide";
@@ -61,15 +60,8 @@ export async function SiteHeader() {
               )}
               {viewer?.profile && <NotificationBell unread={unread} />}
               {viewer?.profile ? (
-                // 내 공개 프로필 (핸들이 곧 그 페이지의 주소다). 마이는 그 화면의 '마이' 버튼으로 간다
-                <Link
-                  prefetch={false}
-                  href={profileHref(viewer.profile.handle)}
-                  className="hidden min-h-11 max-w-44 items-center gap-2 text-quiet hover:text-text md:flex"
-                >
-                  <Avatar avatarKey={viewer.profile.avatar_key} size={28} />
-                  <span className="truncate">@{viewer.profile.handle}</span>
-                </Link>
+                // 내 계정 메뉴: 내 프로필 · 내 글 · 저장 · 컬렉션 · 메시지 · 설정 · 로그아웃 (휴대폰은 아래 탭 '마이')
+                <AccountMenu handle={viewer.profile.handle} avatarKey={viewer.profile.avatar_key} />
               ) : (
                 <Link prefetch={false} href="/login" className="flex min-h-11 items-center px-1 text-quiet hover:text-text">
                   로그인

@@ -217,8 +217,8 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
 
         {isMe ? (
           <div className="flex flex-wrap gap-2">
-            <Link href="/me" className="inline-flex min-h-10 items-center rounded-full border border-line px-4 text-sm hover:border-quiet">
-              프로필 편집
+            <Link href="/me/edit" className="inline-flex min-h-10 items-center rounded-full border border-line px-4 text-sm hover:border-quiet">
+              프로필 고치기
             </Link>
             <ShareButton path={base} title={`${profile.display_name} (@${profile.handle})`} />
           </div>

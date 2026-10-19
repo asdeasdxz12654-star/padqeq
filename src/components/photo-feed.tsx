@@ -1,7 +1,8 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import { LineArt } from "./line-art";
 import type { FeedItem } from "@/lib/posts/feed";
+import { masonryColumns } from "@/lib/posts/masonry";
 import { CATEGORY_LABEL } from "@/lib/photos/post-input";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { ProtectedPhoto } from "./protected-photo";
@@ -9,7 +10,7 @@ import { Veil } from "./veil";
 
 const badge = "pointer-events-none absolute top-1.5 rounded-full bg-black/60 px-2 py-0.5 text-[11px] font-semibold text-white";
 
-/** 사진 피드 (홈 · 탐색 · 태그 · 프로필 공용). 열 수: 2 · 3(md) · 5(xl). 여러 장 · 파노라마는 배지로 (S-02 ④ ⑨) */
+/** 사진 피드 (홈 · 탐색 · 태그 · 프로필 공용). 열 수: 2 · 3(md) · 5(xl), 가로 순서를 지키는 메이슨리. 여러 장 · 파노라마는 배지로 (S-02 ④ ⑨) */
 export function PhotoFeed({ items, empty, after }: { items: FeedItem[]; empty: string; /** 이 글 뒤에 붙일 칸 (팔로우 피드 묶음 '더 보기') */ after?: (post: FeedItem) => ReactNode }) {
   if (items.length === 0)
     return empty ? (
@@ -19,57 +20,86 @@ export function PhotoFeed({ items, empty, after }: { items: FeedItem[]; empty: s
       </div>
     ) : null;
 
+  // 화면 폭마다 열 수가 달라 열 배치를 세 벌 만들고 CSS로 하나만 보인다 (숨긴 배치의 사진은 받지 않는다: 지연 로딩)
   return (
-    <ul className="columns-2 gap-2 px-2 md:columns-3 md:px-6 xl:columns-5 xl:gap-4">
-      {items.flatMap((post, index) => [
-        <li key={post.id} className="mb-2 break-inside-avoid xl:mb-4">
-          <article className="relative">
-            {post.cover ? (
-              <div
-                className={`relative overflow-hidden rounded-lg bg-slot ${post.cover.isPanorama ? "aspect-[2/1]" : ""}`}
-                style={post.cover.color && !post.cover.veil ? { backgroundColor: post.cover.color } : undefined}
-              >
-                <Veil postId={post.id} reason={post.cover.veil} fill={post.cover.isPanorama}>
-                  <ProtectedPhoto
-                    sources={post.cover.sources}
-                    alt={post.cover.alt}
-                    width={post.cover.width}
-                    height={post.cover.height}
-                    sizes="(min-width: 1280px) 20vw, (min-width: 768px) 33vw, 50vw"
-                    priority={index < 4}
-                    className={`block w-full ${post.cover.isPanorama ? "h-full object-cover" : "h-auto"}`}
-                  />
-                </Veil>
-                {post.cover.isPanorama && <span className={`${badge} left-1.5`}>파노라마</span>}
-                {post.photoCount > 1 && (
-                  <span className={`${badge} right-1.5 tabular-nums`}>
-                    <span className="sr-only">사진 </span>
-                    {post.photoCount}
-                    <span className="sr-only">장</span>
-                  </span>
-                )}
-              </div>
-            ) : (
-              <div role="img" aria-label={post.title} className="aspect-[4/5] rounded-lg bg-slot" />
+    <div className="px-2 md:px-6">
+      {LAYOUTS.map((layout) => (
+        <div key={layout.columns} className={`${layout.className} items-start gap-2 xl:gap-4`}>
+          {masonryColumns(items, layout.columns, (post) => cardHeight(post, Boolean(after?.(post)))).map((column, c) => (
+            <ul key={c} className="flex min-w-0 flex-1 flex-col gap-2 xl:gap-4">
+              {column.map(({ item: post, index }) => (
+                <Fragment key={post.id}>
+                  <Card post={post} index={index} />
+                  {after?.(post)}
+                </Fragment>
+              ))}
+            </ul>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+const LAYOUTS = [
+  { columns: 2, className: "flex md:hidden" },
+  { columns: 3, className: "hidden md:flex xl:hidden" },
+  { columns: 5, className: "hidden xl:flex" },
+] as const;
+
+/** 열 너비를 1로 본 카드 높이 어림 (사진 + 제목 · 작가 두 줄, 덧붙인 칸) */
+function cardHeight(post: FeedItem, hasAfter: boolean): number {
+  const photo = !post.cover ? 1.25 : post.cover.isPanorama ? 0.5 : post.cover.height / Math.max(1, post.cover.width);
+  return photo + 0.3 + (hasAfter ? 0.45 : 0);
+}
+
+function Card({ post, index }: { post: FeedItem; index: number }) {
+  return (
+    <li>
+      <article className="relative">
+        {post.cover ? (
+          <div
+            className={`relative overflow-hidden rounded-lg bg-slot ${post.cover.isPanorama ? "aspect-[2/1]" : ""}`}
+            style={post.cover.color && !post.cover.veil ? { backgroundColor: post.cover.color } : undefined}
+          >
+            <Veil postId={post.id} reason={post.cover.veil} fill={post.cover.isPanorama}>
+              <ProtectedPhoto
+                sources={post.cover.sources}
+                alt={post.cover.alt}
+                width={post.cover.width}
+                height={post.cover.height}
+                sizes="(min-width: 1280px) 20vw, (min-width: 768px) 33vw, 50vw"
+                priority={index < 4}
+                className={`block w-full ${post.cover.isPanorama ? "h-full object-cover" : "h-auto"}`}
+              />
+            </Veil>
+            {post.cover.isPanorama && <span className={`${badge} left-1.5`}>파노라마</span>}
+            {post.photoCount > 1 && (
+              <span className={`${badge} right-1.5 tabular-nums`}>
+                <span className="sr-only">사진 </span>
+                {post.photoCount}
+                <span className="sr-only">장</span>
+              </span>
             )}
-            <div className="px-1 pt-2 pb-1">
-              <h2 className="truncate text-sm font-medium">
-                {/* 카드 전체를 누를 수 있게 (링크 영역을 카드로 넓힘) */}
-                <Link prefetch={false} href={`/p/${post.id}`} className="after:absolute after:inset-0">
-                  {post.title}
-                </Link>
-              </h2>
-              <p className="text-xs text-quiet">
-                <Link prefetch={false} href={profileHref(post.handle)} className="relative z-10 hover:text-text">
-                  @{post.handle}
-                </Link>{" "}
-                · {CATEGORY_LABEL[post.category]} · {post.shotYear}
-              </p>
-            </div>
-          </article>
-        </li>,
-        after?.(post),
-      ])}
-    </ul>
+          </div>
+        ) : (
+          <div role="img" aria-label={post.title} className="aspect-[4/5] rounded-lg bg-slot" />
+        )}
+        <div className="px-1 pt-2 pb-1">
+          <h2 className="truncate text-sm font-medium">
+            {/* 카드 전체를 누를 수 있게 (링크 영역을 카드로 넓힘) */}
+            <Link prefetch={false} href={`/p/${post.id}`} className="after:absolute after:inset-0">
+              {post.title}
+            </Link>
+          </h2>
+          <p className="text-xs text-quiet">
+            <Link prefetch={false} href={profileHref(post.handle)} className="relative z-10 hover:text-text">
+              @{post.handle}
+            </Link>{" "}
+            · {CATEGORY_LABEL[post.category]} · {post.shotYear}
+          </p>
+        </div>
+      </article>
+    </li>
   );
 }

@@ -104,7 +104,7 @@ export function HomeHero({ pick, member }: { pick: FeedItem | null; member: bool
                 해마다, 잊지 않도록
               </h2>
               <p className="text-base leading-relaxed text-quiet">
-                코스프레 · 인물 · 풍경 사진을 원본 화질 그대로 걸어 두고, 해마다 다시 꺼내 보는 추억 갤러리. 다운로드와 AI 학습은 막아 둡니다.
+                코스프레 · 인물 · 풍경 사진을 고화질로 걸어 두고, 해마다 다시 꺼내 보는 추억 갤러리. 내려받기 버튼이 없고, AI 학습을 거부해요.
               </p>
               <div className="mt-1 flex flex-wrap gap-2">
                 <a href="#sections" className="inline-flex min-h-11 items-center rounded-full bg-text px-5 text-sm font-bold text-bg">
