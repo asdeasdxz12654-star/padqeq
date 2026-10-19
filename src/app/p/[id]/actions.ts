@@ -107,6 +107,41 @@ export async function hidePost(postId: string): Promise<{ ok: boolean; error?: s
   return { ok: true };
 }
 
+/** 내 글 지우기: 휴지통으로 (30일 동안 마이 › 내 글 관리에서 되살릴 수 있음). 초안은 바로 지운다. */
+export async function deleteMyPost(postId: string): Promise<{ ok: boolean; error?: string }> {
+  const id = idSchema.safeParse(postId);
+  if (!id.success) return { ok: false, error: "잘못된 요청이에요." };
+  const viewer = await getViewer();
+  if (!viewer?.profile) return { ok: false, error: "로그인이 필요해요." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("delete_my_post", { target: id.data });
+  if (error) {
+    if (error.message.includes("post_quarantined")) return { ok: false, error: "운영 검토 중인 게시물이라 지울 수 없어요. 1:1 문의로 알려 주세요." };
+    if (error.message.includes("member_suspended")) return { ok: false, error: "이용이 제한된 기간에는 지울 수 없어요." };
+    return { ok: false, error: "지우지 못했어요. 다시 시도해 주세요." };
+  }
+  revalidatePath("/");
+  return { ok: true };
+}
+
+/** 지운 글 되살리기 (30일 안) */
+export async function restoreMyPost(postId: string): Promise<{ ok: boolean; error?: string }> {
+  const id = idSchema.safeParse(postId);
+  if (!id.success) return { ok: false, error: "잘못된 요청이에요." };
+  const viewer = await getViewer();
+  if (!viewer?.profile) return { ok: false, error: "로그인이 필요해요." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("restore_my_post", { target: id.data });
+  if (error) {
+    if (error.message.includes("restore_expired")) return { ok: false, error: "지운 지 30일이 지나 되살릴 수 없어요." };
+    return { ok: false, error: "되살리지 못했어요. 다시 시도해 주세요." };
+  }
+  revalidatePath("/");
+  return { ok: true };
+}
+
 /** 워터마크 판정용 열쇠 (운영자만). DB 함수도 운영자가 아니면 빈 결과를 돌려준다. */
 export async function getWatermarkSeeds(postId: string): Promise<{ position: number; seed: string; width: number; height: number }[] | null> {
   const id = idSchema.safeParse(postId);

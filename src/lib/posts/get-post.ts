@@ -26,7 +26,7 @@ export const getPost = cache(async (id: string) => {
   const { data: post, error } = await supabase
     .from("posts")
     .select(
-      `id, title, body, category, status, held_at, removed_at, shot_year, shot_on, published_at, has_people, author_id, visibility, scheduled_at, comment_policy, show_exif, veil, veil_by_staff,
+      `id, title, body, category, status, held_at, removed_at, shot_year, shot_on, published_at, has_people, author_id, visibility, scheduled_at, comment_policy, show_exif, veil, veil_by_staff, trashed_at, trashed_by_author,
        author:profiles!posts_author_id_fkey(handle, display_name, avatar_key),
        photos(id, storage_key, width, height, alt_text, back_memo, is_panorama, position, ready_at, exif),
        credits(id, role, status, member_id, external_label, external_url, member:profiles!credits_member_id_fkey(handle, display_name)),

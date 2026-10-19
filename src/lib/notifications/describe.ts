@@ -89,6 +89,9 @@ export function describeNotification({ kind, actorHandle, post, event = null, bo
     case "post_liked":
       // 같은 글의 좋아요는 안 읽은 알림 하나로 묶인다
       return { text: `${who}이 내 게시물을 좋아해요.`, href: postHref };
+    case "credited_post_deleted":
+      // 지운 글은 받는 사람이 볼 수 없어 제목 · 링크 없이
+      return { text: `${who}이 나를 크레딧으로 올린 게시물을 지웠어요. 내 프로필의 크레딧된 작업에서도 빠져요.`, href: null };
     case "credit_auto_approved":
       return { text: `${who}이 나를 크레딧으로 태그해 자동으로 승인했어요. 원하지 않으면 게시물에서 뺄 수 있어요.`, href: postHref };
     case "year_review":
@@ -115,7 +118,7 @@ export const NOTIFICATION_GROUP_LABEL: Record<NotificationGroup, string> = {
 };
 
 export function notificationGroup(kind: NotificationKind): NotificationGroup {
-  if (kind.startsWith("credit_")) return "credit";
+  if (kind.startsWith("credit_") || kind === "credited_post_deleted") return "credit";
   if (kind === "post_liked" || kind === "comment_added" || kind === "comment_replied" || kind === "comment_mentioned" || kind === "memory_today" || kind === "time_capsule" || kind === "year_review") {
     return "reaction";
   }

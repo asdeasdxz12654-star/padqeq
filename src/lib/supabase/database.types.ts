@@ -601,37 +601,43 @@ export type Database = {
         Row: {
           consented_on: string
           created_at: string
-          created_by: string
+          created_by: string | null
           evidence_key: string | null
           guardian_consent: boolean
           has_minor: boolean
           id: string
           note: string
-          post_id: string
+          post_deleted_at: string | null
+          post_id: string | null
+          source_post_id: string
           subject_label: string
         }
         Insert: {
           consented_on: string
           created_at?: string
-          created_by: string
+          created_by?: string | null
           evidence_key?: string | null
           guardian_consent?: boolean
           has_minor?: boolean
           id?: string
           note?: string
-          post_id: string
+          post_deleted_at?: string | null
+          post_id?: string | null
+          source_post_id?: string
           subject_label: string
         }
         Update: {
           consented_on?: string
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           evidence_key?: string | null
           guardian_consent?: boolean
           has_minor?: boolean
           id?: string
           note?: string
-          post_id?: string
+          post_deleted_at?: string | null
+          post_id?: string | null
+          source_post_id?: string
           subject_label?: string
         }
         Relationships: [
@@ -1830,6 +1836,7 @@ export type Database = {
         Row: {
           quarantined_at: string | null
           trashed_at: string | null
+          trashed_by_author: boolean
           trash_prev_status: Database["public"]["Enums"]["post_status"] | null
           trash_prev_removed_at: string | null
           show_exif: boolean
@@ -1858,6 +1865,7 @@ export type Database = {
         Insert: {
           quarantined_at?: string | null
           trashed_at?: string | null
+          trashed_by_author?: boolean
           trash_prev_status?: Database["public"]["Enums"]["post_status"] | null
           trash_prev_removed_at?: string | null
           show_exif?: boolean
@@ -1886,6 +1894,7 @@ export type Database = {
         Update: {
           quarantined_at?: string | null
           trashed_at?: string | null
+          trashed_by_author?: boolean
           trash_prev_status?: Database["public"]["Enums"]["post_status"] | null
           trash_prev_removed_at?: string | null
           show_exif?: boolean
@@ -2095,6 +2104,8 @@ export type Database = {
       handle_status: { Args: { target: string }; Returns: string }
       request_account_deletion: { Args: never; Returns: string }
       cancel_account_deletion: { Args: never; Returns: undefined }
+      delete_my_post: { Args: { target: string }; Returns: undefined }
+      restore_my_post: { Args: { target: string }; Returns: undefined }
       add_my_photos: { Args: { entries: Json; target: string }; Returns: string[] }
       finish_my_photos: { Args: { ids: string[]; target: string }; Returns: number }
       add_report_evidence: {
@@ -2414,6 +2425,7 @@ export type Database = {
         | "credit_auto_approved"
         | "year_review"
         | "post_veiled"
+        | "credited_post_deleted"
       post_category: "cosplay" | "model" | "landscape" | "other"
       post_status: "draft" | "published" | "hidden"
       report_reason:
@@ -2614,6 +2626,7 @@ export const Constants = {
         "credit_auto_approved",
         "year_review",
         "post_veiled",
+        "credited_post_deleted",
       ],
       post_category: ["cosplay", "model", "landscape", "other"],
       post_status: ["draft", "published", "hidden"],

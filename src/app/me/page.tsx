@@ -135,6 +135,7 @@ export default async function MePage() {
       <h2 className="mt-8 border-t border-line pt-8 text-lg font-semibold">바로가기</h2>
       <nav aria-label="바로가기" className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-4">
         {[
+          { href: "/me/posts", title: "내 글 관리", sub: "숨긴 글 · 지운 글", icon: "M5 4h14v16H5zM8 8h8M8 12h8M8 16h5" },
           { href: "/me/saved", title: "저장한 사진", sub: "나만 보는 모음", icon: "M6 4h12v17l-6-4-6 4z" },
           { href: "/me/collections", title: "내 컬렉션", sub: "이름 붙인 묶음", icon: "M4 6h16v12H4zM4 10h16" },
           { href: "/me/messages", title: "메시지", sub: "대화 · 섭외 문의", icon: "M4 5h16v11H8l-4 4z", badge: unreadThreads || 0 },

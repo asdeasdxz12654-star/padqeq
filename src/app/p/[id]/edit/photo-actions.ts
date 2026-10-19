@@ -35,7 +35,7 @@ export async function addPhotos(input: z.input<typeof addSchema>): Promise<Resul
   if (error) {
     if (isMonthlyLimitError(error.message)) return { ok: false, error: MONTHLY_LIMIT_MESSAGE };
     if (error.message.includes("photo_limit")) return { ok: false, error: `사진은 게시물당 ${MAX_PHOTOS_PER_POST}장까지예요.` };
-    if (error.message.includes("people_admin_only")) return { ok: false, error: "사람이 나오는 게시물에는 지금은 운영자만 사진을 더할 수 있어요." };
+    if (error.message.includes("consent_required")) return { ok: false, error: "사람이 나오는 게시물은 촬영 동의 기록이 있어야 사진을 더할 수 있어요." };
     return { ok: false, error: "사진을 더할 수 없는 게시물이에요." };
   }
   const { error: hashError } = await supabase.rpc("set_photo_hashes", {

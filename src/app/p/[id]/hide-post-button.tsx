@@ -41,13 +41,12 @@ export function HidePostButton({ postId }: { postId: string }) {
       >
         {pending ? "숨기는 중…" : "숨기기"}
       </button>
-      {/* 영구 삭제는 회원이 직접 할 수 없다 (크레딧으로 묶인 사람과 신고 기록이 글에 걸려 있다) */}
       <p className="text-xs leading-relaxed text-quiet">
-        숨겨도 사진은 그대로 있고, 다시 게시할 수 있어요. 아주 지우고 싶다면{" "}
-        <Link href="/help?tab=inquiry" className="underline underline-offset-2">
-          1:1 문의
+        숨겨도 사진은 그대로 있고,{" "}
+        <Link href="/me/posts" className="underline underline-offset-2">
+          내 글 관리
         </Link>
-        로 알려 주세요.
+        에서 다시 게시할 수 있어요.
       </p>
       {error && <p className="text-xs text-danger">{error}</p>}
     </div>

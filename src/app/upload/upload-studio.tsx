@@ -186,7 +186,7 @@ export function UploadStudio({
 
   async function publishOne(bundle: Bundle): Promise<boolean> {
     const list = photosOf(bundle);
-    if (bundleProblem(bundle, list, isAdmin)) return false;
+    if (bundleProblem(bundle, list)) return false;
     const range = timeRange(list);
     try {
       const postId = await publishBundle(
@@ -247,7 +247,7 @@ export function UploadStudio({
     setBundles((list) => list.filter((b) => b.state.kind === "published"));
   }
 
-  const ready = pending.filter((b) => bundleProblem(b, photosOf(b), isAdmin) === null);
+  const ready = pending.filter((b) => bundleProblem(b, photosOf(b)) === null);
   const hasDrafts = pending.some((b) => b.draft);
 
   // 지금 단계: 사진 고르기 → 묶고 적기 → 게시
@@ -313,7 +313,6 @@ export function UploadStudio({
               hasPeople={common.hasPeople}
               consent={common.consent}
               disabled={false}
-              isAdmin={isAdmin}
               onChange={(patch) => setCommon((c) => ({ ...c, ...patch }))}
             />
             <button

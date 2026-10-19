@@ -55,7 +55,7 @@ export const emptyConsent = (): ConsentInput => ({
 });
 
 /** 게시할 수 없는 이유 (없으면 null) */
-export function bundleProblem(bundle: Bundle, photos: Photo[], isAdmin: boolean): string | null {
+export function bundleProblem(bundle: Bundle, photos: Photo[]): string | null {
   if (photos.length === 0) return "사진이 없어요";
   if (photos.some((p) => p.status === "error")) return "실패한 사진을 다시 시도하거나 빼 주세요";
   if (photos.some((p) => p.status === "converting")) return "사진 변환 중";
@@ -63,7 +63,6 @@ export function bundleProblem(bundle: Bundle, photos: Photo[], isAdmin: boolean)
   if (!bundle.title.trim()) return "제목을 입력해 주세요";
   if (photos.some((p) => p.raw) && !bundle.rawConfirmed) return "RAW 사진(보정 전 원본)인지 확인해 주세요";
   if (bundle.hasPeople) {
-    if (!isAdmin) return "지금은 운영자만 사람이 나오는 사진을 게시할 수 있어요";
     const c = bundle.consent;
     if (!c.subjectLabel.trim() || !c.consentedOn) return "촬영 동의 기록을 입력해 주세요";
     if (c.hasMinor && !c.guardianConsent) return "미성년자가 있으면 보호자 동의가 필요해요";
@@ -131,7 +130,7 @@ export function BundleCard({
   const working = state.kind === "uploading" || state.kind === "publishing";
   // 초안을 만든 뒤에는 사진 · 내용을 바꾸지 않는다 (서버에 적은 값과 맞아야 함)
   const locked = bundle.draft !== null || published || working;
-  const problem = bundleProblem(bundle, photos, isAdmin);
+  const problem = bundleProblem(bundle, photos);
   const range = timeRange(photos);
   const { year, exifYear } = effectiveYear(bundle, photos, currentYear);
   const set = (patch: Partial<Bundle>) => onChange(patch);
@@ -330,7 +329,6 @@ export function BundleCard({
         hasPeople={bundle.hasPeople}
         consent={bundle.consent}
         disabled={locked}
-        isAdmin={isAdmin}
         onChange={(patch) => set(patch)}
       />
 
@@ -364,14 +362,12 @@ export function CategoryAndConsent({
   hasPeople,
   consent,
   disabled,
-  isAdmin,
   onChange,
 }: {
   category: Bundle["category"];
   hasPeople: boolean;
   consent: ConsentInput;
   disabled: boolean;
-  isAdmin: boolean;
   onChange(patch: Partial<Pick<Bundle, "category" | "hasPeople" | "consent">>): void;
 }) {
   const setConsent = (patch: Partial<ConsentInput>) => onChange({ consent: { ...consent, ...patch } });
@@ -408,7 +404,7 @@ export function CategoryAndConsent({
         <div className="grid gap-3 rounded-xl border border-line p-3 md:grid-cols-2">
           <p className="text-xs font-semibold md:col-span-2">
             촬영 동의 기록 <span className="font-normal text-quiet">(비공개 · 운영자만 열람)</span>
-            {!isAdmin && <span className="block text-danger">지금은 운영자만 사람이 나오는 사진을 게시할 수 있어요.</span>}
+            <span className="block font-normal text-quiet">사진에 나온 분께 공개 게시 동의를 받았다는 기록이에요. 초상권 신고가 들어오면 운영자가 확인해요.</span>
           </p>
           <label className="flex flex-col gap-1 text-sm">
             사진 속 인물

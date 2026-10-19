@@ -23,7 +23,9 @@ import { CollectPanel } from "./collect-panel";
 import { Comments } from "./comments";
 import { LikeButton } from "./like-button";
 import { PickButton, ProfileFeatureButtons } from "./owner-tools";
+import { DeletePostButton } from "./delete-post-button";
 import { HidePostButton } from "./hide-post-button";
+import { RestorePostButton } from "./restore-post-button";
 import { ModerationNotice } from "./moderation-notice";
 import { PhotoViewer } from "./photo-viewer";
 import { StageSwitch, StoryView } from "./story-view";
@@ -145,7 +147,14 @@ export async function PostDetail({ id }: { id: string }) {
           신고로 임시 비공개 중이에요. 운영자가 확인할 때까지 다른 사람에게는 보이지 않아요.
         </p>
       ) : null}
-      {post.status !== "published" && !(isAuthor && post.removed_at) && (
+      {/* 작성자가 지운 글: 30일 안에는 되살릴 수 있다 (작성자에게만 보인다) */}
+      {post.trashed_at && post.trashed_by_author && isAuthor && (
+        <div className="mx-4 mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-danger-line bg-danger-soft px-3 py-2 text-sm text-danger md:mx-0">
+          <p>지운 글이에요. {dateFormat.format(new Date(Date.parse(post.trashed_at) + 30 * 86_400_000))}에 사진까지 영구 삭제돼요.</p>
+          <RestorePostButton postId={post.id} />
+        </div>
+      )}
+      {post.status !== "published" && !(isAuthor && post.removed_at) && !post.trashed_at && (
         <div className="mx-4 mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line px-3 py-2 text-sm text-quiet md:mx-0">
           <p>
             {post.status === "draft"
@@ -299,7 +308,7 @@ export async function PostDetail({ id }: { id: string }) {
                       <BuryCapsule postId={post.id} />
                     </MenuGroup>
                   )}
-                  {isAuthor && (
+                  {isAuthor && !post.trashed_at && (
                     <MenuGroup title="작가 메뉴">
                       <Link href={`/p/${post.id}/edit`} className="inline-flex min-h-10 items-center rounded-full border border-line px-4 text-sm hover:border-quiet">
                         고치기
@@ -308,6 +317,7 @@ export async function PostDetail({ id }: { id: string }) {
                         <ProfileFeatureButtons postId={post.id} isCover={authorDecor?.cover_post_id === post.id} isPinned={(authorDecor?.pinned_post_ids ?? []).includes(post.id)} />
                       )}
                       {canHide && <HidePostButton postId={post.id} />}
+                      <DeletePostButton postId={post.id} credited={post.credits.some((c) => c.status === "approved" && c.member_id !== null)} />
                     </MenuGroup>
                   )}
                   {isAdmin && (

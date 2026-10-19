@@ -203,7 +203,7 @@ export async function publishPost(
       guardian_consent: c.guardianConsent,
     }),
   });
-  // 1단계는 운영자만 동의 기록을 남길 수 있다 (RLS). 게시 규칙(DB 트리거)도 여기서 걸린다.
+  // 동의 기록은 작성자 · 운영자만 남긴다 (RLS). 게시 규칙(DB 트리거)도 여기서 걸린다.
   if (publishError) return { ok: false, error: "게시하지 못했어요. 촬영 동의 기록과 게시 규칙을 확인해 주세요." };
 
   revalidatePath("/");
