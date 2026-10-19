@@ -9,6 +9,8 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl;
   const next = safeNextPath(searchParams.get("next"));
+  // 설정에서 로그인 방법을 연결하다 돌아온 경우: 실패하면 설정 화면에 이유를 보여 준다 (이미 로그인된 상태)
+  const linking = searchParams.get("link") === "1";
   const go = (path: string) => {
     const response = NextResponse.redirect(new URL(path, origin), 303);
     response.headers.set("Cache-Control", "private, no-store");
@@ -17,6 +19,10 @@ export async function GET(request: NextRequest) {
   const fail = (reason: "oauth" | "expired" | "session") =>
     go(`${withNext("/login", next)}${next === "/" ? "?" : "&"}error=${reason}`);
 
+  if (linking && (searchParams.has("error") || searchParams.has("error_code"))) {
+    const code = searchParams.get("error_code") ?? "oauth";
+    return go(`/settings?link_error=${encodeURIComponent(code.replace(/[^a-z_]/g, "").slice(0, 40) || "oauth")}#account-heading`);
+  }
   // 사용자가 카카오 · Google 동의 화면에서 취소한 경우 등
   if (searchParams.has("error")) return fail("oauth");
 
@@ -24,7 +30,10 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code");
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (error) return fail(error.code === "flow_state_expired" ? "expired" : "oauth");
+    if (error) {
+      if (linking) return go(`/settings?link_error=${error.code === "identity_already_exists" ? "identity_already_exists" : "oauth"}#account-heading`);
+      return fail(error.code === "flow_state_expired" ? "expired" : "oauth");
+    }
   }
 
   const { data, error } = await supabase.auth.getClaims();

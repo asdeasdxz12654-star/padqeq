@@ -5,6 +5,7 @@ import { todayKst } from "@/lib/auth/signup-input";
 import { getViewer } from "@/lib/auth/viewer";
 import { turnstileSiteKey } from "@/lib/security/turnstile";
 import { getSiteSwitches } from "@/lib/support/switches";
+import { signOutToLogin } from "@/app/me/actions";
 import { WelcomeForm } from "./welcome-form";
 
 export const metadata: Metadata = {
@@ -33,6 +34,17 @@ export default async function WelcomePage({ searchParams }: PageProps<"/welcome"
     <div className="mx-auto max-w-sm px-4 pt-10 pb-16 md:pt-16">
       <h1 className="text-2xl font-bold">거의 다 됐어요</h1>
       <p className="mt-2 text-sm text-quiet">해담에서 쓸 이름을 정해 주세요.</p>
+      {/* 다른 로그인 방법으로 이미 가입한 사람이 두 번째 계정을 만들지 않게 */}
+      <div className="mt-4 rounded-xl border border-line px-4 py-3 text-sm leading-relaxed">
+        <p>
+          이미 해담 계정이 있나요? 처음 가입한 방법으로 로그인한 뒤 <strong>설정 › 로그인 방법</strong>에서 이 계정을 연결하면 어느 쪽으로 들어와도 같은 계정이 돼요.
+        </p>
+        <form action={signOutToLogin} className="mt-1">
+          <button type="submit" className="min-h-10 text-sm font-semibold underline underline-offset-4">
+            로그아웃하고 다른 방법으로 로그인
+          </button>
+        </form>
+      </div>
       <WelcomeForm next={next} loginMethod={viewer.loginMethod} suggestedName={viewer.suggestedName} today={todayKst()} turnstileSiteKey={turnstileSiteKey()} />
     </div>
   );

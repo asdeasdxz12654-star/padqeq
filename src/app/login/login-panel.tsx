@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useState, useSyncExternalStore, useTransition } from "react";
 import { authErrorMessage } from "@/lib/auth/auth-errors";
 import { createClient } from "@/lib/supabase/client";
 
@@ -9,6 +9,18 @@ import { createClient } from "@/lib/supabase/client";
 // 요청은 브라우저에서 Supabase로 바로 보낸다 (PKCE 확인값이 이 브라우저 쿠키에 남아야 함).
 
 type Provider = "kakao" | "google";
+
+// 이 기기에서 마지막으로 누른 로그인 방법 (다른 방법으로 새 계정을 만드는 실수를 줄인다). 이 브라우저에만 남는다.
+const LAST_KEY = "haedam:last-login";
+const noop = () => () => {};
+function readLast(): Provider | null {
+  try {
+    const v = localStorage.getItem(LAST_KEY);
+    return v === "kakao" || v === "google" ? v : null;
+  } catch {
+    return null;
+  }
+}
 
 type Props = {
   next: string;
@@ -20,10 +32,20 @@ export function LoginPanel({ next, providers, initialError }: Props) {
   const [error, setError] = useState<string | null>(initialError);
   const [pending, startTransition] = useTransition();
   const [going, setGoing] = useState<Provider | null>(null);
+  const last = useSyncExternalStore(noop, readLast, () => null);
+  const recent = (p: Provider) =>
+    last === p && (providers.kakao && providers.google) ? (
+      <span className="rounded-full bg-black/10 px-2 py-0.5 text-[11px] font-semibold">최근 사용</span>
+    ) : null;
 
   function signIn(provider: Provider) {
     setError(null);
     setGoing(provider);
+    try {
+      localStorage.setItem(LAST_KEY, provider);
+    } catch {
+      // 저장할 수 없어도 로그인은 계속한다
+    }
     startTransition(async () => {
       const redirectTo = new URL("/auth/callback", window.location.origin);
       if (next !== "/") redirectTo.searchParams.set("next", next);
@@ -61,6 +83,7 @@ export function LoginPanel({ next, providers, initialError }: Props) {
         >
           <KakaoMark />
           {going === "kakao" ? "카카오로 이동 중…" : "카카오로 시작하기"}
+          {recent("kakao")}
         </button>
       )}
       {providers.google && (
@@ -73,6 +96,7 @@ export function LoginPanel({ next, providers, initialError }: Props) {
         >
           <GoogleMark />
           {going === "google" ? "Google로 이동 중…" : "Google 계정으로 계속하기"}
+          {recent("google")}
         </button>
       )}
       {!providers.kakao && !providers.google && (

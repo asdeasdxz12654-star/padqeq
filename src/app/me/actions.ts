@@ -14,6 +14,13 @@ export async function signOut() {
   redirect("/");
 }
 
+/** 로그아웃하고 바로 로그인 화면으로 (가입 마무리 화면에서 다른 방법으로 다시 들어갈 때) */
+export async function signOutToLogin() {
+  const supabase = await createClient();
+  await supabase.auth.signOut({ scope: "local" });
+  redirect("/login");
+}
+
 const profileSchema = z.object({
   displayName: z
     .string()

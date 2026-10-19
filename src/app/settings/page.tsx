@@ -1,4 +1,5 @@
-import { LOGIN_METHOD_LABEL } from "@/lib/auth/login-method";
+import { type LoginMethod, parseLoginMethod } from "@/lib/auth/login-method";
+import { loginProviders } from "@/lib/auth/providers";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -6,6 +7,7 @@ import { withNext } from "@/lib/auth/next-path";
 import { getViewer } from "@/lib/auth/viewer";
 import { createClient } from "@/lib/supabase/server";
 import { DeletionPanel } from "./deletion-panel";
+import { LINK_ERRORS, LoginMethods } from "./login-methods";
 import { MessageSettings } from "./message-settings";
 import { InterestPicker } from "./interest-picker";
 import { PushSettings } from "./push-settings";
@@ -18,13 +20,17 @@ export const metadata: Metadata = { title: "설정", robots: { index: false } };
 const dayFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "long" });
 
 // S-14 설정: 계정 정보 · 받은 경고 · 화면(테마) · 관심 분야 · 알림 · 웹 푸시 · 크레딧 자동 승인 · 메시지 받기 범위 · 차단 목록 · 내 데이터 내려받기 · 계정 삭제
-export default async function SettingsPage() {
+export default async function SettingsPage({ searchParams }: PageProps<"/settings">) {
+  const linkErrorParam = (await searchParams).link_error;
   const viewer = await getViewer();
   if (!viewer) redirect(withNext("/login", "/settings"));
   if (!viewer.profile) redirect(withNext("/welcome", "/settings"));
 
   const supabase = await createClient();
-  const [{ data: claims }, { data: account }, { data: mine }, { data: setting }, { data: blocks }, { data: warnings }] = await Promise.all([
+  const [{ data: userData }, providers, { data: claims }, { data: account }, { data: mine }, { data: setting }, { data: blocks }, { data: warnings }] = await Promise.all([
+    // 연결된 로그인 방법 (계정 연결)
+    supabase.auth.getUser(),
+    loginProviders(),
     supabase.auth.getClaims(),
     supabase.from("profiles").select("created_at, deletion_requested_at").eq("id", viewer.id).single(),
     // 개인 설정 열은 본인 전용 함수로 읽는다
@@ -39,6 +45,7 @@ export default async function SettingsPage() {
   const savedTheme = (await cookies()).get("theme")?.value;
   const themeChoice: ThemeChoice = savedTheme === "dark" || savedTheme === "system" ? savedTheme : "light";
   const email = typeof claims?.claims.email === "string" ? claims.claims.email : null;
+  const linked = [...new Set((userData.user?.identities ?? []).flatMap((i) => parseLoginMethod(i.provider) ?? []))] as LoginMethod[];
 
   return (
     <div className="mx-auto max-w-5xl px-4 pt-8 pb-16 md:grid md:grid-cols-[180px_minmax(0,1fr)] md:gap-10 md:px-6">
@@ -77,11 +84,15 @@ export default async function SettingsPage() {
           <dd>@{viewer.profile.handle}</dd>
           <dt className="text-quiet">이메일</dt>
           <dd className="break-all">{email ?? "-"}</dd>
-          <dt className="text-quiet">로그인</dt>
-          <dd>{viewer.loginMethod ? LOGIN_METHOD_LABEL[viewer.loginMethod] : "-"}</dd>
           <dt className="text-quiet">가입일</dt>
           <dd>{profile ? dayFormat.format(new Date(profile.created_at)) : "-"}</dd>
         </dl>
+        <h3 className="mt-2 text-sm font-semibold">로그인 방법</h3>
+        <LoginMethods
+          linked={linked}
+          available={(["kakao", "google"] as const).filter((m) => providers[m])}
+          initialError={typeof linkErrorParam === "string" ? (LINK_ERRORS[linkErrorParam] ?? LINK_ERRORS.oauth!) : null}
+        />
       </section>
 
       {warnings && warnings.length > 0 && (
