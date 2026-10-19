@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { EmptyState } from "@/components/empty-state";
-import { GatherSwitch } from "@/components/gather-switch";
 import Link from "next/link";
 import { todayKst } from "@/lib/auth/signup-input";
 import { getViewer } from "@/lib/auth/viewer";
@@ -75,7 +74,6 @@ export default async function CommunityPage({ searchParams }: PageProps<"/commun
 
   return (
     <div className="mx-auto max-w-[1440px] px-4 pt-6 pb-16 md:px-6">
-      <GatherSwitch current="community" />
       <div className="lg:grid lg:grid-cols-[200px_minmax(0,1fr)_300px] lg:items-start lg:gap-8">
         {/* PC 왼쪽: 글쓰기 · 게시판 · 바로가기 */}
         <nav aria-label="게시판 메뉴" className="sticky top-20 hidden flex-col gap-1 lg:flex">

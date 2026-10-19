@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { GatherSwitch } from "@/components/gather-switch";
 import Link from "next/link";
 import { todayKst } from "@/lib/auth/signup-input";
 import { getViewer } from "@/lib/auth/viewer";
@@ -51,7 +50,6 @@ export default async function EventsPage({ searchParams }: PageProps<"/events">)
 
   return (
     <div className="mx-auto max-w-3xl px-4 pt-8 pb-16 md:px-6 lg:max-w-4xl">
-      <GatherSwitch current="events" />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold">행사 캘린더</h1>
         {viewer?.profile && (

@@ -28,7 +28,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
       <h1 className="text-3xl font-bold tracking-tight">해담</h1>
       <p className="mt-1 text-quiet">해마다, 잊지 않도록</p>
       <p className="mt-4 text-sm leading-relaxed text-quiet">
-        그해의 코스프레 · 인물 · 풍경을 담아 두고 다시 꺼내 보는 갤러리
+        그해의 코스프레 · 인물 · 풍경 · 여행을 담아 두고 다시 꺼내 보는 갤러리
       </p>
 
       <LoginPanel next={next} providers={providers} initialError={error} />

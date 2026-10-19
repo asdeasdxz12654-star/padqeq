@@ -10,6 +10,7 @@ import { SiteNotice } from "@/components/site-notice";
 import { SiteHeader } from "@/components/site-header";
 import { SearchShortcut } from "@/components/search-box";
 import { TabBar } from "@/components/tab-bar";
+import { UploadFab } from "@/components/upload-fab";
 import { NavProgress } from "@/components/nav-progress";
 import { PhotoDevelop } from "@/components/photo-develop";
 import { SwRegister } from "@/components/sw-register";
@@ -28,7 +29,7 @@ const plexKr = IBM_Plex_Sans_KR({
 
 export const metadata: Metadata = {
   title: { default: "해담", template: "%s · 해담" },
-  description: "해마다, 잊지 않도록 — 코스프레 · 모델 · 풍경 사진을 해마다 담아 두는 추억 갤러리",
+  description: "해마다, 잊지 않도록 — 코스프레 · 모델 · 풍경 · 여행 사진을 해마다 담아 두는 추억 갤러리",
   applicationName: "해담",
   // 공유 카드(카카오톡 · SNS 미리보기)의 절대 주소 기준
   metadataBase: new URL("https://www.memories.haedam.app"),
@@ -85,6 +86,7 @@ export default async function RootLayout({ children, modal }: LayoutProps<"/">) 
         {/* 피드에서 연 게시물 (S-07 ①, app/@modal) */}
         {modal}
         <TabBar />
+        <UploadFab />
         <PhotoGuard />
         <PhotoDevelop />
         <SwRegister />

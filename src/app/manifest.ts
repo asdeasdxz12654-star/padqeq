@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "해담 — 해마다, 잊지 않도록",
     short_name: "해담",
-    description: "코스프레 · 모델 · 풍경 사진을 해마다 담아 두는 추억 갤러리",
+    description: "코스프레 · 모델 · 풍경 · 여행 사진을 해마다 담아 두는 추억 갤러리",
     lang: "ko",
     dir: "ltr",
     start_url: "/",
