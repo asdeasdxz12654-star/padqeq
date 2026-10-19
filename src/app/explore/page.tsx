@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FeedList } from "@/components/feed-list";
-import { ToneChips } from "@/components/tone-chips";
+import { FilterDropdown } from "@/components/filter-dropdown";
 import { TagChip } from "@/components/tag-chip";
-import { YearChips } from "@/components/year-chips";
 import { CATEGORIES, CATEGORY_LABEL } from "@/lib/photos/post-input";
+import { TONE_LABEL, TONE_SWATCH, TONES } from "@/lib/photos/tone";
 import type { FeedScope } from "@/lib/posts/feed-scope";
 import { loadScopePage } from "@/lib/posts/feed-scope-server";
 import { feedHref, parseCategory, parseQuery, parseSort, POPULAR_DAYS } from "@/lib/posts/feed-params";
@@ -49,6 +49,8 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
   ]);
   if (years.error) throw years.error;
   const chip = "inline-flex min-h-11 items-center rounded-full border px-4 text-sm whitespace-nowrap";
+  const yearChips = buildYearChips(years.data.map((row) => row.year));
+  const yearOptions = [...yearChips.visible, ...yearChips.older];
 
   return (
     <div className="mx-auto max-w-[1440px]">
@@ -91,38 +93,66 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
         </nav>
       )}
 
+      {/* 고르는 곳을 한 줄로: 분류 칩 · 색감 ▾ · 촬영 연도 ▾ · 정렬 (예전에는 다섯 줄이 사진보다 먼저 쌓였다) */}
       {tab === "posts" && (
-      <nav aria-label="카테고리">
-        <ul className="flex gap-2 overflow-x-auto px-4 pt-3 md:px-6 [scrollbar-width:none]">
+        <nav aria-label="사진 고르기" className="flex flex-wrap items-center gap-2 px-4 pt-3 pb-1 md:px-6">
           {CATEGORIES.filter((c) => c !== "other").map((c) => {
             const active = category === c;
             return (
-              <li key={c}>
-                <Link
-                  href={feedHref("/explore", current, { category: active ? null : c })}
-                  aria-current={active ? "page" : undefined}
-                  className={`${chip} ${active ? "border-text bg-text font-semibold text-bg" : "border-line hover:border-quiet"}`}
-                >
-                  {CATEGORY_LABEL[c]}
-                </Link>
-              </li>
+              <Link
+                key={c}
+                prefetch={false}
+                href={feedHref("/explore", current, { category: active ? null : c })}
+                aria-current={active ? "page" : undefined}
+                className={`${chip} ${active ? "border-text bg-text font-semibold text-bg" : "border-line hover:border-quiet"}`}
+              >
+                {CATEGORY_LABEL[c]}
+              </Link>
             );
           })}
-        </ul>
-      </nav>
-
+          {/* 색감은 표지 사진의 대표 색으로 모은 따로의 화면(/tone)으로 간다 */}
+          <FilterDropdown
+            label="색감"
+            value={null}
+            options={TONES.map((t) => ({
+              key: t,
+              href: `/tone?pick=${t}`,
+              current: false,
+              label: (
+                <>
+                  <span aria-hidden="true" className="size-3 rounded-full border border-line" style={{ backgroundColor: TONE_SWATCH[t] }} />
+                  {TONE_LABEL[t]}
+                </>
+              ),
+            }))}
+          />
+          <FilterDropdown
+            label="촬영 연도"
+            value={year === null ? null : `${year}`}
+            options={[null, ...yearOptions].map((y) => ({
+              key: String(y),
+              href: feedHref("/explore", current, { year: y }),
+              current: year === y,
+              label: y === null ? "전체" : `${y}년`,
+            }))}
+          />
+          <span className="ml-auto flex items-center">
+            {(["latest", "popular"] as const).map((s) => (
+              <Link
+                key={s}
+                prefetch={false}
+                href={feedHref("/explore", current, { sort: s })}
+                aria-current={sort === s ? "page" : undefined}
+                className="inline-flex min-h-11 items-center rounded-full px-3 text-sm text-quiet hover:text-text aria-[current=page]:font-semibold aria-[current=page]:text-text"
+              >
+                {s === "latest" ? "최신순" : "인기순"}
+              </Link>
+            ))}
+          </span>
+          {sort === "popular" && <span className="w-full text-right text-xs text-quiet">최근 {POPULAR_DAYS}일 좋아요 순</span>}
+        </nav>
       )}
 
-      {/* 색감으로 찾기 (조건이 없을 때만) */}
-      {tab === "posts" && !filtered && <ToneChips selected={null} />}
-
-      {tab === "posts" && (
-      <YearChips
-        chips={buildYearChips(years.data.map((row) => row.year))}
-        selected={year}
-        hrefFor={(y) => feedHref("/explore", current, { year: y })}
-      />
-      )}
 
       {tab === "tags" && (
         <section aria-label="태그" className="px-4 pt-4 md:px-6">
@@ -235,21 +265,6 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
         </section>
       )}
 
-      {tab === "posts" && (
-        <nav aria-label="정렬" className="flex items-center gap-1 px-4 pb-2 text-sm md:px-6">
-          {(["latest", "popular"] as const).map((s) => (
-            <Link
-              key={s}
-              href={feedHref("/explore", current, { sort: s })}
-              aria-current={sort === s ? "page" : undefined}
-              className="inline-flex min-h-11 items-center rounded-full px-3 text-quiet hover:text-text aria-[current=page]:font-semibold aria-[current=page]:text-text"
-            >
-              {s === "latest" ? "최신순" : "인기순"}
-            </Link>
-          ))}
-          {sort === "popular" && <span className="text-xs text-quiet">최근 {POPULAR_DAYS}일 좋아요</span>}
-        </nav>
-      )}
 
       {tab === "posts" && filtered && (
         <p className="flex items-center gap-3 px-4 pb-2 text-sm text-quiet md:px-6">
