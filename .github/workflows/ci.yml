@@ -57,7 +57,7 @@ jobs:
       NEXT_PUBLIC_SUPABASE_URL: https://icmzonndhmqdmqlrmhkn.supabase.co
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_m0R0KuHySG2IaYFopBjfug_SFXnCC2n
       # 카카오톡 공유 (카카오 앱 › 플랫폼 키 › JavaScript 키, 공개 값 · JavaScript SDK 도메인으로 제한). 비어 있으면 카카오톡 공유를 숨긴다
-      NEXT_PUBLIC_KAKAO_JS_KEY: ""
+      NEXT_PUBLIC_KAKAO_JS_KEY: b4ca7df9d5307127aa57d4a0b21217e4
       NEXT_TELEMETRY_DISABLED: "1"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
