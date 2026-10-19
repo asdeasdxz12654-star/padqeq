@@ -63,8 +63,8 @@ describe("추천 피드", () => {
     expect(list[0]).toBe(OLD);
   });
 
-  it("관심 분야는 4개까지, 본인만 고친다", async () => {
-    await expect(db.query(`update public.profiles set interest_categories = '{cosplay,model,landscape,other,cosplay}' where id = '${ME}'`)).rejects.toThrow(/check/);
+  it("관심 분야는 5개까지(분류 수, 20261217), 본인만 고친다", async () => {
+    await expect(db.query(`update public.profiles set interest_categories = '{cosplay,model,landscape,travel,other,cosplay}' where id = '${ME}'`)).rejects.toThrow(/check/);
     await asUser(db, FAN, (tx) => tx.query(`update public.profiles set interest_categories = '{model}' where id = '${ME}'`).then((r) => expect(r.affectedRows).toBe(0)));
   });
 });
