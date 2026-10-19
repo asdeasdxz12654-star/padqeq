@@ -29,6 +29,8 @@ export default function PrivacyPage() {
             <td>
               카카오로 가입: 카카오 회원 번호 · 닉네임, 동의한 경우 프로필 사진 · 이메일 주소
               <br />
+              네이버로 가입: 네이버 회원 식별값(서비스마다 다른 번호)
+              <br />
               Google로 가입: Google 계정의 이메일 주소 · 이름, 계정 고유 번호
             </td>
             <td>본인 확인 · 로그인 · 문의 답변</td>
@@ -143,6 +145,11 @@ export default function PrivacyPage() {
             <td>(주)카카오 (대한민국)</td>
             <td>카카오 계정 로그인: 회원 번호 · 닉네임, 동의한 경우 프로필 사진 · 이메일</td>
             <td>카카오 서버 · 카카오 정책에 따름</td>
+          </tr>
+          <tr>
+            <td>네이버(주) (대한민국)</td>
+            <td>네이버 계정 로그인: 회원 식별값</td>
+            <td>네이버 서버 · 네이버 정책에 따름</td>
           </tr>
           <tr>
             <td>Google LLC (미국)</td>
