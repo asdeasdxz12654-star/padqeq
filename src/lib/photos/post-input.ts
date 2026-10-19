@@ -34,7 +34,7 @@ export const masterPhoto = z
     phash: z.string().regex(/^[0-9a-f]{16}$/),
     /** 대표 색 (#rrggbb, 사진이 뜨기 전 자리 색) */
     color: z.string().regex(/^#[0-9a-f]{6}$/).optional(),
-    /** 촬영 정보 (장비 · 설정, 각 60자) */
+    /** 촬영 정보 (장비 · 설정 각 60자 + 하루의 빛) */
     exif: z
       .object({
         camera: z.string().max(60),
@@ -43,6 +43,8 @@ export const masterPhoto = z
         shutter: z.string().max(60),
         iso: z.string().max(60),
         focal: z.string().max(60),
+        /** 하루의 빛 (촬영 시각으로 나눈 이름만) */
+        light: z.enum(["golden", "blue", "day", "night"]),
       })
       .partial()
       .nullable()

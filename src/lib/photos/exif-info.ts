@@ -1,6 +1,9 @@
 // 촬영 정보 (S-06 ⑧): EXIF에서 장비 · 설정만 골라 보기 좋게 만든다. 위치(GPS)는 읽지도 않는다.
 
-export type ExifInfo = Partial<Record<"camera" | "lens" | "aperture" | "shutter" | "iso" | "focal", string>>;
+import type { DayLight } from "./day-light";
+
+/** 장비 · 설정 + 하루의 빛 (촬영 시각 자체는 담지 않는다) */
+export type ExifInfo = Partial<Record<"camera" | "lens" | "aperture" | "shutter" | "iso" | "focal", string>> & { light?: DayLight };
 
 /** exifr로 읽을 태그 (이것만) */
 export const EXIF_TAGS = ["Make", "Model", "LensModel", "FNumber", "ExposureTime", "ISO", "FocalLength"] as const;

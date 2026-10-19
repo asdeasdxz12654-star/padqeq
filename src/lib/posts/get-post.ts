@@ -1,5 +1,6 @@
 import { isUuid } from "@/lib/ids";
 import "server-only";
+import { DAY_LIGHT_LABEL } from "@/lib/photos/day-light";
 import { type ExifInfo, exifLine } from "@/lib/photos/exif-info";
 import { cache } from "react";
 import { viewerSources, type ViewerSources } from "@/lib/photos/server";
@@ -66,6 +67,9 @@ export const getPost = cache(async (id: string) => {
   const firstExif = post.show_exif ? exifLine(post.photos[0]?.exif as ExifInfo | null) : null;
   // 카메라 이름 (같은 카메라 사진 모음으로 이어진다)
   const camera = post.show_exif ? ((post.photos[0]?.exif as ExifInfo | null)?.camera ?? null) : null;
+  // 하루의 빛 (골든아워 · 블루아워 · 한낮 · 밤): 촬영 정보와 함께 보이고 함께 숨는다
+  const rawLight = post.show_exif ? (post.photos[0]?.exif as ExifInfo | null)?.light : undefined;
+  const light = rawLight && Object.hasOwn(DAY_LIGHT_LABEL, rawLight) ? rawLight : null;
 
   // 사진 뒷면 메모 (보이는 사진 순서대로, 몇 번째 사진인지와 함께)
   const shown = new Set(photos.map((p) => p.id));
@@ -73,7 +77,7 @@ export const getPost = cache(async (id: string) => {
     .filter((p) => shown.has(p.id))
     .flatMap((p, i) => (p.back_memo ? [{ n: i + 1, memo: p.back_memo }] : []));
 
-  return { ...post, author: post.author, photos, tags, exif: firstExif, camera, photoMemos };
+  return { ...post, author: post.author, photos, tags, exif: firstExif, camera, light, photoMemos };
 });
 
 export type PostDetail = NonNullable<Awaited<ReturnType<typeof getPost>>>;

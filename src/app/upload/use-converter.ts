@@ -10,6 +10,7 @@ import { decodeRaw, isMobileDevice, RAW_MAX_BYTES_DESKTOP, RAW_MAX_BYTES_MOBILE,
 import { findSimilarPhotos } from "./tag-actions";
 import { discardUploadSlots, reserveUploadSlot } from "./actions";
 import { uploadPhotoFiles } from "./publish-bundle";
+import { dayLightFromExif } from "@/lib/photos/day-light";
 import { EXIF_TAGS, type ExifInfo, exifInfo } from "@/lib/photos/exif-info";
 
 // 사진 변환 상태 관리. 변환은 작업 스레드에서 한 장씩 차례로 한다.
@@ -265,10 +266,13 @@ async function readTakenAt(file: File): Promise<string | null> {
   }
 }
 
-/** 촬영 정보 (장비 · 설정만, 위치는 읽지 않는다) */
+/** 촬영 정보 (장비 · 설정 + 하루의 빛, 위치는 읽지 않는다) */
 async function readExifInfo(file: File): Promise<ExifInfo | null> {
   try {
-    return exifInfo(await exifr.parse(file, [...EXIF_TAGS]));
+    const raw = await exifr.parse(file, [...EXIF_TAGS, "DateTimeOriginal", "OffsetTimeOriginal"]);
+    const info = exifInfo(raw);
+    const light = dayLightFromExif(raw?.DateTimeOriginal, raw?.OffsetTimeOriginal);
+    return light ? { ...info, light } : info;
   } catch {
     return null;
   }

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getViewer } from "@/lib/auth/viewer";
 import { CREDIT_ROLE_LABEL } from "@/lib/photos/credit-input";
+import { DAY_LIGHT_LABEL } from "@/lib/photos/day-light";
 import { CATEGORY_LABEL } from "@/lib/photos/post-input";
 import Link from "next/link";
 import { getComments } from "@/lib/comments/load";
@@ -131,7 +132,7 @@ export async function PostDetail({ id }: { id: string }) {
     memo: post.body ? post.body.slice(0, 280) : post.title,
     photoMemos: post.photoMemos,
     people: credits.filter((c) => c.status !== "pending").map((c) => ({ role: CREDIT_ROLE_LABEL[c.role], name: c.member ? `@${c.member.handle}` : (c.external_label ?? "") })),
-    exif: post.exif,
+    exif: [post.light && DAY_LIGHT_LABEL[post.light], post.exif].filter(Boolean).join(" · ") || null,
   };
 
   return (
@@ -182,10 +183,17 @@ export async function PostDetail({ id }: { id: string }) {
             </Veil>
           </PhotoFlip>
           {/* 촬영 데이터 줄: 카메라 화면처럼 사진 바로 아래 한 줄 */}
-          {post.exif && (
+          {(post.exif || post.light) && (
             <p className="px-4 text-center font-mono text-xs leading-relaxed tracking-wide text-quiet">
               <span className="sr-only">촬영 정보: </span>
-              {post.camera && post.exif.startsWith(post.camera) ? (
+              {post.light && (
+                <span className="font-sans font-semibold text-text">
+                  <span aria-hidden="true" className="mr-1 inline-block size-2 rounded-full bg-sun align-middle" />
+                  {DAY_LIGHT_LABEL[post.light]}
+                  {post.exif && <span className="font-normal text-quiet"> · </span>}
+                </span>
+              )}
+              {!post.exif ? null : post.camera && post.exif.startsWith(post.camera) ? (
                 <>
                   <Link prefetch={false} href={`/camera?name=${encodeURIComponent(post.camera)}`} className="underline decoration-dotted underline-offset-4 hover:text-text">
                     {post.camera}
