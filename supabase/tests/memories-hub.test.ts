@@ -71,6 +71,14 @@ describe("촬영 정보", () => {
     await expect(as(AUTHOR, "select set_photo_exif($1, $2::jsonb)", [DRAFT, entries({ gps: "37.5,127" })])).rejects.toThrow(/exif_invalid/);
     await expect(as(FAN, "select set_photo_exif($1, $2::jsonb)", [DRAFT, entries({ camera: "x" })])).rejects.toThrow(/post_not_editable/);
   });
+
+  it("하루의 빛은 정해진 네 가지 이름만", async () => {
+    const photo = (await db.query<{ id: string }>("select id from photos where post_id = $1", [DRAFT])).rows[0]!.id;
+    const entries = (exif: unknown) => JSON.stringify([{ photo_id: photo, exif }]);
+    await as(AUTHOR, "select set_photo_exif($1, $2::jsonb)", [DRAFT, entries({ camera: "Sony α7 IV", light: "golden" })]);
+    expect((await db.query<{ exif: { light: string } }>("select exif from photos where id = $1", [photo])).rows[0]!.exif.light).toBe("golden");
+    await expect(as(AUTHOR, "select set_photo_exif($1, $2::jsonb)", [DRAFT, entries({ light: "18:42" })])).rejects.toThrow(/exif_invalid/);
+  });
 });
 
 describe("태그 허브", () => {
