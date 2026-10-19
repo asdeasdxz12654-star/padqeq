@@ -2230,6 +2230,11 @@ export type Database = {
       answer_inquiry: { Args: { reply: string; target: string }; Returns: undefined }
       admin_posts_action: { Args: { action: string; note: string; targets: string[] }; Returns: number }
       admin_dashboard: { Args: never; Returns: Json }
+      admin_recent_errors: {
+        Args: { days?: number }
+        Returns: { digest: string; first_at: string; hits: number; last_at: string; path: string }[]
+      }
+      report_client_error: { Args: { digest: string; path: string }; Returns: undefined }
       set_site_limit: { Args: { name: string; new_value: number; note: string }; Returns: undefined }
       admin_reporter_stats: {
         Args: { ids: string[] }

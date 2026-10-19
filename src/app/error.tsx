@@ -1,10 +1,21 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import { LineArt } from "@/components/line-art";
 
 // 오류 번호(digest)만 보여 주고 내부 메시지는 노출하지 않는다 (S-20)
 export default function ErrorPage({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  // 오류 번호와 화면 주소만 운영자 대시보드로 (회원이 문의하지 않아도 알 수 있게)
+  useEffect(() => {
+    if (!error.digest) return;
+    fetch("/api/client-error", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ digest: error.digest, path: window.location.pathname }),
+      keepalive: true,
+    }).catch(() => {});
+  }, [error.digest]);
   return (
     <div className="mx-auto flex max-w-md flex-col items-center px-4 py-20 text-center">
       <LineArt kind="error" className="mb-4" />

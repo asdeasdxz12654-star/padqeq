@@ -21,7 +21,7 @@ export default async function AdminHomePage() {
   // 운영 도우미의 첫 화면은 신고 처리
   if ((await getViewer())?.profile?.role !== "admin") redirect("/admin/inbox");
   const supabase = await createClient();
-  const [pending, inbox, switches, backup, stuckDrafts, dash, chores] = await Promise.all([
+  const [pending, inbox, switches, backup, stuckDrafts, dash, chores, errors] = await Promise.all([
     getAdminPending(),
     loadInbox(true),
     getSiteSwitches(),
@@ -32,7 +32,10 @@ export default async function AdminHomePage() {
       return r.data as unknown as Dashboard;
     }),
     loadTagChores(),
+    // 화면 오류 (최근 7일): 회원이 문의하지 않아도 보이게
+    supabase.rpc("admin_recent_errors", { days: 7 }).then((r) => r.data ?? []),
   ]);
+  const errorHits = errors.reduce((n, e) => n + e.hits, 0);
   const backupNow = backupState(backup === null ? undefined : (backup.latest?.at ?? null));
   const todos = buildTodos(dash, undefined, { backup: backupNow, stuckDrafts });
   const cost = estimateMonthlyUsd(dash.photo_bytes + (backup?.totalBytes ?? 0));
@@ -221,6 +224,27 @@ export default async function AdminHomePage() {
             </span>
           </li>
         </ul>
+      </section>
+
+      <section aria-labelledby="errors-heading">
+        <h2 id="errors-heading" className="mb-1 text-lg font-semibold">
+          화면 오류 <span className="text-sm font-normal text-quiet">최근 7일 · {errorHits}번</span>
+        </h2>
+        <p className="mb-3 text-xs text-quiet">회원 화면에 오류가 났을 때 오류 번호 · 화면 주소만 모아요(누가 겪었는지는 남기지 않아요). 문의에 적힌 오류 번호와 같으면 같은 문제예요.</p>
+        {errors.length === 0 ? (
+          <p className="rounded-xl border border-line px-4 py-6 text-center text-sm text-quiet">최근 7일 동안 난 오류가 없어요.</p>
+        ) : (
+          <ul className="flex flex-col divide-y divide-line rounded-xl border border-line text-sm">
+            {errors.slice(0, 20).map((e) => (
+              <li key={`${e.digest}${e.path}`} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2">
+                <span className="font-mono text-xs">{e.digest}</span>
+                <span className="min-w-0 flex-1 truncate text-quiet">{e.path}</span>
+                <span className={`tabular-nums ${e.hits >= 10 ? "font-semibold text-danger" : "text-quiet"}`}>{e.hits}번</span>
+                <span className="text-xs text-quiet">{timeFormat.format(new Date(e.last_at))}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section aria-labelledby="chores-heading">
