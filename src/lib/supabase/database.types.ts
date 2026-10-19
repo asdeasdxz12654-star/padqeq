@@ -2426,7 +2426,7 @@ export type Database = {
         | "year_review"
         | "post_veiled"
         | "credited_post_deleted"
-      post_category: "cosplay" | "model" | "landscape" | "other"
+      post_category: "cosplay" | "model" | "landscape" | "travel" | "other"
       post_status: "draft" | "published" | "hidden"
       report_reason:
         | "portrait_rights"
@@ -2628,7 +2628,7 @@ export const Constants = {
         "post_veiled",
         "credited_post_deleted",
       ],
-      post_category: ["cosplay", "model", "landscape", "other"],
+      post_category: ["cosplay", "model", "landscape", "travel", "other"],
       post_status: ["draft", "published", "hidden"],
       report_reason: [
         "portrait_rights",

@@ -18,9 +18,9 @@ export async function setCreditAutoApprove(on: boolean): Promise<{ ok: true } | 
   return { ok: true };
 }
 
-/** 관심 분야 (S-01 ⑤): 홈 추천 순서에 반영된다. 4개까지 */
+/** 관심 분야 (S-01 ⑤): 홈 추천 순서에 반영된다. 분류 수만큼(5개)까지 */
 export async function setInterests(categories: unknown): Promise<{ ok: true } | { ok: false; error: string }> {
-  const parsed = z.array(z.enum(CATEGORIES)).max(4).safeParse(categories);
+  const parsed = z.array(z.enum(CATEGORIES)).max(CATEGORIES.length).safeParse(categories);
   if (!parsed.success) return { ok: false, error: "잘못된 요청이에요." };
   const viewer = await getViewer();
   if (!viewer?.profile) return { ok: false, error: "로그인이 필요해요." };

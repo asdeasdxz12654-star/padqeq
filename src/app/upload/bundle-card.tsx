@@ -381,7 +381,8 @@ export function CategoryAndConsent({
               key={c}
               type="button"
               aria-pressed={category === c}
-              onClick={() => onChange({ category: c, hasPeople: c !== "landscape" })}
+              // 풍경 · 여행은 사람이 없는 사진이 많아 기본은 끔 (나오면 직접 켠다)
+              onClick={() => onChange({ category: c, hasPeople: c !== "landscape" && c !== "travel" })}
               className="rounded-full border border-line px-3 py-1.5 text-sm aria-pressed:border-accent aria-pressed:bg-accent aria-pressed:text-on-accent"
             >
               {CATEGORY_LABEL[c]}

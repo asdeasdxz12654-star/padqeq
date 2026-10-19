@@ -17,7 +17,7 @@ const UPLOAD_CONCURRENCY = 3;
 export type BundleMeta = {
   title: string;
   body: string;
-  category: "cosplay" | "model" | "landscape" | "other";
+  category: "cosplay" | "model" | "landscape" | "travel" | "other";
   hasPeople: boolean;
   shotYear: number;
   shotOn: string | null;

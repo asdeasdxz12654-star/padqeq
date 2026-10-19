@@ -17,6 +17,7 @@ const SHELF_SUB: Record<Shelf["category"], [string, string]> = {
   cosplay: ["이번 주 많이 본 코스프레", "새로 담긴 코스프레"],
   model: ["많이 본 인물 사진", "새로 담긴 인물 사진"],
   landscape: ["많이 본 풍경", "새로 담긴 풍경"],
+  travel: ["많이 본 여행 사진", "새로 담긴 여행 사진"],
   other: ["많이 본 사진", "새로 담긴 사진"],
 };
 

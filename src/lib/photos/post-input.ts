@@ -10,11 +10,12 @@ import { isPanorama, VARIANTS, variantSize } from "./variants";
 export const MAX_PHOTOS_PER_POST = 20;
 export const MAX_INPUT_BYTES = 50 * 1024 * 1024;
 
-export const CATEGORIES = ["cosplay", "model", "landscape", "other"] as const;
+export const CATEGORIES = ["cosplay", "model", "landscape", "travel", "other"] as const;
 export const CATEGORY_LABEL: Record<(typeof CATEGORIES)[number], string> = {
   cosplay: "코스프레",
   model: "모델 · 인물",
   landscape: "풍경",
+  travel: "여행",
   other: "기타",
 };
 

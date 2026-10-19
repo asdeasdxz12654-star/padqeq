@@ -100,10 +100,11 @@ async function tagTiles(): Promise<TagTile[]> {
 }
 
 export async function loadHomeSections() {
-  const [cosplay, model, landscape, events, tags, latest, shows, seasonal] = await Promise.all([
+  const [cosplay, model, landscape, travel, events, tags, latest, shows, seasonal] = await Promise.all([
     shelf("cosplay"),
     shelf("model"),
     shelf("landscape"),
+    shelf("travel"),
     eventShelves().catch(() => []),
     tagTiles().catch(() => []),
     loadScopePage({ kind: "home", year: null, feed: "latest" }),
@@ -111,7 +112,7 @@ export async function loadHomeSections() {
     seasonShelf().catch(() => null),
   ]);
   return {
-    shelves: [cosplay, model, landscape].filter((s) => s.items.length >= SHELF_MIN),
+    shelves: [cosplay, model, landscape, travel].filter((s) => s.items.length >= SHELF_MIN),
     events,
     tags: tags.length >= 3 ? tags : [],
     latest: latest.items.slice(0, 10),
