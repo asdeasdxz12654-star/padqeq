@@ -35,7 +35,8 @@ export function buildCsp({
     // 사진은 같은 출처의 이미지 게이트(/img)만. 외부 이미지는 촬영 장소 지도(/map)의 OpenStreetMap 지도 조각만.
     "img-src": ["'self'", "blob:", "data:", "https://tile.openstreetmap.org"],
     "font-src": ["'self'"],
-    "connect-src": ["'self'", supabase.origin, supabaseWs, "https://challenges.cloudflare.com"],
+    // 카카오톡 공유(SDK)는 누를 때만 불러온다 (스크립트는 strict-dynamic으로 허용, 무결성 값 고정)
+    "connect-src": ["'self'", supabase.origin, supabaseWs, "https://challenges.cloudflare.com", "https://*.kakao.com"],
     // 해담 안에 다른 사이트를 넣지 않는다 (Google 로그인은 iframe이 아닌 화면 이동). 가입 봇 방지(Turnstile) 확인 창만 예외.
     "frame-src": ["https://challenges.cloudflare.com"],
     "worker-src": ["'self'", "blob:"],
