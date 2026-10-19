@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { EmptyState } from "@/components/empty-state";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { withNext } from "@/lib/auth/next-path";
@@ -55,9 +56,7 @@ export default async function MessagesPage({ searchParams }: PageProps<"/me/mess
       )}
 
       {threads.length === 0 ? (
-        <p className="mt-8 rounded-xl border border-line p-8 text-center text-sm text-quiet">
-          {tab === "requests" ? "받은 요청이 없어요." : "아직 대화가 없어요. 프로필의 '메시지'나 섭외 게시판 지원으로 시작해요."}
-        </p>
+        <EmptyState className="mt-4" text={tab === "requests" ? "받은 요청이 없어요." : "아직 대화가 없어요. 프로필의 '메시지'나 섭외 게시판 지원으로 시작해요."} />
       ) : (
         <ul className="mt-4 flex flex-col divide-y divide-line">
           {threads.map((t) => (

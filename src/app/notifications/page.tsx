@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { EmptyState } from "@/components/empty-state";
 import Link from "next/link";
 import { type CreditRequest, CreditRequests } from "@/app/me/credit-requests";
 import { redirect } from "next/navigation";
@@ -105,7 +106,7 @@ export default async function NotificationsPage({ searchParams }: PageProps<"/no
       </nav>
 
       {buckets.length === 0 ? (
-        <p className="rounded-xl border border-line px-4 py-10 text-center text-sm text-quiet">{group ? "이 종류의 알림이 없어요." : "아직 알림이 없어요."}</p>
+        <EmptyState text={group ? "이 종류의 알림이 없어요." : "아직 알림이 없어요. 크레딧 · 댓글 · 좋아요 소식이 여기 모여요."} />
       ) : (
         buckets.map((b) => (
           <section key={b.label} aria-labelledby={`bucket-${b.label}`} className="mb-6">

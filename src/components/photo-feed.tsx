@@ -1,5 +1,7 @@
+"use client";
+
 import Link from "next/link";
-import { Fragment, type ReactNode } from "react";
+import { Fragment, type ReactNode, useSyncExternalStore } from "react";
 import { LineArt } from "./line-art";
 import type { FeedItem } from "@/lib/posts/feed";
 import { masonryColumns } from "@/lib/posts/masonry";
@@ -13,6 +15,7 @@ const badge = "pointer-events-none absolute top-1.5 rounded-full bg-black/60 px-
 
 /** 사진 피드 (홈 · 탐색 · 태그 · 프로필 공용). 열 수: 2 · 3(md) · 5(xl), 가로 순서를 지키는 메이슨리. 여러 장 · 파노라마는 배지로 (S-02 ④ ⑨) */
 export function PhotoFeed({ items, empty, after }: { items: FeedItem[]; empty: string; /** 이 글 뒤에 붙일 칸 (팔로우 피드 묶음 '더 보기') */ after?: (post: FeedItem) => ReactNode }) {
+  const columns = useSyncExternalStore(subscribeColumns, readColumns, () => 0);
   if (items.length === 0)
     return empty ? (
       <div className="flex flex-col items-center gap-3 px-4 py-20 text-center md:px-6">
@@ -21,12 +24,13 @@ export function PhotoFeed({ items, empty, after }: { items: FeedItem[]; empty: s
       </div>
     ) : null;
 
-  // 화면 폭마다 열 수가 달라 열 배치를 세 벌 만들고 CSS로 하나만 보인다 (숨긴 배치의 사진은 받지 않는다: 지연 로딩)
+  // 처음 그릴 때는 화면 폭을 몰라 열 배치를 세 벌 만들고 CSS로 하나만 보인다 (숨긴 배치의 사진은 받지 않는다: 지연 로딩).
+  // 브라우저가 화면 폭을 알면 맞는 한 벌만 남긴다 (더 불러와도 사진 수가 세 배로 늘지 않게)
   return (
     <FeedOrderCapture>
     <div className="px-2 md:px-6">
-      {LAYOUTS.map((layout) => (
-        <div key={layout.columns} className={`${layout.className} items-start gap-2 xl:gap-4`}>
+      {LAYOUTS.filter((layout) => columns === 0 || layout.columns === columns).map((layout) => (
+        <div key={layout.columns} className={`${columns === 0 ? layout.className : "flex"} items-start gap-2 xl:gap-4`}>
           {masonryColumns(items, layout.columns, (post) => cardHeight(post, Boolean(after?.(post)))).map((column, c) => (
             <ul key={c} className="flex min-w-0 flex-1 flex-col gap-2 xl:gap-4">
               {column.map(({ item: post, index }) => (
@@ -42,6 +46,17 @@ export function PhotoFeed({ items, empty, after }: { items: FeedItem[]; empty: s
     </div>
     </FeedOrderCapture>
   );
+}
+
+// 열 수: 2 · 3(md 768px~) · 5(xl 1280px~). 0은 아직 모름 (서버 · 첫 그리기)
+const MEDIA = ["(min-width: 1280px)", "(min-width: 768px)"] as const;
+function readColumns(): number {
+  return window.matchMedia(MEDIA[0]).matches ? 5 : window.matchMedia(MEDIA[1]).matches ? 3 : 2;
+}
+function subscribeColumns(notify: () => void) {
+  const lists = MEDIA.map((q) => window.matchMedia(q));
+  lists.forEach((l) => l.addEventListener("change", notify));
+  return () => lists.forEach((l) => l.removeEventListener("change", notify));
 }
 
 const LAYOUTS = [

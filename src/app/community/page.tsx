@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { EmptyState } from "@/components/empty-state";
 import { GatherSwitch } from "@/components/gather-switch";
 import Link from "next/link";
 import { todayKst } from "@/lib/auth/signup-input";
@@ -218,7 +219,7 @@ export default async function CommunityPage({ searchParams }: PageProps<"/commun
           )}
 
           {posts.length === 0 ? (
-            <p className="mt-6 rounded-xl border border-line p-8 text-center text-sm text-quiet">아직 글이 없어요. 첫 글을 남겨 주세요.</p>
+            <EmptyState className="mt-4" text="아직 글이 없어요. 첫 글을 남겨 주세요." action={{ href: "/community/write", label: "글쓰기" }} />
           ) : (
             <ul className="mt-4 flex flex-col gap-2">
               {posts.map((p) => (

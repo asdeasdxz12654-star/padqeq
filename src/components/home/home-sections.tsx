@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { EmptyState } from "@/components/empty-state";
 import { BOARD_LABEL, type BoardKind } from "@/lib/boards/labels";
 import { formatRange } from "@/lib/events/calendar";
 import { CATEGORY_LABEL } from "@/lib/photos/post-input";
@@ -291,7 +292,7 @@ export function LatestSection({ items, member }: { items: FeedItem[]; member: bo
     <section aria-labelledby="latest-photos">
       <SectionHead id="latest-photos" title="새로 담긴 사진" sub="방금 걸린 사진부터" />
       {items.length === 0 ? (
-        <p className="px-4 py-16 text-center text-sm text-quiet md:px-6">아직 담긴 사진이 없어요.</p>
+        <EmptyState text="아직 담긴 사진이 없어요. 첫 사진을 걸어 주세요." action={member ? { href: "/upload", label: "사진 올리기" } : { href: "/login", label: "가입하고 올리기" }} />
       ) : (
         <ul className="grid grid-cols-2 gap-x-3 gap-y-5 px-4 md:grid-cols-4 md:gap-4 md:px-6 lg:grid-cols-5">
           {items.map((post) => (

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { EmptyState } from "@/components/empty-state";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { RepublishButton } from "@/app/p/[id]/republish-button";
@@ -68,7 +69,7 @@ export default async function MyPostsPage({ searchParams }: PageProps<"/me/posts
       </p>
 
       {posts.length === 0 ? (
-        <p className="py-16 text-center text-sm text-quiet">{tab === "deleted" ? "지운 글이 없어요." : "숨긴 글이 없어요."}</p>
+        <EmptyState text={tab === "deleted" ? "지운 글이 없어요." : "숨긴 글이 없어요."} />
       ) : (
         <ul className="flex flex-col divide-y divide-line border-y border-line">
           {posts.map((p) => {
