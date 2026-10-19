@@ -66,6 +66,19 @@ export default async function MemoriesPage({ searchParams }: PageProps<"/memorie
   return (
     <div className="mx-auto max-w-[1440px] pt-8 pb-16">
       <header className="px-4 md:px-6">
+        {/* 나의 한 해(예전 마이의 '나의 2026')는 추억 안에서 연다 */}
+        {viewer?.profile && (
+          <Link
+            href="/me/year"
+            className="mb-5 flex min-h-14 items-center justify-between gap-3 rounded-2xl border border-line px-4 text-sm hover:border-quiet"
+          >
+            <span>
+              <strong className="block">나의 {today.slice(0, 4)}</strong>
+              <span className="text-quiet">올해 담은 사진 · 행사 · 함께한 사람 돌아보기</span>
+            </span>
+            <span aria-hidden="true">›</span>
+          </Link>
+        )}
         <h1 className="text-2xl font-bold">
           {month}월 {day}일의 기억
         </h1>

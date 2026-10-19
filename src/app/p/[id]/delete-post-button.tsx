@@ -20,7 +20,7 @@ export function DeletePostButton({ postId, credited }: { postId: string; credite
         onClick={async () => {
           const ok = await confirmAction({
             title: "이 게시물을 지울까요?",
-            body: `모두에게서 사라지고 30일 뒤 사진까지 영구 삭제돼요. 그 전에는 마이 › 내 글 관리 › 지운 글에서 되살릴 수 있어요.${credited ? " 함께 크레딧된 분에게 지웠다는 알림이 가요." : ""}`,
+            body: `모두에게서 사라지고 30일 뒤 사진까지 영구 삭제돼요. 그 전에는 마이페이지 › 내 글 관리 › 지운 글에서 되살릴 수 있어요.${credited ? " 함께 크레딧된 분에게 지웠다는 알림이 가요." : ""}`,
             confirmLabel: "지우기",
             danger: true,
           });

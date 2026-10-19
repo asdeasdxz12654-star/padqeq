@@ -1,38 +1,45 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { withNext } from "@/lib/auth/next-path";
-import { ROLE_LABEL, isStaffRole } from "@/lib/auth/roles";
-import { getViewer } from "@/lib/auth/viewer";
-import { profileHref } from "@/lib/profiles/profile-href";
-import { createClient } from "@/lib/supabase/server";
-import { getFollowedMembers, getFollowedTags } from "@/lib/follows/follows";
 import { Avatar } from "@/components/avatar";
-import { TagChip } from "@/components/tag-chip";
-import { currentYearKst } from "@/lib/year-chips";
-import { signOut } from "./actions";
+import { FeedList } from "@/components/feed-list";
+import { YearShelf } from "@/components/year-shelf";
+import { getAdminPending } from "@/lib/admin/pending";
+import { withNext } from "@/lib/auth/next-path";
+import { isStaffRole } from "@/lib/auth/roles";
+import { getViewer } from "@/lib/auth/viewer";
+import { getFollowedMembers, getFollowedTags } from "@/lib/follows/follows";
+import type { FeedScope } from "@/lib/posts/feed-scope";
+import { loadScopePage } from "@/lib/posts/feed-scope-server";
+import { getProfileByHandle } from "@/lib/profiles/get-profile";
+import { profileHref } from "@/lib/profiles/profile-href";
+import { loadYearShelf } from "@/lib/profiles/shelf";
+import { createClient } from "@/lib/supabase/server";
 import { type CreditClaim, CreditClaims } from "./credit-claims";
 import { type CreditRequest, CreditRequests } from "./credit-requests";
 
 export const metadata: Metadata = {
-  title: "마이",
+  title: "마이페이지",
   robots: { index: false },
 };
 
-// 마이(허브): 내 프로필 바로가기 · 받은 요청 · 바로가기 칸 · 팔로우 · 설정 · 로그아웃 (프로필 고치기는 /me/edit)
+const yearFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric" });
+
+// 마이페이지 (마이 A안 · 캔버스 28–30): 나만 보는 것 + 나의 기록.
+//  · 왼쪽(휴대폰은 위): 받은 요청(있을 때만) · 저장 · 컬렉션 · 내 글 관리 · 추억 · 팔로우 한 줄 · (운영진) 운영 화면
+//  · 오른쪽(휴대폰은 아래): 나의 기록 — 연도 책장과 내 사진
+// 프로필 수정 · 로그아웃은 설정으로, 메시지는 헤더로 옮겼다. 남에게 보이는 모습은 내 프로필(/@핸들).
 export default async function MePage() {
   const viewer = await getViewer();
   if (!viewer) redirect(withNext("/login", "/me"));
   if (!viewer.profile) redirect(withNext("/welcome", "/me"));
   const { profile } = viewer;
+  const staff = isStaffRole(profile.role);
 
   const supabase = await createClient();
-  const [{ data: full }, openReports, creditRows, followedTags, claimRows, followedMembers, openInquiries, { data: unreadThreads }] = await Promise.all([
-    // 소개 · 링크는 프로필 고치기 화면(/me/edit)에서만 쓴다
-    supabase.from("profiles").select("deletion_requested_at, avatar_key").eq("id", viewer.id).single(),
-    isStaffRole(profile.role)
-      ? supabase.from("reports").select("id", { count: "exact", head: true }).eq("status", "open")
-      : Promise.resolve({ count: null }),
+  const scope: FeedScope = { kind: "author", authorId: viewer.id, year: null, month: null };
+  const [mine, creditRows, claimRows, followedTags, followedMembers, hiddenCount, trashedCount, pending, first, { data: account }] = await Promise.all([
+    getProfileByHandle(profile.handle),
     // 나를 태그했고 아직 답하지 않은 크레딧 (게시된 글만 보인다, RLS)
     supabase
       .from("credits")
@@ -41,7 +48,6 @@ export default async function MePage() {
       .eq("status", "pending")
       .order("created_at", { ascending: false })
       .limit(50),
-    getFollowedTags(viewer.id),
     // 내 글의 미가입 크레딧에 온 연결 요청 (RLS: 작성자 · 요청자만)
     supabase
       .from("credit_claims")
@@ -52,12 +58,17 @@ export default async function MePage() {
       .neq("claimant_id", viewer.id)
       .order("created_at")
       .limit(50),
+    getFollowedTags(viewer.id),
     getFollowedMembers(viewer.id),
-    profile.role === "admin"
-      ? supabase.from("inquiries").select("id", { count: "exact", head: true }).eq("status", "open")
-      : Promise.resolve({ count: null }),
-    supabase.rpc("unread_thread_count"),
+    supabase.from("posts").select("id", { count: "exact", head: true }).eq("author_id", viewer.id).eq("status", "hidden").is("trashed_at", null),
+    supabase.from("posts").select("id", { count: "exact", head: true }).eq("author_id", viewer.id).eq("trashed_by_author", true).not("trashed_at", "is", null),
+    staff ? getAdminPending() : Promise.resolve(null),
+    // 나의 기록: 내 사진
+    loadScopePage(scope),
+    supabase.from("profiles").select("deletion_requested_at, created_at").eq("id", viewer.id).single(),
   ]);
+  const shelfYears = (await loadYearShelf(viewer.id, mine?.years ?? [])).filter((y) => y.count > 0);
+
   const creditClaims: CreditClaim[] = (claimRows.data ?? []).flatMap((c) =>
     c.credit?.post && c.credit.post.author_id === viewer.id && c.claimant
       ? [
@@ -78,167 +89,99 @@ export default async function MePage() {
       ? [{ id: c.id, role: c.role, postId: c.post.id, postTitle: c.post.title, uploader: c.post.author?.handle ?? "" }]
       : [],
   );
+  const requestCount = creditRequests.length + creditClaims.length;
+  const hidden = hiddenCount.count ?? 0;
+  const trashed = trashedCount.count ?? 0;
+  const myProfile = profileHref(profile.handle);
+  const row = "flex min-h-14 items-center justify-between gap-3 px-4 hover:bg-surface";
 
   return (
-    <div className="mx-auto max-w-xl md:max-w-2xl px-4 pt-10 pb-16 md:px-6">
-      {full?.deletion_requested_at && (
-        <p className="mb-6 rounded-xl border border-danger-line bg-danger-soft px-4 py-3 text-sm text-danger">
-          계정 삭제가 예약돼 있어요. 다른 사람에게는 내 프로필과 게시물이 보이지 않아요.{" "}
-          <Link href="/settings" className="font-semibold underline underline-offset-2">
-            설정에서 취소
-          </Link>
-        </p>
-      )}
-      <div className="flex items-center gap-4">
-        <Avatar avatarKey={full?.avatar_key} size={64} />
-        <div className="min-w-0">
-          <h1 className="truncate text-xl font-bold">{profile.display_name}</h1>
-          <p className="text-sm text-quiet">
-            @{profile.handle}
-            {profile.role !== "member" && (
-              <span className="ml-2 rounded-full border border-line px-2 py-0.5 text-xs text-text">{ROLE_LABEL[profile.role]}</span>
-            )}
-          </p>
-        </div>
-      </div>
-      <div className="mt-4 grid grid-cols-2 gap-2">
-        <Link
-          href={profileHref(profile.handle)}
-          className="flex min-h-11 items-center justify-center rounded-full bg-text text-sm font-bold text-bg"
-        >
-          내 프로필 보기
-        </Link>
-        <Link href="/me/edit" className="flex min-h-11 items-center justify-center rounded-full border border-line text-sm font-bold hover:border-quiet">
-          프로필 고치기
-        </Link>
-      </div>
-      {/* 로그아웃은 아래 바로가기 카드에 없어서 여기 둔다 (설정은 카드에 있다) */}
-      <form action={signOut} className="mt-2">
-        <button
-          type="submit"
-          className="flex min-h-11 w-full items-center justify-center rounded-full border border-line text-sm font-semibold text-quiet hover:border-quiet hover:text-text"
-        >
-          로그아웃
-        </button>
-      </form>
-
-      {/* 받은 요청함: 크레딧 승인 · 크레딧 연결 요청 (알림 화면에서도 여기로) */}
-      {(creditRequests.length > 0 || creditClaims.length > 0) && (
-        <section id="requests" aria-label="받은 요청" className="mt-8 scroll-mt-20 rounded-2xl border border-accent/40 bg-accent-soft/40 p-4">
-          <p className="text-sm font-bold text-accent">받은 요청 {creditRequests.length + creditClaims.length}건</p>
-          {creditRequests.length > 0 && <CreditRequests requests={creditRequests} />}
-          {creditClaims.length > 0 && <CreditClaims claims={creditClaims} />}
-        </section>
-      )}
-
-      {/* 아래 묶음마다 가는 선으로 나눠 둔다 (여백만으로는 어디서 끊기는지 알기 어렵다) */}
-      <h2 className="mt-8 border-t border-line pt-8 text-lg font-semibold">바로가기</h2>
-      <nav aria-label="바로가기" className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-4">
-        {[
-          { href: "/me/posts", title: "내 글 관리", sub: "숨긴 글 · 지운 글", icon: "M5 4h14v16H5zM8 8h8M8 12h8M8 16h5" },
-          { href: "/me/saved", title: "저장한 사진", sub: "나만 보는 모음", icon: "M6 4h12v17l-6-4-6 4z" },
-          { href: "/me/collections", title: "내 컬렉션", sub: "이름 붙인 묶음", icon: "M4 6h16v12H4zM4 10h16" },
-          { href: "/me/messages", title: "메시지", sub: "대화 · 섭외 문의", icon: "M4 5h16v11H8l-4 4z", badge: unreadThreads || 0 },
-          { href: "/me/year", title: `나의 ${currentYearKst()}`, sub: "한 해 돌아보기", icon: "M5 6h14v14H5zM5 10h14M9 3v4M15 3v4" },
-          { href: "/memories", title: "추억", sub: "이맘때 사진 · 타임캡슐", icon: "M12 7v5l3 2M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18z" },
-          { href: "/me/creator", title: "크리에이터 정보", sub: "역할 · 섭외 가능", icon: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 9c.6-4 3.4-6 7-6s6.4 2 7 6" },
-          { href: "/help", title: "고객센터", sub: "공지 · 1:1 문의", icon: "M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.7M12 17h.01" },
-          { href: "/settings", title: "설정", sub: "계정 · 알림 · 화면", icon: "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM4 12h2M18 12h2M12 4v2M12 18v2" },
-        ].map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className="flex min-h-24 flex-col justify-between gap-2 rounded-2xl border border-line p-3.5 hover:border-quiet"
-          >
-            <span className="flex items-center justify-between">
-              <svg aria-hidden="true" viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                <path d={item.icon} />
-              </svg>
-              {item.badge ? <span className="rounded-full bg-accent px-2 text-xs font-bold text-on-accent">{item.badge}</span> : null}
-            </span>
-            <span>
-              <span className="block text-sm font-bold">{item.title}</span>
-              <span className="block text-xs text-quiet">{item.sub}</span>
-            </span>
-          </Link>
-        ))}
-      </nav>
-
-      {isStaffRole(profile.role) && (
-        <nav aria-label="운영" className="mt-8 flex flex-wrap gap-2 border-t border-line pt-8">
-          {profile.role === "admin" && (
-            <Link href="/admin" className="rounded-xl border border-line px-4 py-2 text-sm font-semibold hover:border-quiet">
-              운영 홈
+    <div className="mx-auto max-w-[1440px] px-4 pt-6 pb-16 md:grid md:grid-cols-[320px_minmax(0,1fr)] md:gap-10 md:px-6 md:pt-8">
+      <aside className="flex flex-col gap-4 md:sticky md:top-20 md:self-start">
+        <header className="flex items-center gap-3">
+          <h1 className="sr-only">마이페이지</h1>
+          <Avatar avatarKey={profile.avatar_key} size={56} />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-lg font-bold">{profile.display_name}</p>
+            <p className="truncate text-sm text-quiet">
+              @{profile.handle}
+              {account?.created_at && ` · ${yearFormat.format(new Date(account.created_at))}부터`}
+            </p>
+            <Link href={myProfile} className="text-sm text-quiet underline-offset-4 hover:text-text hover:underline">
+              내 프로필 보기 ›
             </Link>
-          )}
-          <Link href="/admin/reports" className="rounded-xl border border-line px-4 py-2 text-sm hover:border-quiet">
-            신고 처리
-            {openReports.count ? <span className="ml-2 rounded-full bg-danger-soft px-2 text-danger">{openReports.count}</span> : null}
+          </div>
+          <Link href="/settings" aria-label="설정" className="flex size-11 shrink-0 items-center justify-center rounded-full text-quiet hover:bg-surface hover:text-text">
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1" />
+            </svg>
           </Link>
-          <Link href="/admin/members" className="rounded-xl border border-line px-4 py-2 text-sm hover:border-quiet">
-            회원 관리
-          </Link>
-          {profile.role === "admin" && (
-            <>
-              <Link href="/admin/posts" className="rounded-xl border border-line px-4 py-2 text-sm hover:border-quiet">
-                게시물 관리
-              </Link>
-              <Link href="/admin/events" className="rounded-xl border border-line px-4 py-2 text-sm hover:border-quiet">
-                행사 관리
-              </Link>
-              <Link href="/admin/support" className="rounded-xl border border-line px-4 py-2 text-sm hover:border-quiet">
-                고객센터 운영
-                {openInquiries.count ? <span className="ml-2 rounded-full bg-danger-soft px-2 text-danger">{openInquiries.count}</span> : null}
-              </Link>
-              <Link href="/admin/audit" className="rounded-xl border border-line px-4 py-2 text-sm hover:border-quiet">
-                감사 로그
-              </Link>
-            </>
-          )}
-        </nav>
-      )}
+        </header>
 
-      <section aria-labelledby="follows-heading" className="mt-8 flex flex-col gap-4 border-t border-line pt-8">
-        <h2 id="follows-heading" className="text-lg font-semibold">
-          팔로우 <span className="text-sm font-normal text-quiet">나만 볼 수 있어요</span>
-        </h2>
-        <div>
-          <h3 className="mb-2 text-sm text-quiet">태그 {followedTags.length}</h3>
-          {followedTags.length ? (
-            <ul className="flex flex-wrap gap-2">
-              {followedTags.map((t) => (
-                <li key={t.id}>
-                  <TagChip tag={t} showKind={t.kind !== "general"} />
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-quiet">태그 페이지에서 팔로우할 수 있어요.</p>
-          )}
-        </div>
-        <div>
-          <h3 className="mb-2 text-sm text-quiet">회원 {followedMembers.length}</h3>
-          {followedMembers.length ? (
-            <ul className="flex flex-wrap gap-2">
-              {followedMembers.map((m) => (
-                <li key={m.id}>
-                  <Link href={profileHref(m.handle)} className="inline-flex min-h-9 items-center rounded-full border border-line px-3 text-sm hover:border-quiet">
-                    @{m.handle}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-quiet">작가 · 모델의 프로필에서 팔로우할 수 있어요.</p>
-          )}
-        </div>
-        {(followedTags.length > 0 || followedMembers.length > 0) && (
-          <Link href="/?feed=following" className="self-start text-sm text-quiet underline underline-offset-4 hover:text-text">
-            팔로우 피드 보기
+        {account?.deletion_requested_at && (
+          <p className="rounded-xl border border-danger-line bg-danger-soft px-4 py-3 text-sm text-danger">
+            계정 삭제가 예약돼 있어요. 다른 사람에게는 내 프로필과 게시물이 보이지 않아요.{" "}
+            <Link href="/settings#delete-heading" className="font-semibold underline underline-offset-2">
+              설정에서 취소
+            </Link>
+          </p>
+        )}
+
+        {/* 받은 요청: 크레딧 승인 · 크레딧 연결 요청 (있을 때만, 알림 화면에서도 여기로) */}
+        {requestCount > 0 && (
+          <section id="requests" aria-label="받은 요청" className="scroll-mt-20 rounded-2xl border border-accent/40 bg-accent-soft/40 p-4">
+            <p className="flex items-center gap-2 text-sm font-bold">
+              <span aria-hidden="true" className="size-2 rounded-full bg-sun" />
+              받은 요청 {requestCount}건
+            </p>
+            {creditRequests.length > 0 && <CreditRequests requests={creditRequests} />}
+            {creditClaims.length > 0 && <CreditClaims claims={creditClaims} />}
+          </section>
+        )}
+
+        <nav aria-label="나만 보는 것" className="flex flex-col divide-y divide-line overflow-hidden rounded-2xl border border-line text-sm">
+          <Link href="/me/saved" className={row}>
+            저장 · 컬렉션 <span aria-hidden="true" className="text-quiet">›</span>
+          </Link>
+          <Link href="/me/posts" className={row}>
+            내 글 관리
+            <span className="text-xs text-quiet">{hidden > 0 || trashed > 0 ? `숨김 ${hidden} · 지운 글 ${trashed} ›` : "›"}</span>
+          </Link>
+          <Link href="/memories" className={row}>
+            추억 <span className="text-xs text-quiet">이맘때 · 타임캡슐 · 나의 한 해 ›</span>
+          </Link>
+        </nav>
+
+        <Link href="/me/follows" className="flex min-h-11 items-center text-sm text-quiet hover:text-text">
+          팔로우 · 태그 {followedTags.length} · 회원 {followedMembers.length} ›
+        </Link>
+
+        {/* 운영진에게만: 운영 화면 하나 (나머지 메뉴는 운영 화면 왼쪽에 있다) */}
+        {staff && (
+          <Link
+            href={profile.role === "admin" ? "/admin" : "/admin/reports"}
+            className="flex min-h-11 items-center justify-between rounded-xl border border-line px-4 text-sm hover:border-quiet"
+          >
+            운영 화면
+            {pending && pending.total > 0 && <span className="rounded-full bg-danger-soft px-2 text-xs text-danger">처리할 일 {pending.total}</span>}
           </Link>
         )}
-      </section>
+      </aside>
 
+      <section aria-labelledby="record-heading" className="mt-8 flex min-w-0 flex-col gap-2 border-t border-line pt-6 md:mt-0 md:border-t-0 md:pt-0">
+        <h2 id="record-heading" className="text-lg font-bold">
+          나의 기록
+        </h2>
+        {shelfYears.length > 0 && (
+          <div className="-mx-4 md:-mx-6">
+            <YearShelf years={shelfYears} selected={null} hrefFor={(y) => (y === null ? myProfile : `${myProfile}?year=${y}`)} />
+          </div>
+        )}
+        <div className="-mx-4 md:-mx-6">
+          <FeedList scope={scope} initial={first} empty="아직 올린 사진이 없어요. 아래 '올리기'로 첫 사진을 담아 보세요." />
+        </div>
+      </section>
     </div>
   );
 }

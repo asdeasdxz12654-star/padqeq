@@ -46,13 +46,13 @@ export function describeNotification({ kind, actorHandle, post, event = null, bo
     case "appeal_rejected":
       return { text: "소명을 검토했지만 조치를 유지하기로 했어요. 게시물 화면에서 자세히 볼 수 있어요.", href: postHref };
     case "credit_claimed":
-      return { text: `${who}이 미가입자로 적힌 크레딧이 자기라고 연결을 요청했어요. 마이에서 확인해 주세요.`, href: "/me#credit-claims" };
+      return { text: `${who}이 미가입자로 적힌 크레딧이 자기라고 연결을 요청했어요. 마이페이지에서 확인해 주세요.`, href: "/me#credit-claims" };
     case "credit_claim_approved":
       return { text: `${who}이 크레딧 연결을 승인했어요. 이제 내 프로필에 보여요.`, href: postHref };
     case "credit_claim_rejected":
       return { text: `${who}이 크레딧 연결 요청을 거절했어요.`, href: postHref };
     case "member_suspended":
-      return { text: "운영 정책에 따라 이용이 일시 제한됐어요. 기간과 사유는 마이에서 볼 수 있어요.", href: "/me" };
+      return { text: "운영 정책에 따라 이용이 일시 제한됐어요. 기간과 사유는 마이페이지 위 안내에서 볼 수 있어요.", href: "/me" };
     case "member_warned":
       return { text: "운영 정책에 따라 경고를 받았어요. 사유는 설정에서 볼 수 있어요.", href: "/settings#warnings" };
     case "suspension_lifted":

@@ -43,8 +43,8 @@ export default async function YearReviewPage({ searchParams }: PageProps<"/me/ye
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-8 px-4 pt-10 pb-16 md:px-6 [&>section[aria-labelledby]]:border-t [&>section[aria-labelledby]]:border-line [&>section[aria-labelledby]]:pt-8">
       <header className="flex flex-col gap-4">
-        <Link href="/me" className="text-sm text-quiet hover:text-text">
-          ‹ 마이
+        <Link href="/memories" className="text-sm text-quiet hover:text-text">
+          ‹ 추억
         </Link>
         <h1 className="text-3xl font-bold">나의 {year}</h1>
         <nav aria-label="연도" className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none]">

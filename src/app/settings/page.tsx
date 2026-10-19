@@ -6,10 +6,12 @@ import { redirect } from "next/navigation";
 import { withNext } from "@/lib/auth/next-path";
 import { getViewer } from "@/lib/auth/viewer";
 import { createClient } from "@/lib/supabase/server";
+import { signOut } from "@/app/me/actions";
 import { DeletionPanel } from "./deletion-panel";
 import { LINK_ERRORS, LoginMethods } from "./login-methods";
 import { MessageSettings } from "./message-settings";
 import { InterestPicker } from "./interest-picker";
+import { ProfileSections } from "./profile-sections";
 import { PushSettings } from "./push-settings";
 import { SettingToggle } from "./setting-toggle";
 import { type ThemeChoice, ThemeForm } from "./theme-form";
@@ -51,6 +53,7 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
     <div className="mx-auto max-w-5xl px-4 pt-8 pb-16 md:grid md:grid-cols-[180px_minmax(0,1fr)] md:gap-10 md:px-6">
       <nav aria-label="설정 목차" className="sticky top-14 z-10 -mx-4 mb-6 flex gap-2 overflow-x-auto bg-bg px-4 py-2 md:top-20 md:mx-0 md:mb-0 md:flex-col md:self-start md:overflow-visible md:p-0">
         {[
+          ["#profile-heading", "프로필 수정"],
           ["#account-heading", "계정"],
           ["#theme-heading", "화면 · 보기"],
           ["#alerts-heading", "알림"],
@@ -70,10 +73,18 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
     <div className="flex min-w-0 flex-col gap-8 [&>section]:border-t [&>section]:border-line [&>section]:pt-8">
       <header className="flex items-center gap-3">
         <Link href="/me" className="text-sm text-quiet hover:text-text">
-          ‹ 마이
+          ‹ 마이페이지
         </Link>
         <h1 className="text-2xl font-bold">설정</h1>
       </header>
+
+      {/* 첫 탭: 프로필 수정 (예전 마이 › 프로필 고치기 · 크리에이터 정보) */}
+      <section aria-labelledby="profile-heading" className="flex flex-col gap-4">
+        <h2 id="profile-heading" className="scroll-mt-28 text-lg font-semibold">
+          프로필 수정
+        </h2>
+        <ProfileSections userId={viewer.id} handle={viewer.profile.handle} displayName={viewer.profile.display_name} />
+      </section>
 
       <section aria-labelledby="account-heading" className="flex flex-col gap-3">
         <h2 id="account-heading" className="scroll-mt-28 text-lg font-semibold">
@@ -204,6 +215,18 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
           계정 삭제
         </h2>
         <DeletionPanel handle={viewer.profile.handle} requestedAt={profile?.deletion_requested_at ?? null} />
+      </section>
+
+      {/* 마이에서 옮겨 온 것: 문의 내역 · 고객센터, 로그아웃 (자주 쓰지 않아 맨 아래) */}
+      <section aria-label="고객센터 · 로그아웃" className="flex flex-col gap-3">
+        <Link href="/help?tab=inquiry" className="flex min-h-11 items-center justify-between text-sm hover:text-text">
+          문의 내역 · 고객센터 <span aria-hidden="true">›</span>
+        </Link>
+        <form action={signOut}>
+          <button type="submit" className="min-h-11 rounded-full border border-line px-5 text-sm font-semibold text-quiet hover:border-quiet hover:text-text">
+            로그아웃
+          </button>
+        </form>
       </section>
 
       <nav aria-label="정책" className="flex gap-4 border-t border-line pt-6 text-sm text-quiet">

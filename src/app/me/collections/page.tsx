@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SavedTabs } from "@/components/saved-tabs";
 import { redirect } from "next/navigation";
 import { CollectionCards } from "@/components/collection-cards";
 import { CollectionForm } from "@/components/collection-form";
@@ -21,10 +22,11 @@ export default async function MyCollectionsPage() {
     <div className="mx-auto flex max-w-[1440px] flex-col gap-8 pt-8 pb-16">
       <header className="flex flex-col gap-2 px-4 md:px-6">
         <Link href="/me" className="text-sm text-quiet hover:text-text">
-          ‹ 마이
+          ‹ 마이페이지
         </Link>
-        <h1 className="text-2xl font-bold">내 컬렉션</h1>
-        <p className="text-sm text-quiet">내가 올린 글과 내가 크레딧된 글을 이름 붙인 묶음으로 모아요. 게시물 화면에서 담을 수 있어요.</p>
+        <h1 className="text-2xl font-bold">저장 · 컬렉션</h1>
+        <SavedTabs current="collections" />
+        <p className="text-sm text-quiet">내가 올린 글과 내가 크레딧된 글을 이름 붙인 묶음으로 모아요. 게시물 화면의 &lsquo;저장&rsquo; 창에서 담을 수 있어요.</p>
       </header>
 
       <details className="mx-4 rounded-xl border border-line p-4 md:mx-6 md:max-w-xl">

@@ -43,7 +43,7 @@ export default async function MyPostsPage({ searchParams }: PageProps<"/me/posts
     <div className="mx-auto max-w-2xl px-4 pt-8 pb-16 md:px-6">
       <header className="flex flex-col gap-2 pb-4">
         <Link href="/me" className="text-sm text-quiet hover:text-text">
-          ‹ 마이
+          ‹ 마이페이지
         </Link>
         <h1 className="text-2xl font-bold">내 글 관리</h1>
         <p className="text-sm text-quiet">나만 볼 수 있어요. 게시된 글은 내 프로필에서 볼 수 있어요.</p>

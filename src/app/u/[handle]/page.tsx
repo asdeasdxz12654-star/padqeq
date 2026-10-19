@@ -13,6 +13,7 @@ import { YearBook } from "@/components/year-book";
 import { YearShelf } from "@/components/year-shelf";
 import { getViewer } from "@/lib/auth/viewer";
 import { loadCollectionCards } from "@/lib/collections/load";
+import { loadYearShelf } from "@/lib/profiles/shelf";
 import { getFollowedMembers } from "@/lib/follows/follows";
 import { CREDIT_ROLE_LABEL } from "@/lib/photos/credit-input";
 import { loadFeedByIds } from "@/lib/posts/feed";
@@ -57,7 +58,9 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
         ? "collections"
         : query.tab === "characters"
           ? "characters"
-          : "works";
+          : query.tab === "together"
+            ? "together"
+            : "works";
   const isMe = viewer?.id === profile.id;
   const base = profileHref(profile.handle);
   const following = viewer?.profile && !isMe ? (await getFollowedMembers(viewer.id)).some((m) => m.id === profile.id) : false;
@@ -87,39 +90,17 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
   // 작업물: 고정 글을 맨 앞에(전체 보기일 때) · 크레딧된 작업: 남이 올린 글만
   const scope: FeedScope =
     tab === "credits" ? { kind: "credits", memberId: profile.id } : { kind: "author", authorId: profile.id, year, month };
-  const first = tab === "collections" ? { items: [], next: null } : await loadScopePage(scope);
+  const first = tab === "collections" || tab === "together" ? { items: [], next: null } : await loadScopePage(scope);
   const tabClass =
     "inline-flex min-h-10 items-center border-b-2 border-transparent px-1 text-sm aria-[current=page]:border-text aria-[current=page]:font-semibold";
   // 이 회원이 사진을 올린 촬영 연도만 (S-09 ⑥)
   const years = profile.years.toSorted((a, b) => b - a);
-  // 연도 책장: 해마다 표지 한 장 · 사진 · 행사 · 함께한 사람 (최근 12년까지)
-  // 숫자는 DB가 한 번에 세어 준다 (author_year_counts). 표지 사진만 해마다 따로 받는다.
-  const shelf =
-    tab === "works"
-      ? await (async () => {
-          const [{ data: stats }, covers] = await Promise.all([
-            supabase.rpc("author_year_counts", { author: profile.id, max_years: 12 }),
-            Promise.all(
-              years.slice(0, 12).map(async (y) => {
-                const page = await loadScopePage({ kind: "author", authorId: profile.id, year: y, month: null });
-                return [y, page.items[0] ?? null] as const;
-              }),
-            ),
-          ]);
-          const byYear = new Map((stats ?? []).map((s) => [s.shot_year, s]));
-          const cover = new Map(covers);
-          return years.slice(0, 12).map((y) => {
-            const s = byYear.get(y);
-            return {
-              year: y,
-              count: Number(s?.photos ?? 0),
-              events: Number(s?.events ?? 0),
-              partners: Number(s?.partners ?? 0),
-              cover: cover.get(y) ?? null,
-            };
-          });
-        })()
-      : [];
+  // 연도 책장: 해마다 표지 한 장 · 사진 · 행사 · 함께한 사람 (최근 12년까지, 표지는 한 번에)
+  const shelf = tab === "works" ? await loadYearShelf(profile.id, years) : [];
+  // 책장은 두 해 이상 담았을 때만 (한 해뿐이면 책 한 권만 덩그러니 남는다 — 바로 사진으로)
+  const shelfYears = shelf.filter((y) => y.count > 0);
+  // 빈 탭은 숨긴다: 캐릭터 태그가 붙은 글이 없으면 '캐릭터별', 컬렉션이 없으면 '컬렉션', 함께한 사람이 없으면 '함께한 사람'
+  const hasCharacters = tab === "characters" || (await authorHasCharacters(profile.id));
   // 캐릭터별 (시안 23 프로필 탭): 이 회원이 올린 글에 붙은 캐릭터 태그를 많이 담은 순으로, 태그마다 한 장
   const characters = tab === "characters" ? await authorCharacters(profile.id) : [];
   // 한 해를 펼쳤으면 달 목차도 받는다 (속표지)
@@ -149,7 +130,17 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
         <div className="flex items-center gap-4">
           <Avatar avatarKey={profile.avatar_key} size={64} />
           <div className="min-w-0">
-            <h1 className="truncate text-xl font-bold">{profile.display_name}</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="truncate text-xl font-bold">{profile.display_name}</h1>
+              {isMe && (
+                <Link
+                  href="/settings#profile-heading"
+                  className="inline-flex min-h-8 shrink-0 items-center rounded-full border border-line px-2.5 text-xs text-quiet hover:border-quiet hover:text-text"
+                >
+                  프로필 수정
+                </Link>
+              )}
+            </div>
             <p className="flex items-center gap-2 text-sm text-quiet">
               @{profile.handle}
               {profile.role === "admin" && (
@@ -191,35 +182,8 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
           게시물 <strong className="text-text">{profile.postCount}</strong> · {yearFormat.format(new Date(profile.created_at))}부터
         </p>
 
-        {collaborators.length > 0 && (
-          <section aria-labelledby="collaborators-heading" className="flex flex-col gap-1.5">
-            <h2 id="collaborators-heading" className="text-xs text-quiet">
-              자주 함께한 사람
-            </h2>
-            <ul className="flex flex-wrap gap-1.5">
-              {collaborators.map((c) => (
-                <li key={c.handle}>
-                  <Link
-                    prefetch={false}
-                    href={`${base}?with=${encodeURIComponent(c.handle)}`}
-                    aria-label={`${c.displayName} · 함께한 기록 ${c.posts}번`}
-                    aria-current={partner?.handle === c.handle ? "page" : undefined}
-                    className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-line px-3 text-sm hover:border-quiet aria-[current=page]:border-text"
-                  >
-                    <span className="max-w-40 truncate">{c.displayName}</span>
-                    <span className="text-xs text-quiet tabular-nums">{c.posts}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
         {isMe ? (
           <div className="flex flex-wrap gap-2">
-            <Link href="/me/edit" className="inline-flex min-h-10 items-center rounded-full border border-line px-4 text-sm hover:border-quiet">
-              프로필 고치기
-            </Link>
             <ShareButton path={base} title={`${profile.display_name} (@${profile.handle})`} />
           </div>
         ) : viewer?.profile ? (
@@ -261,16 +225,25 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
         <Link href={`${base}?tab=credits`} aria-current={tab === "credits" ? "page" : undefined} className={tabClass}>
           크레딧된 작업 {creditedIds.length > 0 && <span className="ml-1 text-quiet">{creditedIds.length}</span>}
         </Link>
-        <Link href={`${base}?tab=characters`} aria-current={tab === "characters" ? "page" : undefined} className={tabClass}>
-          캐릭터별
-        </Link>
-        <Link href={`${base}?tab=collections`} aria-current={tab === "collections" ? "page" : undefined} className={tabClass}>
-          컬렉션 {collections.length > 0 && <span className="ml-1 text-quiet">{collections.length}</span>}
-        </Link>
+        {collaborators.length > 0 && (
+          <Link href={`${base}?tab=together`} aria-current={tab === "together" ? "page" : undefined} className={tabClass}>
+            함께한 사람 <span className="ml-1 text-quiet">{collaborators.length}</span>
+          </Link>
+        )}
+        {hasCharacters && (
+          <Link href={`${base}?tab=characters`} aria-current={tab === "characters" ? "page" : undefined} className={tabClass}>
+            캐릭터별
+          </Link>
+        )}
+        {collections.length > 0 && (
+          <Link href={`${base}?tab=collections`} aria-current={tab === "collections" ? "page" : undefined} className={tabClass}>
+            컬렉션 <span className="ml-1 text-quiet">{collections.length}</span>
+          </Link>
+        )}
       </nav>
 
-      <h2 className="sr-only">{tab === "works" ? "작업물" : tab === "credits" ? "크레딧된 작업" : tab === "characters" ? "캐릭터별" : "컬렉션"}</h2>
-      {tab === "works" && <YearShelf years={shelf.filter((y) => y.count > 0)} selected={year} hrefFor={(y) => (y === null ? base : `${base}?year=${y}`)} />}
+      <h2 className="sr-only">{tab === "works" ? "작업물" : tab === "credits" ? "크레딧된 작업" : tab === "characters" ? "캐릭터별" : tab === "together" ? "함께한 사람" : "컬렉션"}</h2>
+      {tab === "works" && shelfYears.length >= 2 && <YearShelf years={shelfYears} selected={year} hrefFor={(y) => (y === null ? base : `${base}?year=${y}`)} />}
       {/* 책장에서 한 해를 고르면 그 책이 펼쳐진다: 속표지(숫자 · 달 목차) 다음에 그해 사진 */}
       {tab === "works" && year !== null && shelf.length > 0 && (
         <YearBook
@@ -284,7 +257,27 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
           hrefFor={(m) => (m === null ? `${base}?year=${year}` : `${base}?year=${year}&month=${m}`)}
         />
       )}
-      {tab === "characters" ? (
+      {tab === "together" ? (
+        <div className="px-4 pt-4 md:px-6">
+          {collaborators.length === 0 ? (
+            <p className="py-12 text-center text-sm text-quiet">크레딧으로 함께 이름이 오른 사람이 아직 없어요.</p>
+          ) : (
+            <ul className="flex flex-col divide-y divide-line border-y border-line">
+              {collaborators.map((c) => (
+                <li key={c.handle}>
+                  <Link prefetch={false} href={`${base}?with=${encodeURIComponent(c.handle)}`} className="flex min-h-14 items-center gap-3 py-2 hover:text-text">
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-semibold">{c.displayName}</span>
+                      <span className="block text-xs text-quiet">@{c.handle}</span>
+                    </span>
+                    <span className="text-sm text-quiet tabular-nums">함께한 기록 {c.posts} ›</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ) : tab === "characters" ? (
         <div className="px-4 pt-4 md:px-6">
           {characters.length === 0 ? (
             <p className="py-12 text-center text-sm text-quiet">캐릭터 태그가 붙은 사진이 아직 없어요.</p>
@@ -320,7 +313,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
         </div>
       ) : tab === "collections" ? (
         <div className="pt-4">
-          <CollectionCards items={collections} empty={isMe ? "아직 만든 컬렉션이 없어요. 마이 › 내 컬렉션에서 만들 수 있어요." : "공개한 컬렉션이 아직 없어요."} />
+          <CollectionCards items={collections} empty={isMe ? "아직 만든 컬렉션이 없어요. 마이페이지 › 저장 · 컬렉션에서 만들 수 있어요." : "공개한 컬렉션이 아직 없어요."} />
         </div>
       ) : (
       <FeedList
@@ -341,6 +334,19 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
       )}
     </div>
   );
+}
+
+/** 캐릭터 태그가 붙은 글이 하나라도 있는지 (탭을 보일지) */
+async function authorHasCharacters(authorId: string): Promise<boolean> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("posts")
+    .select("id, post_tags!inner(tag:tags!inner(kind))")
+    .eq("author_id", authorId)
+    .eq("status", "published")
+    .eq("post_tags.tag.kind", "character")
+    .limit(1);
+  return (data?.length ?? 0) > 0;
 }
 
 /**

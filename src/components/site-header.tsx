@@ -4,6 +4,7 @@ import { isStaffRole } from "@/lib/auth/roles";
 import { getViewer } from "@/lib/auth/viewer";
 import { AccountMenu } from "./account-menu";
 import { getUnreadCount } from "@/lib/notifications/unread";
+import { createClient } from "@/lib/supabase/server";
 import { HeaderNav } from "./header-nav";
 import { HeaderAutoHide } from "./header-auto-hide";
 import { HeaderSearch } from "./search-box";
@@ -14,7 +15,14 @@ export async function SiteHeader() {
   const viewer = await getViewer();
   const isStaff = isStaffRole(viewer?.profile?.role);
   const mfaRequired = viewer?.mfaRequired ?? false;
-  const [unread, pending] = await Promise.all([getUnreadCount(viewer?.profile ? viewer.id : null), isStaff ? getAdminPending() : null]);
+  const member = Boolean(viewer?.profile);
+  const supabase = member ? await createClient() : null;
+  const [unread, pending, unreadThreads] = await Promise.all([
+    getUnreadCount(viewer?.profile ? viewer.id : null),
+    isStaff ? getAdminPending() : null,
+    // 메시지는 마이에서 헤더로 (알림 종 옆): 안 읽은 대화 수
+    supabase ? supabase.rpc("unread_thread_count").then((r) => r.data ?? 0) : Promise.resolve(0),
+  ]);
 
   return (
     <header data-site-header className="sticky top-0 z-30 border-b border-line bg-bg/95 pt-[env(safe-area-inset-top)] backdrop-blur">
@@ -58,6 +66,7 @@ export async function SiteHeader() {
                   )}
                 </Link>
               )}
+              {viewer?.profile && <MessagesLink unread={unreadThreads} />}
               {viewer?.profile && <NotificationBell unread={unread} />}
               {viewer?.profile ? (
                 // 내 계정 메뉴: 내 프로필 · 내 글 · 저장 · 컬렉션 · 메시지 · 설정 · 로그아웃 (휴대폰은 아래 탭 '마이')
@@ -72,6 +81,26 @@ export async function SiteHeader() {
         </div>
       </div>
     </header>
+  );
+}
+
+/** 메시지 (모바일 · 데스크톱 모두, 알림 종 옆). 안 읽은 대화 수는 99까지. */
+function MessagesLink({ unread }: { unread: number }) {
+  return (
+    <Link prefetch={false}
+      href="/me/messages"
+      aria-label={unread > 0 ? `메시지, 안 읽은 대화 ${unread}개` : "메시지"}
+      className="relative flex size-11 items-center justify-center text-quiet hover:text-text"
+    >
+      <svg aria-hidden="true" viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 5h16v11H8l-4 4z" />
+      </svg>
+      {unread > 0 && (
+        <span className="absolute top-1.5 right-1 min-w-[18px] rounded-full bg-accent px-1 text-center text-[11px] leading-[18px] font-bold text-on-accent">
+          {unread > 99 ? "99+" : unread}
+        </span>
+      )}
+    </Link>
   );
 }
 

@@ -44,7 +44,7 @@ export async function saveCreatorProfile(input: z.input<typeof schema>): Promise
     return { ok: false, error: "저장하지 못했어요." };
   }
   revalidatePath("/creators");
-  revalidatePath("/me/creator");
+  revalidatePath("/settings");
   return { ok: true };
 }
 
@@ -55,6 +55,6 @@ export async function removeCreatorProfile(): Promise<Result> {
   const { error } = await supabase.from("creator_profiles").delete().eq("user_id", viewer.id);
   if (error) return { ok: false, error: "지우지 못했어요." };
   revalidatePath("/creators");
-  revalidatePath("/me/creator");
+  revalidatePath("/settings");
   return { ok: true };
 }

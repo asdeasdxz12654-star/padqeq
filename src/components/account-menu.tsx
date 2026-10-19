@@ -6,18 +6,18 @@ import { signOut } from "@/app/me/actions";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { Avatar } from "./avatar";
 
+// 마이 A안: 마이페이지를 맨 위에, 저장 · 컬렉션은 한 칸
 const ITEMS = [
+  { href: "/me", label: "마이페이지" },
   { href: "/me/posts", label: "내 글 관리" },
-  { href: "/me/saved", label: "저장한 사진" },
-  { href: "/me/collections", label: "내 컬렉션" },
+  { href: "/me/saved", label: "저장 · 컬렉션" },
   { href: "/me/messages", label: "메시지" },
-  { href: "/me", label: "마이 전체 보기" },
   { href: "/settings", label: "설정" },
 ] as const;
 
 /**
  * PC 헤더의 내 계정 메뉴 (휴대폰은 아래 탭 '마이'). 프로필 사진 · 핸들을 누르면 열린다.
- * 내 프로필 · 내 글 · 저장 · 컬렉션 · 메시지 · 설정 · 로그아웃을 한 번에 (전에는 프로필 → 편집 → 마이를 거쳤다).
+ * 내 프로필 · 마이페이지 · 내 글 · 저장 · 컬렉션 · 메시지 · 설정 · 로그아웃을 한 번에.
  * 바깥을 누르거나 Esc, 항목을 고르면 닫힌다.
  */
 export function AccountMenu({ handle, avatarKey }: { handle: string; avatarKey: string | null }) {
