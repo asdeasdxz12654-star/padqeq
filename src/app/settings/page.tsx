@@ -66,7 +66,7 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
           </a>
         ))}
       </nav>
-    {/* 묶음이 13개라 여백만으로는 어디서 끊기는지 알기 어렵다. 묶음마다 가는 선으로 나눈다 */}
+    {/* 목차 5묶음 순서대로 둔다 (계정 · 화면 · 보기 · 알림 · 공개 범위 · 메시지 · 내 데이터). 칸마다 가는 선으로 나눈다 */}
     <div className="flex min-w-0 flex-col gap-8 [&>section]:border-t [&>section]:border-line [&>section]:pt-8">
       <header className="flex items-center gap-3">
         <Link href="/me" className="text-sm text-quiet hover:text-text">
@@ -157,6 +157,13 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
         />
       </section>
 
+      <section id="push" aria-labelledby="push-heading" className="flex scroll-mt-20 flex-col gap-3">
+        <h2 id="push-heading" className="scroll-mt-28 text-lg font-semibold">
+          휴대폰 · 브라우저 알림
+        </h2>
+        <PushSettings publicKey={process.env.VAPID_PUBLIC_KEY || null} />
+      </section>
+
       <section aria-labelledby="credit-heading" className="flex flex-col gap-3">
         <h2 id="credit-heading" className="scroll-mt-28 text-lg font-semibold">
           크레딧
@@ -167,13 +174,6 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
           title="팔로우하는 회원의 태그는 자동 승인"
           help="내가 팔로우하는 회원이 나를 크레딧으로 태그하면 바로 승인해요. 모르는 계정의 태그는 늘 직접 승인하고, 승인한 뒤에도 언제든 뺄 수 있어요."
         />
-      </section>
-
-      <section id="push" aria-labelledby="push-heading" className="flex scroll-mt-20 flex-col gap-3">
-        <h2 id="push-heading" className="scroll-mt-28 text-lg font-semibold">
-          휴대폰 · 브라우저 알림
-        </h2>
-        <PushSettings publicKey={process.env.VAPID_PUBLIC_KEY || null} />
       </section>
 
       <section id="messages" aria-labelledby="messages-heading" className="flex scroll-mt-20 flex-col gap-3">

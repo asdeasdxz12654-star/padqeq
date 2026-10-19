@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
+import { PostNeighbors } from "./feed-order";
 
 /**
  * 게시물을 보던 화면 위에 겹쳐 연다 (S-07 ①). 닫으면 뒤로 가기 → 피드가 보던 자리 그대로 남아 있다.
@@ -54,6 +55,7 @@ export function PostOverlay({ children }: { children: React.ReactNode }) {
           </button>
         </div>
         <div className="-mt-11">{children}</div>
+        <PostNeighbors />
       </div>
     </div>
   );

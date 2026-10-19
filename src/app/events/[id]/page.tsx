@@ -99,8 +99,8 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
               {event.starts_on.replaceAll("-", ".")}
               {event.ends_on !== event.starts_on && ` – ${event.ends_on.slice(5).replace("-", ".")}`}
             </span>
-            <span className="text-quiet">
-              {" · "}
+            {/* 장소는 다음 줄에 (휴대폰에서 날짜 · 주소 · 지역이 한 줄에 몰려 끝이 잘려 보였다) */}
+            <span className="block text-quiet">
               {place.data ? (
                 <Link href={`/t/${encodeURIComponent(place.data.slug)}`} className="underline underline-offset-2 hover:text-text">
                   {event.venue}
@@ -124,7 +124,7 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
             )}
             {official && (
               <a href={`/events/${event.id}/calendar`} className="inline-flex min-h-11 items-center underline underline-offset-2">
-                캘린더에 추가 (.ics)
+                내 캘린더에 추가
               </a>
             )}
             {tag.data && (

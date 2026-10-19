@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BOARD_LABEL, type BoardKind } from "@/lib/boards/labels";
 import { formatRange } from "@/lib/events/calendar";
 import { CATEGORY_LABEL } from "@/lib/photos/post-input";
 import type { FeedItem } from "@/lib/posts/feed";
@@ -313,6 +314,35 @@ export function LatestSection({ items, member }: { items: FeedItem[]; member: bo
           촬영 장소 지도
         </Link>
       </div>
+    </section>
+  );
+}
+
+/** 커뮤니티 새 글 (휴대폰은 커뮤니티가 행사 탭 안에 있어 찾기 어렵다 — 홈에서 바로 보이게) */
+export function CommunitySection({ posts }: { posts: { id: string; board: BoardKind; title: string; replies: number }[] }) {
+  return (
+    <section aria-labelledby="community-new">
+      <SectionHead id="community-new" title="커뮤니티 새 글" sub="구인 · 섭외 · 촬영 장소 · 질문" href="/community" linkLabel="커뮤니티" />
+      {posts.length === 0 ? (
+        <p className="px-4 text-sm text-quiet md:px-6">
+          아직 글이 없어요.{" "}
+          <Link prefetch={false} href="/community/write" className="font-semibold text-text underline underline-offset-4">
+            첫 글 쓰기
+          </Link>
+        </p>
+      ) : (
+        <ul className="mx-4 divide-y divide-line rounded-xl border border-line md:mx-6 md:grid md:grid-cols-2 md:divide-y-0">
+          {posts.map((p) => (
+            <li key={p.id}>
+              <Link prefetch={false} href={`/community/${p.id}`} className="flex min-h-12 items-center gap-3 px-4 py-2 hover:bg-surface">
+                <span className="shrink-0 text-xs text-quiet">{BOARD_LABEL[p.board].title}</span>
+                <span className="min-w-0 flex-1 truncate text-sm">{p.title}</span>
+                {p.replies > 0 && <span className="shrink-0 text-xs text-quiet tabular-nums">답글 {p.replies}</span>}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }

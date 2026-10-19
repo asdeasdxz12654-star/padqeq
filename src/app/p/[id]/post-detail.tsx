@@ -284,6 +284,12 @@ export async function PostDetail({ id }: { id: string }) {
                   <ShareButton path={`/p/${post.id}`} title={post.title} />
                 </>
               )}
+              {/* 작가에게는 가장 자주 쓰는 고치기를 ⋯ 밖에 (나머지 작가 도구는 ⋯ 안) */}
+              {isAuthor && !post.trashed_at && (
+                <Link href={`/p/${post.id}/edit`} className="inline-flex min-h-10 items-center rounded-full border border-line px-4 text-sm font-semibold hover:border-quiet">
+                  고치기
+                </Link>
+              )}
               <div className="ml-auto">
                 <MoreMenu>
                   {!isAuthor && (
@@ -304,9 +310,6 @@ export async function PostDetail({ id }: { id: string }) {
                   )}
                   {isAuthor && !post.trashed_at && (
                     <MenuGroup title="작가 메뉴">
-                      <Link href={`/p/${post.id}/edit`} className="inline-flex min-h-10 items-center rounded-full border border-line px-4 text-sm hover:border-quiet">
-                        고치기
-                      </Link>
                       {post.status === "published" && (
                         <ProfileFeatureButtons postId={post.id} isCover={authorDecor?.cover_post_id === post.id} isPinned={(authorDecor?.pinned_post_ids ?? []).includes(post.id)} />
                       )}
@@ -321,7 +324,6 @@ export async function PostDetail({ id }: { id: string }) {
                       <WatermarkCheck postId={post.id} />
                     </MenuGroup>
                   )}
-                  <p className="text-xs text-quiet">© @{post.author.handle} · 다운로드 · AI 학습 금지</p>
                 </MoreMenu>
               </div>
             </div>

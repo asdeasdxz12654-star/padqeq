@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { FeedList } from "@/components/feed-list";
-import { EventSection, ExhibitionSection, HomeHero, LatestSection, PicksRow, SeasonSection, ShelfSection, TagSection } from "@/components/home/home-sections";
+import { CommunitySection, EventSection, ExhibitionSection, HomeHero, LatestSection, PicksRow, SeasonSection, ShelfSection, TagSection } from "@/components/home/home-sections";
 import { OnThisDay } from "@/components/on-this-day";
 import { YearChips } from "@/components/year-chips";
 import { getViewer } from "@/lib/auth/viewer";
@@ -126,7 +126,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
 
 /** 첫 화면 아래 섹션: 전시 · 분류별 · 계절 · 행사 · 많이 찍는 작품 · 새로 담긴 사진 */
 async function RestSections({ member }: { member: boolean }) {
-  const sections = await loadHomeSections();
+  const [sections, community] = await Promise.all([loadHomeSections(), loadCommunityNew()]);
   return (
     <>
       <ExhibitionSection shows={sections.exhibitions} />
@@ -135,10 +135,23 @@ async function RestSections({ member }: { member: boolean }) {
       ))}
       <SeasonSection shelf={sections.season} />
       <EventSection events={sections.events} />
+      <CommunitySection posts={community} />
       <TagSection tags={sections.tags} />
       <LatestSection items={sections.latest} member={member} />
     </>
   );
+}
+
+/** 커뮤니티 새 글 4개 (가려진 글은 빼고) */
+async function loadCommunityNew() {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("board_posts")
+    .select("id, board, title, replies:board_replies(count)")
+    .is("hidden_at", null)
+    .order("created_at", { ascending: false })
+    .limit(4);
+  return (data ?? []).map((p) => ({ id: p.id, board: p.board, title: p.title, replies: p.replies[0]?.count ?? 0 }));
 }
 
 function SectionsSkeleton() {

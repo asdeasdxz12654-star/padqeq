@@ -6,6 +6,7 @@ import { masonryColumns } from "@/lib/posts/masonry";
 import { CATEGORY_LABEL } from "@/lib/photos/post-input";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { ProtectedPhoto } from "./protected-photo";
+import { FeedOrderCapture } from "./feed-order";
 import { Veil } from "./veil";
 
 const badge = "pointer-events-none absolute top-1.5 rounded-full bg-black/60 px-2 py-0.5 text-[11px] font-semibold text-white";
@@ -22,6 +23,7 @@ export function PhotoFeed({ items, empty, after }: { items: FeedItem[]; empty: s
 
   // 화면 폭마다 열 수가 달라 열 배치를 세 벌 만들고 CSS로 하나만 보인다 (숨긴 배치의 사진은 받지 않는다: 지연 로딩)
   return (
+    <FeedOrderCapture>
     <div className="px-2 md:px-6">
       {LAYOUTS.map((layout) => (
         <div key={layout.columns} className={`${layout.className} items-start gap-2 xl:gap-4`}>
@@ -38,6 +40,7 @@ export function PhotoFeed({ items, empty, after }: { items: FeedItem[]; empty: s
         </div>
       ))}
     </div>
+    </FeedOrderCapture>
   );
 }
 
@@ -55,7 +58,7 @@ function cardHeight(post: FeedItem, hasAfter: boolean): number {
 
 function Card({ post, index }: { post: FeedItem; index: number }) {
   return (
-    <li>
+    <li data-feed-id={post.id} data-feed-index={index}>
       <article className="relative">
         {post.cover ? (
           <div
