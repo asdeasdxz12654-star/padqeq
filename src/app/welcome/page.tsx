@@ -33,7 +33,7 @@ export default async function WelcomePage({ searchParams }: PageProps<"/welcome"
     <div className="mx-auto max-w-sm px-4 pt-10 pb-16 md:pt-16">
       <h1 className="text-2xl font-bold">거의 다 됐어요</h1>
       <p className="mt-2 text-sm text-quiet">해담에서 쓸 이름을 정해 주세요.</p>
-      <WelcomeForm next={next} suggestedName={viewer.suggestedName} today={todayKst()} turnstileSiteKey={turnstileSiteKey()} />
+      <WelcomeForm next={next} loginMethod={viewer.loginMethod} suggestedName={viewer.suggestedName} today={todayKst()} turnstileSiteKey={turnstileSiteKey()} />
     </div>
   );
 }

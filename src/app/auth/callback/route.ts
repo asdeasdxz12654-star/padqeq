@@ -3,7 +3,7 @@ import { safeNextPath, withNext } from "@/lib/auth/next-path";
 import { createClient } from "@/lib/supabase/server";
 
 // 로그인 뒤 들르는 곳.
-//  · Google 로그인: ?code= 를 세션으로 바꾼다 (PKCE, 같은 브라우저에서만 성공)
+//  · 카카오 · Google 로그인: ?code= 를 세션으로 바꾼다 (PKCE, 같은 브라우저에서만 성공)
 //  · 이미 로그인된 상태로 들어오면 바로 다음 단계로
 // 가입(핸들 입력)을 마치지 않았으면 /welcome 으로 보낸다.
 export async function GET(request: NextRequest) {
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
   const fail = (reason: "oauth" | "expired" | "session") =>
     go(`${withNext("/login", next)}${next === "/" ? "?" : "&"}error=${reason}`);
 
-  // 사용자가 Google 동의 화면에서 취소한 경우 등
+  // 사용자가 카카오 · Google 동의 화면에서 취소한 경우 등
   if (searchParams.has("error")) return fail("oauth");
 
   const supabase = await createClient();

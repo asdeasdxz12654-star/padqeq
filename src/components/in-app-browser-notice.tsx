@@ -17,8 +17,9 @@ function readDismissed(): boolean {
 /**
  * 인앱 브라우저 안내 (S-20 ⑨). 로그인 · 업로드 화면에서만 쓴다.
  * Google 로그인은 앱 안 브라우저를 막으므로 기본 브라우저로 열도록 안내한다. 닫으면 그 세션 동안 숨긴다.
+ * 카카오 로그인은 앱 안에서도 되므로, 켜져 있으면 그 길을 먼저 알려 준다.
  */
-export function InAppBrowserNotice({ purpose }: { purpose: "login" | "upload" }) {
+export function InAppBrowserNotice({ purpose, kakaoLogin = false }: { purpose: "login" | "upload"; kakaoLogin?: boolean }) {
   // 서버 렌더에서는 알 수 없으므로 브라우저에서만 판단한다
   const app = useSyncExternalStore(noop, () => detectInAppBrowser(navigator.userAgent), () => null);
   const initiallyDismissed = useSyncExternalStore(noop, readDismissed, () => false);
@@ -33,7 +34,9 @@ export function InAppBrowserNotice({ purpose }: { purpose: "login" | "upload" })
       <p className="font-semibold">{app} 앱 안에서 열었어요</p>
       <p className="mt-1">
         {purpose === "login"
-          ? "Google 로그인은 앱 안에서는 막혀 있어요. 기본 브라우저(Safari · Chrome 등)에서 열어 주세요."
+          ? kakaoLogin
+            ? "카카오로 시작하기는 여기서 바로 할 수 있어요. Google 로그인은 앱 안에서 막혀 있어서 기본 브라우저(Safari · Chrome 등)에서 열어 주세요."
+            : "Google 로그인은 앱 안에서는 막혀 있어요. 기본 브라우저(Safari · Chrome 등)에서 열어 주세요."
           : "사진 올리기는 기본 브라우저(Safari · Chrome 등)에서 더 안정적이에요."}
       </p>
       <div className="mt-3 flex flex-wrap gap-2">

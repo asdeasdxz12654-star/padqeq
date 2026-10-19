@@ -26,7 +26,11 @@ export default function PrivacyPage() {
         <tbody>
           <tr>
             <td>가입 · 로그인 (필수)</td>
-            <td>Google 계정의 이메일 주소 · 이름, 계정 고유 번호</td>
+            <td>
+              카카오로 가입: 카카오 회원 번호 · 닉네임, 동의한 경우 프로필 사진 · 이메일 주소
+              <br />
+              Google로 가입: Google 계정의 이메일 주소 · 이름, 계정 고유 번호
+            </td>
             <td>본인 확인 · 로그인 · 문의 답변</td>
           </tr>
           <tr>
@@ -134,6 +138,11 @@ export default function PrivacyPage() {
             <td>Cloudflare, Inc. (미국)</td>
             <td>웹사이트 호스팅 · 사진 파일과 암호화 백업 저장 · 가입 봇 확인(Turnstile): 사진 변환본, 신고 증거 사진, 접속 기록, 백업, 가입할 때의 브라우저 정보</td>
             <td>Cloudflare 전 세계 데이터센터 · 2항의 기간</td>
+          </tr>
+          <tr>
+            <td>(주)카카오 (대한민국)</td>
+            <td>카카오 계정 로그인: 회원 번호 · 닉네임, 동의한 경우 프로필 사진 · 이메일</td>
+            <td>카카오 서버 · 카카오 정책에 따름</td>
           </tr>
           <tr>
             <td>Google LLC (미국)</td>

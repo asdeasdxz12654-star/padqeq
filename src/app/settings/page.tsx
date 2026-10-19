@@ -1,3 +1,4 @@
+import { LOGIN_METHOD_LABEL } from "@/lib/auth/login-method";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -77,7 +78,7 @@ export default async function SettingsPage() {
           <dt className="text-quiet">이메일</dt>
           <dd className="break-all">{email ?? "-"}</dd>
           <dt className="text-quiet">로그인</dt>
-          <dd>Google 계정</dd>
+          <dd>{viewer.loginMethod ? LOGIN_METHOD_LABEL[viewer.loginMethod] : "-"}</dd>
           <dt className="text-quiet">가입일</dt>
           <dd>{profile ? dayFormat.format(new Date(profile.created_at)) : "-"}</dd>
         </dl>

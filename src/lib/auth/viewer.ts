@@ -4,12 +4,15 @@ import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/lib/supabase/database.types";
 import { isActiveRestriction } from "@/lib/moderation/sanctions";
 import { getSiteSwitches } from "@/lib/support/switches";
+import { type LoginMethod, parseLoginMethod } from "./login-method";
 import { isStaffRole } from "./roles";
 
 export type Viewer = {
   id: string;
   /** 소셜 로그인에서 받은 이름 (가입 화면 기본값) */
   suggestedName: string;
+  /** 이 세션의 로그인 방법 (카카오 · Google) */
+  loginMethod: LoginMethod | null;
   /** 가입(핸들 입력)을 마치지 않았으면 null */
   profile: Pick<Tables<"profiles">, "handle" | "display_name" | "role" | "can_upload" | "avatar_key"> | null;
   /** 지금 이용 정지 중이면 기간 · 사유 (본인만 보는 정보). 정지 중에는 profile.can_upload도 false */
@@ -32,7 +35,7 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
   const { data, error } = await supabase.auth.getClaims();
   if (error || !data) return null;
 
-  const { sub, user_metadata: meta, aal } = data.claims;
+  const { sub, user_metadata: meta, app_metadata: app, aal } = data.claims;
   // 개인 설정 열은 공개 읽기가 막혀 있어 본인 전용 함수로 읽는다
   const [{ data: profile, error: profileError }, { data: settingsRows, error: settingsError }] = await Promise.all([
     supabase
@@ -64,6 +67,7 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
   return {
     id: sub,
     suggestedName,
+    loginMethod: parseLoginMethod(app?.provider),
     profile: profile && {
       handle: profile.handle,
       display_name: profile.display_name,

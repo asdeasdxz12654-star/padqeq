@@ -1,5 +1,6 @@
 "use client";
 
+import { LOGIN_METHOD_ITEMS, type LoginMethod } from "@/lib/auth/login-method";
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { HANDLE_PATTERN, MIN_AGE } from "@/lib/auth/signup-input";
@@ -26,11 +27,14 @@ const inputClass =
 
 export function WelcomeForm({
   next,
+  loginMethod,
   suggestedName,
   today,
   turnstileSiteKey,
 }: {
   next: string;
+  /** 이 계정의 로그인 방법 (모르면 두 방법을 함께 알린다) */
+  loginMethod: LoginMethod | null;
   suggestedName: string;
   today: string;
   turnstileSiteKey: string | null;
@@ -198,7 +202,7 @@ export function WelcomeForm({
           {/* 개인정보보호법: 수집 항목 · 목적 · 보유 기간을 동의 받을 때 알린다 */}
           <dl className="ml-8 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs text-quiet">
             <dt>항목</dt>
-            <dd>Google 계정의 이메일 · 이름, 핸들, 표시 이름, 로그인 기록</dd>
+            <dd>{loginMethod ? LOGIN_METHOD_ITEMS[loginMethod] : `${LOGIN_METHOD_ITEMS.kakao} 또는 ${LOGIN_METHOD_ITEMS.google}`}, 핸들, 표시 이름, 로그인 기록</dd>
             <dt>목적</dt>
             <dd>회원 식별, 서비스 제공, 부정 이용 방지</dd>
             <dt>보유</dt>

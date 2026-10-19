@@ -5,34 +5,41 @@ import { useState, useTransition } from "react";
 import { authErrorMessage } from "@/lib/auth/auth-errors";
 import { createClient } from "@/lib/supabase/client";
 
-// 로그인 · 가입은 Google 계정 하나로만 받는다.
+// 로그인 · 가입은 카카오 · Google 계정으로 받는다 (해담은 비밀번호를 받지 않는다).
 // 요청은 브라우저에서 Supabase로 바로 보낸다 (PKCE 확인값이 이 브라우저 쿠키에 남아야 함).
+
+type Provider = "kakao" | "google";
 
 type Props = {
   next: string;
-  googleEnabled: boolean;
+  providers: Record<Provider, boolean>;
   initialError: string | null;
 };
 
-export function LoginPanel({ next, googleEnabled, initialError }: Props) {
+export function LoginPanel({ next, providers, initialError }: Props) {
   const [error, setError] = useState<string | null>(initialError);
   const [pending, startTransition] = useTransition();
+  const [going, setGoing] = useState<Provider | null>(null);
 
-  function signInWithGoogle() {
+  function signIn(provider: Provider) {
     setError(null);
+    setGoing(provider);
     startTransition(async () => {
       const redirectTo = new URL("/auth/callback", window.location.origin);
       if (next !== "/") redirectTo.searchParams.set("next", next);
       const { error } = await createClient().auth.signInWithOAuth({
-        provider: "google",
+        provider,
         options: {
           redirectTo: redirectTo.toString(),
           // 여러 Google 계정이 있으면 고를 수 있게
-          queryParams: { prompt: "select_account" },
+          ...(provider === "google" && { queryParams: { prompt: "select_account" } }),
         },
       });
-      // 성공하면 브라우저가 Google 화면으로 이동한다
-      if (error) setError(authErrorMessage(error));
+      // 성공하면 브라우저가 카카오 · Google 화면으로 이동한다
+      if (error) {
+        setError(authErrorMessage(error));
+        setGoing(null);
+      }
     });
   }
 
@@ -44,25 +51,39 @@ export function LoginPanel({ next, googleEnabled, initialError }: Props) {
         </p>
       )}
 
-      {googleEnabled ? (
+      {providers.kakao && (
         <button
           type="button"
           disabled={pending}
-          onClick={signInWithGoogle}
+          onClick={() => signIn("kakao")}
+          // 카카오 로그인 버튼 가이드: #FEE500 배경 · 검정 말풍선 · 85% 검정 글자
+          className="flex min-h-12 items-center justify-center gap-3 rounded-xl bg-[#FEE500] px-4 font-medium text-black/85 disabled:opacity-60"
+        >
+          <KakaoMark />
+          {going === "kakao" ? "카카오로 이동 중…" : "카카오로 시작하기"}
+        </button>
+      )}
+      {providers.google && (
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() => signIn("google")}
           // Google 로그인 버튼 가이드: 흰 배경 · 회색 테두리 · #1F1F1F 글자
           className="flex min-h-12 items-center justify-center gap-3 rounded-xl border border-[#747775] bg-white px-4 font-medium text-[#1f1f1f] disabled:opacity-60"
         >
           <GoogleMark />
-          {pending ? "Google로 이동 중…" : "Google 계정으로 계속하기"}
+          {going === "google" ? "Google로 이동 중…" : "Google 계정으로 계속하기"}
         </button>
-      ) : (
+      )}
+      {!providers.kakao && !providers.google && (
         <p className="rounded-lg border border-line px-3 py-3 text-sm text-quiet">
           로그인을 준비하고 있어요. 잠시 뒤 다시 찾아 주세요.
         </p>
       )}
 
       <p className="text-xs leading-relaxed text-quiet">
-        처음이면 Google 로그인 뒤 핸들을 정하면 가입이 끝나요. 해담은 Google 비밀번호를 받지 않아요.
+        처음이면 로그인 뒤 핸들을 정하면 가입이 끝나요. 해담은 비밀번호를 받지 않아요.
+        {providers.kakao && providers.google && " 이미 가입했다면 처음 가입한 방법으로 로그인해 주세요. 다른 방법으로 들어오면 새 계정이 만들어져요."}
       </p>
 
       <p className="mt-6 text-center text-xs leading-relaxed text-quiet">
@@ -76,6 +97,15 @@ export function LoginPanel({ next, googleEnabled, initialError }: Props) {
         </Link>
       </p>
     </div>
+  );
+}
+
+/** 카카오 말풍선 심볼 (외부 이미지 금지 CSP라 인라인 SVG) */
+function KakaoMark() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="size-5 shrink-0">
+      <path fill="#000" d="M12 3.5c-5.25 0-9.5 3.3-9.5 7.36 0 2.62 1.76 4.92 4.41 6.22l-.9 3.3c-.08.3.26.53.52.36l3.94-2.6c.5.06 1.01.1 1.53.1 5.25 0 9.5-3.3 9.5-7.38S17.25 3.5 12 3.5z" />
+    </svg>
   );
 }
 
