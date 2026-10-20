@@ -158,7 +158,9 @@ export async function createTag(input: z.input<typeof createSchema>): Promise<{ 
     candidates.push(`${slug}-${parent.slug}`.slice(0, 60));
   }
 
-  const isAdmin = viewer.profile.role === "admin";
+  // 운영자 권한(바로 공식 태그)은 2단계 인증까지 마친 세션(aal2)에서만 DB가 허용한다. 아니면 일반 회원처럼 제안으로 만든다.
+  const { data: claims } = await supabase.auth.getClaims();
+  const isAdmin = viewer.profile.role === "admin" && claims?.claims.aal === "aal2";
   for (const candidate of candidates) {
     let id: string | null = null;
     let duplicate = false;

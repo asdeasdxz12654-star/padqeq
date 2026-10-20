@@ -68,6 +68,15 @@ describe("태그", () => {
     expect(seen).toEqual([1, 0]);
   });
 
+  it("태그를 제안하면 바로 id를 받는다 (앱의 insert … returning)", async () => {
+    for (const user of [UPLOADER, ADMIN]) {
+      const rows = await asUser(db, user, (tx) =>
+        tx.query<{ id: string }>(`insert into tags (kind, slug, name, parent_id, created_by) values ('work', $2, '새 작품', null, $1::uuid) returning id`, [user, `new-${user.slice(-2)}`]),
+      );
+      expect(rows.rows).toHaveLength(1);
+    }
+  });
+
   it("감상만 하는 회원은 태그를 제안할 수 없다", async () => {
     await expect(
       asUser(db, MEMBER, (tx) => tx.query(`insert into tags (kind, slug, name, created_by) values ('work', 'y', 'y', '${MEMBER}')`)),

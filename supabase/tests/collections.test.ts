@@ -38,6 +38,15 @@ describe("컬렉션", () => {
     expect((await db.query<{ title: string }>("select title from collections where id = $1", [PUBLIC_C])).rows[0]!.title).toBe("여름 서코");
   });
 
+  it("만들면 바로 id를 받는다 (앱의 insert … returning, 공개 · 비공개 모두)", async () => {
+    for (const isPublic of [true, false]) {
+      const rows = await asUser(db, OTHER, (tx) =>
+        tx.query<{ id: string }>("insert into collections (owner_id, title, description, is_public) values ($1, '새 컬렉션', '', $2) returning id", [OTHER, isPublic]),
+      );
+      expect(rows.rows).toHaveLength(1);
+    }
+  });
+
   it("내 글 · 크레딧된 글은 담고, 남의 글은 담을 수 없다", async () => {
     await put(ME, PUBLIC_C, MINE);
     await put(ME, PUBLIC_C, CREDITED);
