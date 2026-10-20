@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { FeedItem } from "@/lib/posts/feed";
-import { CATEGORY_LABEL } from "@/lib/photos/post-input";
+import { CATEGORY_LABEL } from "@/lib/photos/categories";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { ProtectedPhoto } from "../protected-photo";
 import { Veil } from "../veil";

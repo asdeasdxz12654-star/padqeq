@@ -4,20 +4,14 @@ import { veilInput } from "@/lib/posts/veil";
 import { currentYearKst, MIN_YEAR } from "@/lib/year-chips";
 import { creditSchema, MAX_CREDITS_PER_POST } from "./credit-input";
 import { isPanorama, VARIANTS, variantSize } from "./variants";
+import { CATEGORIES } from "./categories";
+
+export { CATEGORIES, CATEGORY_LABEL } from "./categories";
 
 // 업로드 화면(A-02 / S-08) 입력 규칙. 최종 판단은 DB 제약 · RLS · 서버 검사가 한다.
 
 export const MAX_PHOTOS_PER_POST = 20;
 export const MAX_INPUT_BYTES = 50 * 1024 * 1024;
-
-export const CATEGORIES = ["cosplay", "model", "landscape", "travel", "other"] as const;
-export const CATEGORY_LABEL: Record<(typeof CATEGORIES)[number], string> = {
-  cosplay: "코스프레",
-  model: "모델 · 인물",
-  landscape: "풍경",
-  travel: "여행",
-  other: "기타",
-};
 
 /** 브라우저에서 만든 마스터의 정보. 마스터 규격(긴 변 4000 · 파노라마 예외)을 이미 지켜야 한다. */
 export const masterPhoto = z

@@ -1,4 +1,4 @@
-import { VEIL_LABEL, VEIL_REASONS, type VeilReason } from "@/lib/posts/veil";
+import { VEIL_LABEL, VEIL_REASONS, type VeilReason } from "@/lib/posts/veil-reasons";
 
 /** 가림 표시 고르기 (업로드 · 편집). 운영자가 붙인 가림은 업로더가 바꿀 수 없다. */
 export function VeilSelect({

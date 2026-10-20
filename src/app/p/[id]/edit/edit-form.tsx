@@ -6,12 +6,12 @@ import { type CreditDraft, CreditEditor, toCreditInput } from "@/app/upload/cred
 import type { TagOption } from "@/app/upload/tag-actions";
 import { TagPicker } from "@/app/upload/tag-picker";
 import { ProtectedPhoto } from "@/components/protected-photo";
-import { CATEGORIES, CATEGORY_LABEL } from "@/lib/photos/post-input";
+import { CATEGORIES, CATEGORY_LABEL } from "@/lib/photos/categories";
 import type { PhotoSources } from "@/lib/photos/server";
 import { currentYearKst, MIN_YEAR } from "@/lib/year-chips";
 import { COMMENT_POLICIES, COMMENT_POLICY_LABEL, type CommentPolicy, VISIBILITIES, VISIBILITY_LABEL, type Visibility, toKstLocal } from "@/lib/posts/audience";
 import { VeilSelect } from "@/components/veil-select";
-import type { VeilReason } from "@/lib/posts/veil";
+import type { VeilReason } from "@/lib/posts/veil-reasons";
 import { updatePost } from "./actions";
 
 type Initial = {

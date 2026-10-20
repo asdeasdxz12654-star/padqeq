@@ -15,7 +15,7 @@ import { getViewer } from "@/lib/auth/viewer";
 import { loadCollectionCards } from "@/lib/collections/load";
 import { loadYearShelf } from "@/lib/profiles/shelf";
 import { getFollowedMembers } from "@/lib/follows/follows";
-import { CREDIT_ROLE_LABEL } from "@/lib/photos/credit-input";
+import { CREDIT_ROLE_LABEL } from "@/lib/photos/credit-roles";
 import { loadFeedByIds } from "@/lib/posts/feed";
 import type { FeedScope } from "@/lib/posts/feed-scope";
 import { creditedPostIds, loadScopePage } from "@/lib/posts/feed-scope-server";

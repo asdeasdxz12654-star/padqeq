@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getViewer } from "@/lib/auth/viewer";
-import { CATEGORIES } from "@/lib/photos/post-input";
+import { CATEGORIES } from "@/lib/photos/categories";
 import { createClient } from "@/lib/supabase/server";
 
 /** 크레딧 자동 승인 켜기 · 끄기 (S-10 ③). 켜도 내가 팔로우하는 회원의 태그만 자동으로 승인한다 (DB가 판단). */

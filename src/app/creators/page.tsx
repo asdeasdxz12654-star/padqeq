@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ProtectedPhoto } from "@/components/protected-photo";
 import { REGIONS } from "@/lib/events/calendar";
-import { CREDIT_ROLE_LABEL } from "@/lib/photos/credit-input";
+import { CREDIT_ROLE_LABEL } from "@/lib/photos/credit-roles";
 import { loadRecentByAuthors } from "@/lib/posts/feed";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { createClient } from "@/lib/supabase/server";

@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { FeedItem } from "@/lib/posts/feed";
 import { profileHref } from "@/lib/profiles/profile-href";
-import { CATEGORY_LABEL } from "@/lib/photos/post-input";
+import { CATEGORY_LABEL } from "@/lib/photos/categories";
 import { ProtectedPhoto } from "./protected-photo";
 import { Veil } from "./veil";
 

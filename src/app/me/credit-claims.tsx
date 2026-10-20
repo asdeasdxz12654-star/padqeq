@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CREDIT_ROLE_LABEL, type CreditRole } from "@/lib/photos/credit-input";
+import { CREDIT_ROLE_LABEL, type CreditRole } from "@/lib/photos/credit-roles";
 import { profileHref } from "@/lib/profiles/profile-href";
 
 export type CreditClaim = {

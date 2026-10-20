@@ -3,7 +3,7 @@ import Link from "next/link";
 import { FeedList } from "@/components/feed-list";
 import { FilterDropdown } from "@/components/filter-dropdown";
 import { TagChip } from "@/components/tag-chip";
-import { CATEGORIES, CATEGORY_LABEL } from "@/lib/photos/post-input";
+import { CATEGORIES, CATEGORY_LABEL } from "@/lib/photos/categories";
 import { TONE_LABEL, TONE_SWATCH, TONES } from "@/lib/photos/tone";
 import type { FeedScope } from "@/lib/posts/feed-scope";
 import { loadScopePage } from "@/lib/posts/feed-scope-server";

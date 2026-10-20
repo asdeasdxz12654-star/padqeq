@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { VEIL_LABEL, VEIL_REASONS, type VeilReason } from "@/lib/posts/veil";
+import { VEIL_LABEL, VEIL_REASONS, type VeilReason } from "@/lib/posts/veil-reasons";
 import { setPostVeil } from "../actions";
 
 /** 가림 표시 붙이기 · 바꾸기 · 풀기 (운영자). 붙이면 업로더에게 알리고, 업로더는 풀 수 없다. */

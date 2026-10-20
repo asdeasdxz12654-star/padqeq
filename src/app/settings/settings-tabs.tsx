@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export const SETTINGS_TABS = [
+const SETTINGS_TABS = [
   { href: "/settings", label: "프로필 수정" },
   { href: "/settings/account", label: "계정" },
   { href: "/settings/display", label: "화면 · 보기" },

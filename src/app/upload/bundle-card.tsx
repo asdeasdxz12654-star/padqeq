@@ -4,7 +4,7 @@ import { rememberAudience } from "./audience-defaults";
 import { COMMENT_POLICIES, COMMENT_POLICY_LABEL, type CommentPolicy, VISIBILITIES, VISIBILITY_LABEL, type Visibility } from "@/lib/posts/audience";
 import Link from "next/link";
 import { VeilSelect } from "@/components/veil-select";
-import type { VeilReason } from "@/lib/posts/veil";
+import type { VeilReason } from "@/lib/posts/veil-reasons";
 import { CATEGORIES, CATEGORY_LABEL, type ConsentInput } from "@/lib/photos/post-input";
 import { timeRange } from "@/lib/photos/grouping";
 import { MIN_YEAR } from "@/lib/year-chips";

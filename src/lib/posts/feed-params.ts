@@ -1,4 +1,4 @@
-import { CATEGORIES } from "@/lib/photos/post-input";
+import { CATEGORIES } from "@/lib/photos/categories";
 
 // 피드 · 탐색 주소의 검색 조건 (?q= · ?category=). 잘못된 값은 조건 없음으로 본다.
 

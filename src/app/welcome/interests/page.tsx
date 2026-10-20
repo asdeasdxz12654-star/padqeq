@@ -5,7 +5,7 @@ import { FollowButton } from "@/components/follow-button";
 import { safeNextPath, withNext } from "@/lib/auth/next-path";
 import { getViewer } from "@/lib/auth/viewer";
 import { getFollowedMembers, getFollowedTags } from "@/lib/follows/follows";
-import { CREDIT_ROLE_LABEL } from "@/lib/photos/credit-input";
+import { CREDIT_ROLE_LABEL } from "@/lib/photos/credit-roles";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { createClient } from "@/lib/supabase/server";
 import { InterestPicker } from "@/app/settings/interest-picker";

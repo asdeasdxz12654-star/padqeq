@@ -1,7 +1,7 @@
 import "server-only";
 import { todayKst } from "@/lib/auth/signup-input";
 import { listEvents } from "@/lib/events/load";
-import type { CATEGORIES } from "@/lib/photos/post-input";
+import type { CATEGORIES } from "@/lib/photos/categories";
 import { createClient } from "@/lib/supabase/server";
 import { type FeedItem, loadFeedByIds } from "./feed";
 import { loadScopePage } from "./feed-scope-server";

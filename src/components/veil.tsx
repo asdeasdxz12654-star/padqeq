@@ -1,7 +1,7 @@
 "use client";
 
 import { type ReactNode, useSyncExternalStore } from "react";
-import { VEIL_LABEL, type VeilReason } from "@/lib/posts/veil";
+import { VEIL_LABEL, type VeilReason } from "@/lib/posts/veil-reasons";
 
 // 가림 표시 (S-08 ⑩): 흐리게 가리고, 눌러야 보인다. 한 번 연 글은 이 탭에서 다시 가리지 않는다 (카드 → 상세).
 const KEY = "haedam:unveiled";

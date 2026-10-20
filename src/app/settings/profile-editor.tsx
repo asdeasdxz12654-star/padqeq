@@ -8,7 +8,7 @@ import { updateProfile } from "@/app/me/actions";
 import { setProfileFeature } from "@/app/p/[id]/actions";
 import { ProtectedPhoto } from "@/components/protected-photo";
 import { REGIONS } from "@/lib/events/calendar";
-import { CREDIT_ROLE_LABEL } from "@/lib/photos/credit-input";
+import { CREDIT_ROLE_LABEL } from "@/lib/photos/credit-roles";
 import type { FeedItem } from "@/lib/posts/feed";
 import { AVATAR_SIZE, avatarUrl } from "@/lib/profiles/avatar";
 import { confirmAction } from "@/lib/ui/confirm";

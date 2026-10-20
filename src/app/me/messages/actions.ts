@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getViewer } from "@/lib/auth/viewer";
 import { messageErrorMessage } from "@/lib/boards/labels";
-import { COMMENT_REPORT_REASONS } from "@/lib/comments/input";
+import { COMMENT_REPORT_REASONS } from "@/lib/comments/limits";
 import { createClient } from "@/lib/supabase/server";
 
 // 메시지 (S-16). 당사자 확인 · 차단 · 받기 설정 · 링크 제한은 DB 함수가 맡는다.

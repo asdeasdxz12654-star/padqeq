@@ -6,7 +6,7 @@ import { ProtectedPhoto } from "@/components/protected-photo";
 import { TagChip } from "@/components/tag-chip";
 import { withNext } from "@/lib/auth/next-path";
 import { getViewer } from "@/lib/auth/viewer";
-import { CATEGORIES, CATEGORY_LABEL } from "@/lib/photos/post-input";
+import { CATEGORIES, CATEGORY_LABEL } from "@/lib/photos/categories";
 import { type FeedItem, loadFeed, loadFeedByIds } from "@/lib/posts/feed";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { busiestMonth, monthBars, shareCardContent, yearReviewSchema } from "@/lib/review/year-review";

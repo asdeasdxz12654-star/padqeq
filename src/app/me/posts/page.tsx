@@ -6,7 +6,7 @@ import { RepublishButton } from "@/app/p/[id]/republish-button";
 import { RestorePostButton } from "@/app/p/[id]/restore-post-button";
 import { withNext } from "@/lib/auth/next-path";
 import { getViewer } from "@/lib/auth/viewer";
-import { CATEGORY_LABEL } from "@/lib/photos/post-input";
+import { CATEGORY_LABEL } from "@/lib/photos/categories";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "내 글 관리", robots: { index: false } };

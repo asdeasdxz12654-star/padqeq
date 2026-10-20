@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CATEGORIES } from "@/lib/photos/post-input";
+import { CATEGORIES } from "@/lib/photos/categories";
 import { TAG_KINDS } from "@/lib/tags/tag-rules";
 
 // DB 함수 my_year_review()가 돌려주는 JSON. 모양이 다르면 화면을 그리지 않는다.

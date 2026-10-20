@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { CATEGORIES, CATEGORY_LABEL } from "@/lib/photos/post-input";
+import { CATEGORIES, CATEGORY_LABEL } from "@/lib/photos/categories";
 import { setInterests } from "./preferences";
 
 type Category = (typeof CATEGORIES)[number];

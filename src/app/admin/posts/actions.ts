@@ -5,7 +5,7 @@ import { z } from "zod";
 import { bulkSchema } from "@/lib/admin/post-bulk";
 import { isStaffRole } from "@/lib/auth/roles";
 import { getViewer } from "@/lib/auth/viewer";
-import { VEIL_REASONS } from "@/lib/posts/veil";
+import { VEIL_REASONS } from "@/lib/posts/veil-reasons";
 import { createClient } from "@/lib/supabase/server";
 
 /** 게시물 일괄 작업 (A-03). 권한 · 상태 확인 · 감사 로그는 DB 함수가 맡는다. */

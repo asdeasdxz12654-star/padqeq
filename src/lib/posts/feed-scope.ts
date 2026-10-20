@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CATEGORIES } from "@/lib/photos/post-input";
+import { CATEGORIES } from "@/lib/photos/categories";
 import { MAX_QUERY_LENGTH } from "./feed-params";
 
 // 피드의 종류와 조건 (S-02 ④ 이어 보기). 화면과 '더 보기'(서버 액션)가 같은 정의로 같은 목록을 만든다.

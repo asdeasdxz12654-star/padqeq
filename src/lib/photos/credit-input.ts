@@ -1,18 +1,10 @@
 import { z } from "zod";
 import { HANDLE_PATTERN } from "@/lib/auth/signup-input";
+import { CREDIT_ROLES } from "./credit-roles";
+
+export { CREDIT_ROLE_LABEL, CREDIT_ROLES, type CreditRole } from "./credit-roles";
 
 // 크레딧 입력 규칙 (S-08 · A-02 ⑤). DB 제약 credit_target · external_url ^https:// 와 같은 기준.
-
-export const CREDIT_ROLES = ["cosplayer", "model", "photographer", "retoucher", "other"] as const;
-export type CreditRole = (typeof CREDIT_ROLES)[number];
-
-export const CREDIT_ROLE_LABEL: Record<CreditRole, string> = {
-  cosplayer: "코스어",
-  model: "모델",
-  photographer: "촬영",
-  retoucher: "보정",
-  other: "기타",
-};
 
 export const MAX_CREDITS_PER_POST = 10;
 

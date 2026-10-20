@@ -2,7 +2,7 @@ import Link from "next/link";
 import { EmptyState } from "@/components/empty-state";
 import { BOARD_LABEL, type BoardKind } from "@/lib/boards/labels";
 import { formatRange } from "@/lib/events/calendar";
-import { CATEGORY_LABEL } from "@/lib/photos/post-input";
+import { CATEGORY_LABEL } from "@/lib/photos/categories";
 import type { FeedItem } from "@/lib/posts/feed";
 import type { EventShelf, Exhibition, SeasonShelf, Shelf, TagTile } from "@/lib/posts/home-sections";
 import { SEASON_LABEL } from "@/lib/posts/season";

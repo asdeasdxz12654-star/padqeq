@@ -1,5 +1,5 @@
 import type { Json } from "@/lib/supabase/database.types";
-import { CREDIT_ROLE_LABEL, type CreditRole } from "@/lib/photos/credit-input";
+import { CREDIT_ROLE_LABEL, type CreditRole } from "@/lib/photos/credit-roles";
 import { REASON_LABEL, type ReportReason } from "@/lib/moderation/reasons";
 import { auditActionLabel, auditSummary } from "./audit";
 

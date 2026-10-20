@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { CATEGORY_LABEL } from "@/lib/photos/post-input";
+import { CATEGORY_LABEL } from "@/lib/photos/categories";
 import { OG_IMAGES } from "@/lib/og";
 import { getPost } from "@/lib/posts/get-post";
 import { PostDetail } from "./post-detail";

@@ -2,7 +2,7 @@ import { requireTopAdmin } from "@/lib/auth/require-admin";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { z } from "zod";
-import { CATEGORY_LABEL } from "@/lib/photos/post-input";
+import { CATEGORY_LABEL } from "@/lib/photos/categories";
 import { escapeLike } from "@/lib/posts/feed-params";
 import { createClient } from "@/lib/supabase/server";
 import { type AdminPostRow, PostsTable } from "./posts-table";

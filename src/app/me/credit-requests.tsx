@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import { CREDIT_ROLE_LABEL, type CreditRole } from "@/lib/photos/credit-input";
+import { CREDIT_ROLE_LABEL, type CreditRole } from "@/lib/photos/credit-roles";
 import { respondCredit } from "./actions";
 
 export type CreditRequest = { id: string; role: CreditRole; postId: string; postTitle: string; uploader: string };

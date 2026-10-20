@@ -5,7 +5,7 @@ import { Fragment, type ReactNode, useSyncExternalStore } from "react";
 import { LineArt } from "./line-art";
 import type { FeedItem } from "@/lib/posts/feed";
 import { masonryColumns } from "@/lib/posts/masonry";
-import { CATEGORY_LABEL } from "@/lib/photos/post-input";
+import { CATEGORY_LABEL } from "@/lib/photos/categories";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { ProtectedPhoto } from "./protected-photo";
 import { FeedOrderCapture } from "./feed-order";

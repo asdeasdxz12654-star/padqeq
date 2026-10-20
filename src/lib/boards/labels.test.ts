@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { boardPostSchema, castingFormSchema } from "./labels";
+import { boardPostSchema, castingFormSchema } from "./schema";
 
 const base = { title: " 제목 ", body: "내용", region: null, castingKind: null, castingTerms: null, shootOn: null };
 

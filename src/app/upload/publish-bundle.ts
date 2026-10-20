@@ -1,7 +1,7 @@
 "use client";
 
 import type { CreditInput } from "@/lib/photos/credit-input";
-import type { VeilReason } from "@/lib/posts/veil";
+import type { VeilReason } from "@/lib/posts/veil-reasons";
 import type { ConsentInput } from "@/lib/photos/post-input";
 import type { CommentPolicy, Visibility } from "@/lib/posts/audience";
 import { VARIANT_NAMES, VARIANTS, type VariantName } from "@/lib/photos/variants";

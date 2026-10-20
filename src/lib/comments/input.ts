@@ -1,8 +1,7 @@
 import { z } from "zod";
+import { COMMENT_MAX } from "./limits";
 
-export const COMMENT_MAX = 1000;
-/** 댓글 신고 사유 (게시물 신고 사유 중 댓글에 맞는 것) */
-export const COMMENT_REPORT_REASONS = ["spam", "sexual", "minor_safety", "portrait_rights", "other"] as const;
+export { COMMENT_MAX, COMMENT_REPORT_REASONS } from "./limits";
 
 export const commentBody = z.string().trim().min(1, "댓글을 적어 주세요.").max(COMMENT_MAX, `${COMMENT_MAX}자까지 적을 수 있어요.`);
 

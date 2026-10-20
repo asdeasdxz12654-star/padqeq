@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { CASTING_FORM_FIELDS, type CastingForm, SAFETY_GUIDE } from "@/lib/boards/labels";
-import { COMMENT_REPORT_REASONS } from "@/lib/comments/input";
+import { COMMENT_REPORT_REASONS } from "@/lib/comments/limits";
 import { REASON_LABEL } from "@/lib/moderation/reasons";
 import { Avatar } from "@/components/avatar";
 import { profileHref } from "@/lib/profiles/profile-href";

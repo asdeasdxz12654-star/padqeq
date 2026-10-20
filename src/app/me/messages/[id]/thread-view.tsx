@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { CASTING_FORM_FIELDS, SAFETY_GUIDE } from "@/lib/boards/labels";
-import { COMMENT_REPORT_REASONS } from "@/lib/comments/input";
+import { COMMENT_REPORT_REASONS } from "@/lib/comments/limits";
 import { REASON_LABEL } from "@/lib/moderation/reasons";
 import { dismissGuide, markThreadRead, reportThread, respondThread, sendMessage, setBlock } from "../actions";
 

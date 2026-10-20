@@ -4,7 +4,7 @@ import { confirmAction } from "@/lib/ui/confirm";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { COMMENT_MAX, COMMENT_REPORT_REASONS } from "@/lib/comments/input";
+import { COMMENT_MAX, COMMENT_REPORT_REASONS } from "@/lib/comments/limits";
 import { Avatar } from "@/components/avatar";
 import type { CommentView } from "@/lib/comments/load";
 import { splitMentions } from "@/lib/comments/mentions";

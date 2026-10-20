@@ -3,8 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getViewer } from "@/lib/auth/viewer";
-import { boardErrorMessage, boardPostSchema, castingFormSchema, messageErrorMessage } from "@/lib/boards/labels";
-import { COMMENT_REPORT_REASONS } from "@/lib/comments/input";
+import { boardErrorMessage, messageErrorMessage } from "@/lib/boards/labels";
+import { boardPostSchema, castingFormSchema } from "@/lib/boards/schema";
+import { COMMENT_REPORT_REASONS } from "@/lib/comments/limits";
 import { createClient } from "@/lib/supabase/server";
 
 // 커뮤니티 게시판 · 섭외 지원. 권한 · 성인 확인 · 정지는 DB가 다시 확인한다.
