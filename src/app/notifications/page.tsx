@@ -60,11 +60,22 @@ export default async function NotificationsPage({ searchParams }: PageProps<"/no
   );
   const claimCount = openClaims.count ?? 0;
 
+  // 좋아요 묶기 (회원 시안 46): 같은 글의 좋아요 알림은 읽기 전까지 하나만 온다 → 그 사이에 누른 사람 수를 센다 (글쓴이는 RLS로 볼 수 있다)
+  const likePosts = [...new Set(data.flatMap((n) => (n.kind === "post_liked" && n.post ? [n.post.id] : [])))];
+  const likes = likePosts.length
+    ? ((await supabase.from("post_likes").select("post_id, created_at").in("post_id", likePosts).order("created_at", { ascending: false }).limit(2000)).data ?? [])
+    : [];
+  const at = (t: string) => new Date(t).getTime();
+  const othersOf = (n: (typeof data)[number]) =>
+    n.kind === "post_liked" && n.post
+      ? likes.filter((l) => l.post_id === n.post?.id && at(l.created_at) > at(n.created_at) && (!n.read_at || at(l.created_at) <= at(n.read_at))).length
+      : 0;
+
   const all = data.map((n) => ({
     ...n,
     group: notificationGroup(n.kind),
     bucket: timeBucket(n.created_at),
-    ...describeNotification({ kind: n.kind, actorHandle: n.actor?.handle ?? null, post: n.post, event: n.event, board: n.board, threadId: n.thread_id }),
+    ...describeNotification({ kind: n.kind, actorHandle: n.actor?.handle ?? null, post: n.post, event: n.event, board: n.board, threadId: n.thread_id, others: othersOf(n) }),
   }));
   // 읽음 처리는 필터와 상관없이 가장 최근 안 읽은 것까지
   const newestUnread = all.find((n) => !n.read_at)?.id;

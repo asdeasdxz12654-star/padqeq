@@ -7,6 +7,7 @@ import { getFollowedMembers } from "@/lib/follows/follows";
 import { loadFeedByIds } from "@/lib/posts/feed";
 import { createClient } from "@/lib/supabase/server";
 import { TimeCapsules } from "./time-capsules";
+import { TermTip } from "@/components/term-tip";
 
 export const metadata: Metadata = { title: "추억" };
 
@@ -81,6 +82,7 @@ export default async function MemoriesPage({ searchParams }: PageProps<"/memorie
         )}
         <h1 className="text-2xl font-bold">
           {month}월 {day}일의 기억
+          <TermTip term="memory" label="이맘때" />
         </h1>
         <p className="mt-1 text-sm text-quiet">{week ? "그 주(앞뒤 3일)에 찍은 지난해 사진이에요." : "예전 오늘 찍은 사진을 해마다 모아 봐요."}</p>
         <nav aria-label="범위" className="mt-4 flex flex-wrap gap-2 text-sm">
@@ -119,6 +121,7 @@ export default async function MemoriesPage({ searchParams }: PageProps<"/memorie
         <section id="capsules" aria-labelledby="capsules-heading" className="mt-12 scroll-mt-24 border-t border-line px-4 pt-8 md:px-6">
           <h2 id="capsules-heading" className="text-lg font-semibold">
             타임캡슐
+            <TermTip term="capsule" label="타임캡슐" />
           </h2>
           <p className="mt-1 mb-4 text-sm text-quiet">사진에 묻어 둔 미래의 나에게 쓴 편지. 여는 날 아침에 알려 드려요.</p>
           <TimeCapsules />

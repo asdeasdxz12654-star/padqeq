@@ -15,13 +15,15 @@ export type NotificationInput = {
   board?: { id: string; title: string } | null;
   /** 메시지 대화 */
   threadId?: string | null;
+  /** 좋아요 묶기: 이 알림 뒤에 같은 글을 좋아한 다른 사람 수 */
+  others?: number;
 };
 
 /**
  * 알림 문구와 눌렀을 때 갈 곳. 문구는 DB가 아니라 여기서만 정한다.
  * 게시물 제목은 받침에 따라 조사가 달라지므로 문장에 넣지 않고 화면에서 따로 보여 준다.
  */
-export function describeNotification({ kind, actorHandle, post, event = null, board = null, threadId = null }: NotificationInput): { text: string; href: string | null } {
+export function describeNotification({ kind, actorHandle, post, event = null, board = null, threadId = null, others = 0 }: NotificationInput): { text: string; href: string | null } {
   const who = actorHandle ? `@${actorHandle}님` : "회원";
   const postHref = post ? `/p/${post.id}` : null;
 
@@ -87,8 +89,8 @@ export function describeNotification({ kind, actorHandle, post, event = null, bo
     case "message_request":
       return { text: `${who}이 메시지 요청을 보냈어요. 수락하기 전에는 상대가 읽음 여부를 알 수 없어요.`, href: threadId ? `/me/messages/${threadId}` : "/me/messages" };
     case "post_liked":
-      // 같은 글의 좋아요는 안 읽은 알림 하나로 묶인다
-      return { text: `${who}이 내 게시물을 좋아해요.`, href: postHref };
+      // 같은 글의 좋아요는 안 읽은 알림 하나로 묶인다 → 그 뒤에 누른 사람은 'N명'으로
+      return { text: others > 0 ? `${who} 외 ${others}명이 내 게시물을 좋아해요.` : `${who}이 내 게시물을 좋아해요.`, href: postHref };
     case "credited_post_deleted":
       // 지운 글은 받는 사람이 볼 수 없어 제목 · 링크 없이
       return { text: `${who}이 나를 크레딧으로 올린 게시물을 지웠어요. 내 프로필의 크레딧된 작업에서도 빠져요.`, href: null };

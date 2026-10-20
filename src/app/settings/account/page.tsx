@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { settingsViewer } from "../load";
 import { LINK_ERRORS, LoginMethods } from "../login-methods";
 import { KST } from "@/lib/format/kst";
+import { TermTip } from "@/components/term-tip";
 
 export const metadata: Metadata = { title: "계정 · 설정", robots: { index: false } };
 
@@ -35,7 +36,10 @@ export default async function SettingsAccountPage({ searchParams }: PageProps<"/
           계정
         </h1>
         <dl className="grid grid-cols-[6rem_1fr] gap-y-2 text-sm">
-          <dt className="text-quiet">핸들</dt>
+          <dt className="text-quiet">
+            핸들
+            <TermTip term="handle" label="핸들" />
+          </dt>
           <dd>@{viewer.profile.handle}</dd>
           <dt className="text-quiet">이메일</dt>
           <dd className="break-all">{email ?? "-"}</dd>

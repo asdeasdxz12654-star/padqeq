@@ -16,6 +16,7 @@ import type { TagOption } from "./tag-actions";
 import { TagPicker } from "./tag-picker";
 import { type CreditDraft, CreditEditor } from "./credit-editor";
 import type { Photo } from "./use-converter";
+import { TermTip } from "@/components/term-tip";
 
 export type BundleState =
   | { kind: "edit" }
@@ -371,7 +372,10 @@ export function PeopleAndConsent({
       </label>
       {hasPeople && (
         <div id="consent" className="flex scroll-mt-24 flex-col gap-3 rounded-xl border border-line p-3">
-          <p className="text-xs text-quiet">사진에 나온 분께 받은 게시 동의를 남겨요 · 운영자만 봐요</p>
+          <p className="text-xs text-quiet">
+            <span className="font-semibold text-text">촬영 동의 기록</span>
+            <TermTip term="consent" label="촬영 동의 기록" /> 사진에 나온 분께 받은 게시 동의를 남겨요 · 운영자만 봐요
+          </p>
           {note}
           <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_10rem]">
             <label className="flex flex-col gap-1 text-sm">

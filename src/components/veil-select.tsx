@@ -1,4 +1,5 @@
 import { VEIL_LABEL, VEIL_REASONS, type VeilReason } from "@/lib/posts/veil-reasons";
+import { TermTip } from "@/components/term-tip";
 
 /** 가림 표시 고르기 (업로드 · 편집). 운영자가 붙인 가림은 업로더가 바꿀 수 없다. */
 export function VeilSelect({
@@ -16,7 +17,10 @@ export function VeilSelect({
 }) {
   return (
     <label className="flex flex-col gap-1.5 text-sm">
-      가림 표시
+      <span>
+        가림 표시
+        <TermTip term="veil" label="가림 표시" />
+      </span>
       <select
         value={value ?? ""}
         onChange={(e) => onChange((e.target.value || null) as VeilReason | null)}

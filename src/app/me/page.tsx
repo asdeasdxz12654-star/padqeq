@@ -20,6 +20,7 @@ import { createClient } from "@/lib/supabase/server";
 import { type CreditClaim, CreditClaims } from "./credit-claims";
 import { type CreditRequest, CreditRequests } from "./credit-requests";
 import { KST } from "@/lib/format/kst";
+import { TermTip } from "@/components/term-tip";
 
 export const metadata: Metadata = {
   title: "마이페이지",
@@ -174,6 +175,7 @@ export default async function MePage() {
       <section aria-labelledby="record-heading" className="mt-8 flex min-w-0 flex-col gap-2 border-t border-line pt-6 md:mt-0 md:border-t-0 md:pt-0">
         <h2 id="record-heading" className="text-lg font-bold">
           나의 기록
+          <TermTip term="shelf" label="연도 책장" />
         </h2>
         {/* 책장 · 사진은 조회가 많아 뒤이어 그린다 (위쪽 메뉴를 먼저 보여 준다) */}
         <Suspense fallback={<div aria-hidden="true" className="mt-2 h-64 animate-pulse rounded-2xl bg-slot" />}>

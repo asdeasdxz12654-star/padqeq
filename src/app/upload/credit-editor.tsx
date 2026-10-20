@@ -9,6 +9,7 @@ import {
   MAX_CREDITS_PER_POST,
 } from "@/lib/photos/credit-input";
 import { type MemberOption, searchMembers } from "./tag-actions";
+import { TermTip } from "@/components/term-tip";
 
 // 크레딧 편집 (A-02 ⑤ · S-08). 회원은 @핸들로 골라 승인 요청, 미가입자는 이름 · 링크로 바로 표시.
 
@@ -85,6 +86,7 @@ export function CreditEditor({
     <div className="flex flex-col gap-2">
       <span className="text-sm font-medium">
         크레딧
+        <TermTip term="credit" label="크레딧" />
         {value.length >= MAX_CREDITS_PER_POST - 2 && <span className="ml-1 text-xs font-normal text-quiet">{MAX_CREDITS_PER_POST - value.length}명 더</span>}
       </span>
 

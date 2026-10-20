@@ -36,6 +36,11 @@ describe("describeNotification", () => {
 });
 
 describe("알림 묶기", () => {
+  it("같은 글 좋아요는 '외 N명'으로 모은다", () => {
+    expect(describeNotification({ kind: "post_liked", actorHandle: "a", post, others: 2 }).text).toBe("@a님 외 2명이 내 게시물을 좋아해요.");
+    expect(describeNotification({ kind: "post_liked", actorHandle: "a", post }).text).toBe("@a님이 내 게시물을 좋아해요.");
+  });
+
   it("종류별로 나눈다", () => {
     expect(notificationGroup("credit_requested")).toBe("credit");
     expect(notificationGroup("post_liked")).toBe("reaction");
