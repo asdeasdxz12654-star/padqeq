@@ -48,10 +48,10 @@ const related = (id: string) =>
 
 describe("관련 태그", () => {
   it("함께 붙은 글 수 순 · 작품 허브는 자기 캐릭터를 뺀다", async () => {
-    expect(await related(tag.genshin!)).toEqual(["sakura:2", "studio:2"]);
+    expect(await related(tag.genshin!)).toEqual(["sakura:2", "studio:2", "secret:1"]);
   });
 
-  it("캐릭터 허브는 상위 작품을 빼고, 초안 · 승인 전 태그는 세지 않는다", async () => {
-    expect(await related(tag.raiden!)).toEqual(["sakura:2", "studio:1"]);
+  it("캐릭터 허브는 상위 작품을 빼고, 초안은 세지 않는다 · 운영자 확인 전 새 태그도 센다", async () => {
+    expect(await related(tag.raiden!)).toEqual(["sakura:2", "secret:1", "studio:1"]);
   });
 });

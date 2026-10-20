@@ -33,8 +33,8 @@ describe("태그 팔로우", () => {
     expect(rows).toEqual([{ tag_id: OFFICIAL }]);
   });
 
-  it("볼 수 없는 태그(남의 승인 대기 제안)는 팔로우할 수 없다", async () => {
-    await expect(follow(ME, PENDING)).rejects.toThrow(/row-level security/);
+  it("운영자 확인 전 새 태그(남이 만든 것)도 팔로우할 수 있다", async () => {
+    await follow(ME, PENDING);
   });
 
   it("남 대신 팔로우할 수 없고, 남의 팔로우 목록은 보이지 않는다", async () => {

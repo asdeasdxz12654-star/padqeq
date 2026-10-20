@@ -50,7 +50,7 @@ describe("태그", () => {
     ).rejects.toThrow(/admin_only/);
   });
 
-  it("업로드 권한자의 제안 태그는 공식 상태로 넣을 수 없고, 남에게 안 보인다", async () => {
+  it("업로드 권한자의 새 태그는 공식 상태로 넣을 수 없고, 만들자마자 남에게도 보인다", async () => {
     await expect(
       asUser(db, UPLOADER, (tx) =>
         tx.query(`insert into tags (kind, slug, name, created_by, status) values ('work', 'fake', 'fake', '${UPLOADER}', 'official')`),
@@ -65,7 +65,7 @@ describe("태그", () => {
       const others = await tx.query("select 1 from tags where slug = '블루-아카이브'");
       return [mine.rows.length, others.rows.length];
     });
-    expect(seen).toEqual([1, 0]);
+    expect(seen).toEqual([1, 1]);
   });
 
   it("태그를 제안하면 바로 id를 받는다 (앱의 insert … returning)", async () => {
@@ -75,6 +75,32 @@ describe("태그", () => {
       );
       expect(rows.rows).toHaveLength(1);
     }
+  });
+
+  it("새 태그 이름 · 별칭에 금칙어를 쓸 수 없다", async () => {
+    await db.exec("insert into public.banned_words (word) values ('나쁜말')");
+    await expect(
+      asUser(db, UPLOADER, (tx) => tx.query(`insert into tags (kind, slug, name, created_by) values ('general', 'bad', '나쁜 말 태그', $1::uuid)`, [UPLOADER])),
+    ).rejects.toThrow(/banned_word/);
+    await expect(
+      asUser(db, UPLOADER, async (tx) => {
+        const t = await tx.query<{ id: string }>(`insert into tags (kind, slug, name, created_by) values ('general', 'ok-alias', '괜찮은 태그', $1::uuid) returning id`, [UPLOADER]);
+        await tx.query("insert into tag_aliases (tag_id, alias) values ($1, '나쁜말')", [t.rows[0]!.id]);
+      }),
+    ).rejects.toThrow(/banned_word/);
+    await db.exec("delete from public.banned_words");
+  });
+
+  it("회원은 하루에 새 태그를 정해진 수까지만 만든다 (운영자 제외)", async () => {
+    await db.exec("update public.site_limits set value = 2 where key = 'daily_new_tags'");
+    const make = (user: string, slug: string) =>
+      asUser(db, user, async (tx) => {
+        await tx.query(`insert into tags (kind, slug, name, created_by) values ('general', $2 || '-1', $2, $1::uuid)`, [user, slug]);
+        await tx.query(`insert into tags (kind, slug, name, created_by) values ('general', $2 || '-2', $2, $1::uuid)`, [user, slug]);
+        await tx.query(`insert into tags (kind, slug, name, created_by) values ('general', $2 || '-3', $2, $1::uuid)`, [user, slug]);
+      });
+    await expect(make(UPLOADER, "limit")).rejects.toThrow(/tag_rate_limited/);
+    await db.exec("update public.site_limits set value = 20 where key = 'daily_new_tags'");
   });
 
   it("감상만 하는 회원은 태그를 제안할 수 없다", async () => {
