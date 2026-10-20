@@ -1,0 +1,39 @@
+name: 운영 하루 요약
+
+# 매일 21:00 KST(12:00 UTC). 처리함에 남은 일이 있으면 운영진에게 '하루 요약' 알림을 만든다
+# (운영 알림을 '긴급 + 하루 요약'으로 둔 사람만). 웹 푸시는 worker.ts 푸시 크론이 1분 안에 보낸다.
+on:
+  schedule:
+    - cron: "0 12 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: admin-digest
+  cancel-in-progress: false
+
+jobs:
+  digest:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    # 저장소 Settings › Environments › dhepa 에 비밀값을 넣는다
+    environment: dhepa
+    steps:
+      - name: psql 설치
+        run: |
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y --no-install-recommends postgresql-client-18
+
+      - name: 하루 요약 알림
+        env:
+          # Supabase › Connect › Session pooler 주소 (GitHub 러너는 IPv6 직접 연결 불가)
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SUPABASE_DB_URL:-}" ]; then
+            echo "SUPABASE_DB_URL이 없어 건너뜁니다"
+            exit 0
+          fi
+          psql() { /usr/lib/postgresql/18/bin/psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -X -q -t -A "$@"; }
+          echo "운영 하루 요약 알림: $(psql -c 'select private.admin_daily_digest();')건"

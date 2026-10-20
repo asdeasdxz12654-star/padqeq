@@ -92,6 +92,11 @@ export function describeNotification({ kind, actorHandle, post, event = null, bo
     case "credited_post_deleted":
       // 지운 글은 받는 사람이 볼 수 없어 제목 · 링크 없이
       return { text: `${who}이 나를 크레딧으로 올린 게시물을 지웠어요. 내 프로필의 크레딧된 작업에서도 빠져요.`, href: null };
+    // 운영진에게만 (관리 시안 44): 숨겨진 글은 받는 사람이 볼 수 없을 수 있어 제목 없이 처리함으로
+    case "admin_urgent":
+      return { text: "긴급 · 운영자가 바로 확인할 일이 생겼어요 (긴급 신고 · 자동 숨김 · 소명). 처리함에서 확인해 주세요.", href: post ? `/admin/inbox?item=report-${post.id}` : "/admin/inbox" };
+    case "admin_digest":
+      return { text: "오늘 처리하지 못한 일이 처리함에 남아 있어요.", href: "/admin/inbox" };
     case "credit_auto_approved":
       return { text: `${who}이 나를 크레딧으로 태그해 자동으로 승인했어요. 원하지 않으면 게시물에서 뺄 수 있어요.`, href: postHref };
     case "year_review":

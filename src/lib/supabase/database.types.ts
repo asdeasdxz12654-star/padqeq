@@ -39,6 +39,32 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_alert_settings: {
+        Row: {
+          mode: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          mode?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          mode?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_alert_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appeal_evidence: {
         Row: {
           appeal_id: string
@@ -2431,6 +2457,8 @@ export type Database = {
         | "year_review"
         | "post_veiled"
         | "credited_post_deleted"
+        | "admin_urgent"
+        | "admin_digest"
       post_category: "cosplay" | "model" | "landscape" | "travel" | "other"
       post_status: "draft" | "published" | "hidden"
       report_reason:
@@ -2632,6 +2660,8 @@ export const Constants = {
         "year_review",
         "post_veiled",
         "credited_post_deleted",
+        "admin_urgent",
+        "admin_digest",
       ],
       post_category: ["cosplay", "model", "landscape", "travel", "other"],
       post_status: ["draft", "published", "hidden"],

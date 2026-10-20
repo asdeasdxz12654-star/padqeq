@@ -52,3 +52,18 @@ export async function setMemoryAlerts(on: boolean): Promise<{ ok: true } | { ok:
   revalidatePath("/settings", "layout");
   return { ok: true };
 }
+
+const ADMIN_ALERT_MODES = ["all", "urgent", "off"] as const;
+export type AdminAlertMode = (typeof ADMIN_ALERT_MODES)[number];
+
+/** 운영 알림 받는 방식 (운영진만, 관리 시안 44): 긴급 + 하루 요약 · 긴급만 · 받지 않음. 운영진인지는 DB가 다시 확인한다. */
+export async function setAdminAlerts(mode: AdminAlertMode): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!ADMIN_ALERT_MODES.includes(mode)) return { ok: false, error: "잘못된 요청이에요." };
+  const viewer = await getViewer();
+  if (!viewer?.profile) return { ok: false, error: "로그인이 필요해요." };
+  const supabase = await createClient();
+  const { error } = await supabase.from("admin_alert_settings").upsert({ user_id: viewer.id, mode, updated_at: new Date().toISOString() });
+  if (error) return { ok: false, error: "저장하지 못했어요." };
+  revalidatePath("/settings/alerts");
+  return { ok: true };
+}
