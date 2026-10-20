@@ -130,7 +130,7 @@ const createSchema = z.object({
 });
 
 /**
- * 새 태그. 운영자가 만들면 바로 공식, 업로드 권한 회원이 만들면 제안(승인 전까지 본인 글에만).
+ * 새 태그. 운영자가 만들면 바로 공식, 업로드 권한 회원이 만들면 '운영자 확인 전' 태그(바로 모두에게 보인다).
  * 같은 주소(slug)가 이미 있으면 캐릭터는 "이름-작품"으로 한 번 더 시도한다.
  */
 export async function createTag(input: z.input<typeof createSchema>): Promise<{ ok: true; tag: TagOption } | { ok: false; error: string }> {
@@ -183,13 +183,21 @@ export async function createTag(input: z.input<typeof createSchema>): Promise<{ 
         .single();
       id = data?.id ?? null;
       duplicate = error?.code === "23505";
-      if (error && !duplicate) return { ok: false, error: "태그를 만들지 못했어요." };
+      if (error && !duplicate) return { ok: false, error: tagErrorMessage(error.message) };
       if (id && aliases.length) await supabase.from("tag_aliases").insert(aliases.map((alias) => ({ tag_id: id!, alias })));
     }
     if (id) return { ok: true, tag: { id, kind, name, slug: candidate, parentName, pending: !isAdmin } };
     if (!duplicate) break;
   }
   return { ok: false, error: "같은 이름의 태그가 이미 있어요. 검색해서 골라 주세요." };
+}
+
+function tagErrorMessage(message: string): string {
+  if (message.includes("banned_word")) return "태그 이름에 쓸 수 없는 말이 들어 있어요.";
+  if (message.includes("links_not_allowed")) return "가입하고 7일 동안은 태그 이름에 링크를 넣을 수 없어요.";
+  if (message.includes("tag_rate_limited")) return "오늘은 새 태그를 더 만들 수 없어요. 이미 있는 태그를 검색해 붙여 주세요.";
+  if (message.includes("member_suspended")) return "이용이 제한된 기간이에요.";
+  return "태그를 만들지 못했어요.";
 }
 
 /** 이미 올린 내 사진 중 비슷한 것 (업로드 화면 경고, A-02 ②). 들어온 순서대로 글 id 또는 null */

@@ -119,7 +119,7 @@ export default async function UploadPage({ searchParams }: PageProps<"/upload">)
           <strong>{fromEvent.name}</strong>에서 찍은 사진을 올려요. 행사 태그{fromEvent.tags.length > 1 ? "와 장소 태그" : ""}가 미리 붙어 있어요. 묶음마다 빼거나 바꿀 수 있어요.
         </p>
       )}
-      <UploadStudio isAdmin={isAdmin} viewerHandle={viewer.profile.handle} currentYear={currentYearKst()} initialTags={fromEvent?.tags ?? []} />
+      <UploadStudio viewerHandle={viewer.profile.handle} currentYear={currentYearKst()} initialTags={fromEvent?.tags ?? []} />
     </div>
   );
 }

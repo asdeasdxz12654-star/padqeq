@@ -105,7 +105,6 @@ export default async function EditPostPage({ params }: PageProps<"/p/[id]/edit">
             ),
         }}
         viewerHandle={viewer.profile?.handle ?? null}
-        isAdmin={viewer.profile?.role === "admin"}
       />
     </div>
   );

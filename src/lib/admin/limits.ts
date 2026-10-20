@@ -11,6 +11,7 @@ export const LIMIT_INFO: Record<string, { label: string; unit: string; help: str
   },
   comment_hourly: { label: "한 시간 댓글", unit: "개", help: "회원 한 명이 한 시간에 쓸 수 있는 댓글" },
   new_account_link_days: { label: "신규 계정 링크 금지", unit: "일", help: "가입 후 이 기간 동안 댓글 · 게시판 · 메시지에 링크를 못 넣어요" },
+  daily_new_tags: { label: "회원별 하루 새 태그", unit: "개", help: "회원이 하루(24시간)에 새로 만들 수 있는 태그. 운영자는 제한 없어요." },
   monthly_upload_photos: { label: "회원별 한 달 업로드", unit: "장", help: "한국 시간 매달 1일에 다시 세요. 운영자는 제한 없어요." },
 };
 

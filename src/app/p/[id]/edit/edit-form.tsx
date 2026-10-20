@@ -37,7 +37,7 @@ type Initial = {
 
 const field = "min-h-11 rounded-xl border border-line bg-surface px-3 text-base outline-none focus:border-accent";
 
-export function EditForm({ initial, isAdmin, viewerHandle }: { initial: Initial; isAdmin: boolean; viewerHandle: string | null }) {
+export function EditForm({ initial, viewerHandle }: { initial: Initial; viewerHandle: string | null }) {
   const router = useRouter();
   const [title, setTitle] = useState(initial.title);
   const [body, setBody] = useState(initial.body);
@@ -176,7 +176,7 @@ export function EditForm({ initial, isAdmin, viewerHandle }: { initial: Initial;
 
       <div className="flex flex-col gap-1.5 text-sm">
         <span>태그</span>
-        <TagPicker value={tags} onChange={setTags} disabled={pending} isAdmin={isAdmin} />
+        <TagPicker value={tags} onChange={setTags} disabled={pending} />
       </div>
 
       <div className="flex flex-col gap-1.5 text-sm">

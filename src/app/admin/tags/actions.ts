@@ -10,10 +10,10 @@ export async function approveTag(tagId: string): Promise<{ ok: true } | { ok: fa
   const parsed = z.uuid().safeParse(tagId);
   if (!parsed.success) return { ok: false, error: "태그를 찾지 못했어요." };
   const viewer = await getViewer();
-  if (viewer?.profile?.role !== "admin") return { ok: false, error: "최고 관리자만 승인할 수 있어요. (2단계 인증 필요)" };
+  if (viewer?.profile?.role !== "admin") return { ok: false, error: "최고 관리자만 확인할 수 있어요. (2단계 인증 필요)" };
   const supabase = await createClient();
   const { error } = await supabase.rpc("approve_tag", { target: parsed.data });
-  if (error) return { ok: false, error: "승인하지 못했어요. 잠시 뒤 다시 해 주세요." };
+  if (error) return { ok: false, error: "처리하지 못했어요. 잠시 뒤 다시 해 주세요." };
   revalidatePath("/admin/tags");
   revalidatePath("/t/[slug]", "page");
   return { ok: true };

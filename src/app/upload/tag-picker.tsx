@@ -24,12 +24,10 @@ export function TagPicker({
   value,
   onChange,
   disabled,
-  isAdmin,
 }: {
   value: TagOption[];
   onChange(tags: TagOption[]): void;
   disabled: boolean;
-  isAdmin: boolean;
 }) {
   const listId = useId();
   const [query, setQuery] = useState("");
@@ -97,7 +95,7 @@ export function TagPicker({
               <span className="text-xs text-quiet">{TAG_KIND_LABEL[tag.kind]}</span>
               {tag.parentName && <span className="text-quiet">{tag.parentName} ›</span>}
               {tag.name}
-              {tag.pending && <span className="text-xs text-quiet">(승인 대기)</span>}
+              
               {!disabled && (
                 <button
                   type="button"
@@ -152,7 +150,7 @@ export function TagPicker({
                     <span className="text-xs text-quiet">{TAG_KIND_LABEL[tag.kind]}</span>
                     {tag.parentName && <span className="text-quiet">{tag.parentName} ›</span>}
                     {tag.name}
-                    {tag.pending && <span className="text-xs text-quiet">(승인 대기)</span>}
+                    
                   </button>
                 </li>
               ))}
@@ -169,7 +167,7 @@ export function TagPicker({
               )}
             </ul>
           )}
-          {creating && <NewTagForm name={query.trim()} isAdmin={isAdmin} onCreated={add} onCancel={() => setCreating(false)} />}
+          {creating && <NewTagForm name={query.trim()} onCreated={add} onCancel={() => setCreating(false)} />}
         </div>
       )}
     </div>
@@ -178,12 +176,10 @@ export function TagPicker({
 
 function NewTagForm({
   name,
-  isAdmin,
   onCreated,
   onCancel,
 }: {
   name: string;
-  isAdmin: boolean;
   onCreated(tag: TagOption): void;
   onCancel(): void;
 }) {
@@ -229,7 +225,7 @@ function NewTagForm({
     <div className="mt-2 flex flex-col gap-3 rounded-xl border border-line p-3">
       <p className="text-sm">
         새 태그 <strong>{name}</strong>
-        {!isAdmin && <span className="block text-xs text-quiet">운영자가 승인하기 전까지는 내 게시물에만 보여요.</span>}
+        <span className="block text-xs text-quiet">만들면 바로 모두에게 보여요. 같은 대상의 태그가 이미 있으면 그걸 붙여 주세요.</span>
       </p>
       {similarTags.length > 0 && (
         <div role="status" className="flex flex-col gap-2 rounded-lg bg-slot p-3">
@@ -248,7 +244,7 @@ function NewTagForm({
                   <span className="text-xs text-quiet">{TAG_KIND_LABEL[tag.kind]}</span>
                   {tag.parentName && <span className="text-quiet">{tag.parentName} ›</span>}
                   {tag.name}
-                  {tag.pending && <span className="text-xs text-quiet">(승인 대기)</span>}
+                  
                   <span className="text-xs text-accent">붙이기</span>
                 </button>
               </li>

@@ -61,7 +61,7 @@ export default async function AdminHomePage() {
     { href: "/admin/tags?view=similar", title: "비슷한 태그 짝", help: "같은 대상이면 합치기", count: chores.similarPairs },
     { href: "/admin/tags?view=nolocation&kind=place", title: "위치 없는 장소", help: "주소로 찾아 지도에 올리기", count: chores.placesWithoutLocation },
     { href: "/admin/events", title: "장소 없는 행사", help: "열리는 곳을 고르면 지도에 나와요", count: chores.eventsWithoutPlace },
-    { href: "/admin/tags?view=pending", title: "승인 대기 태그", help: "회원이 만든 태그", count: chores.pendingTags },
+    { href: "/admin/tags?view=pending", title: "확인 전 새 태그", help: "회원이 만든 태그 (이미 공개 중) · 확인 · 합치기 · 지우기", count: chores.pendingTags },
   ];
 
   return (

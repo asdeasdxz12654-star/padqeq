@@ -93,7 +93,6 @@ export function BundleCard({
   index,
   bundle,
   photos,
-  isAdmin,
   viewerHandle,
   currentYear,
   hasPrev,
@@ -110,7 +109,6 @@ export function BundleCard({
   index: number;
   bundle: Bundle;
   photos: Photo[];
-  isAdmin: boolean;
   viewerHandle: string | null;
   currentYear: number;
   hasPrev: boolean;
@@ -321,7 +319,7 @@ export function BundleCard({
         </div>
       )}
 
-      <TagPicker value={bundle.tags} onChange={(tags) => set({ tags })} disabled={locked} isAdmin={isAdmin} />
+      <TagPicker value={bundle.tags} onChange={(tags) => set({ tags })} disabled={locked} />
       <CreditEditor value={bundle.credits} onChange={(credits) => set({ credits })} disabled={locked} viewerHandle={viewerHandle} />
 
       <CategoryAndConsent

@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "태그 관리" };
 
 // 태그 관리 (최고 관리자): 목록 · 승인 대기 · 위치 없는 장소/행사 · 비슷한 이름 짝(합치기로 이어짐)
 
-const VIEWS = { all: "전체", pending: "승인 대기", nolocation: "위치 없는 장소 · 행사", similar: "비슷한 이름" } as const;
+const VIEWS = { all: "전체", pending: "확인 전 새 태그", nolocation: "위치 없는 장소 · 행사", similar: "비슷한 이름" } as const;
 type View = keyof typeof VIEWS;
 const KINDS = Object.keys(TAG_KIND_LABEL) as TagKind[];
 const LIST_LIMIT = 200;
@@ -129,7 +129,7 @@ export default async function AdminTagsPage({ searchParams }: PageProps<"/admin/
               </Link>
               <span className="flex flex-wrap items-center gap-1.5 text-xs">
                 <span className="rounded-full border border-line px-2 py-0.5">{TAG_KIND_LABEL[t.kind]}</span>
-                {t.status === "pending" && <span className="rounded-full bg-warn-soft px-2 py-0.5 text-warn">승인 대기</span>}
+                {t.status === "pending" && <span className="rounded-full bg-warn-soft px-2 py-0.5 text-warn">확인 전</span>}
                 {(t.kind === "place" || t.kind === "event") && (
                   <span className={`rounded-full px-2 py-0.5 ${t.lat === null ? "border border-line text-quiet" : "bg-accent/20"}`}>{t.lat === null ? "위치 없음" : "지도에 있음"}</span>
                 )}
@@ -181,14 +181,14 @@ function SimilarList({ pairs, byId }: { pairs: SimilarPair[]; byId: Map<string, 
                   <Link href={tagHref(keep.slug)} className="font-semibold hover:underline">
                     {keep.name}
                   </Link>
-                  <span className="text-quiet"> (게시물 {keep.post_tags[0]?.count ?? 0}{keep.status === "pending" ? " · 승인 대기" : ""})</span>
+                  <span className="text-quiet"> (게시물 {keep.post_tags[0]?.count ?? 0}{keep.status === "pending" ? " · 확인 전" : ""})</span>
                 </span>
                 <span className="break-words">
                   <span className="text-quiet">없앨 태그 </span>
                   <Link href={tagHref(drop.slug)} className="font-semibold hover:underline">
                     {drop.name}
                   </Link>
-                  <span className="text-quiet"> (게시물 {drop.post_tags[0]?.count ?? 0}{drop.status === "pending" ? " · 승인 대기" : ""})</span>
+                  <span className="text-quiet"> (게시물 {drop.post_tags[0]?.count ?? 0}{drop.status === "pending" ? " · 확인 전" : ""})</span>
                 </span>
               </div>
               {mergeable ? (

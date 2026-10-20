@@ -11,7 +11,7 @@ export function ApproveButton({ tagId, name }: { tagId: string; name: string }) 
       <button
         type="button"
         disabled={pending}
-        aria-label={`${name} 태그 승인`}
+        aria-label={`${name} 태그 확인 완료`}
         onClick={() =>
           startTransition(async () => {
             const result = await approveTag(tagId);
@@ -20,7 +20,7 @@ export function ApproveButton({ tagId, name }: { tagId: string; name: string }) 
         }
         className="min-h-9 rounded-lg bg-accent px-3 text-xs font-semibold text-on-accent disabled:opacity-50"
       >
-        {pending ? "승인 중…" : "승인"}
+        {pending ? "처리 중…" : "확인 완료"}
       </button>
       {error && (
         <span role="alert" className="text-xs text-danger">

@@ -41,6 +41,7 @@ export const getAdminPending = cache(async (): Promise<AdminPending> => {
     events,
     claims,
     tags,
-    total: reports + appeals + comments + board + messages + inquiries + events + claims + tags,
+    // 새 태그는 이미 공개 중이라 급한 일에 넣지 않는다 (운영 첫 화면 '정리할 일'에서 본다)
+    total: reports + appeals + comments + board + messages + inquiries + events + claims,
   };
 });

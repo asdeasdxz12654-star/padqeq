@@ -51,12 +51,10 @@ const newBundle = (photoIds: string[], common: Common, audience = loadAudienceDe
 });
 
 export function UploadStudio({
-  isAdmin,
   viewerHandle,
   currentYear,
   initialTags = [],
 }: {
-  isAdmin: boolean;
   viewerHandle: string | null;
   currentYear: number;
   /** 처음부터 붙일 태그 (행사 끝난 뒤 알림에서 오면 행사 · 장소 태그) */
@@ -344,7 +342,7 @@ export function UploadStudio({
         <details className="rounded-2xl border border-line p-4">
           <summary className="cursor-pointer text-sm font-semibold">공통 설정 · 모든 묶음에 한 번에 적용</summary>
           <div className="mt-4 flex flex-col gap-4">
-            <TagPicker value={common.tags} onChange={(tags) => setCommon((c) => ({ ...c, tags }))} disabled={false} isAdmin={isAdmin} />
+            <TagPicker value={common.tags} onChange={(tags) => setCommon((c) => ({ ...c, tags }))} disabled={false} />
             <CreditEditor
               value={common.credits}
               onChange={(credits) => setCommon((c) => ({ ...c, credits }))}
@@ -375,7 +373,6 @@ export function UploadStudio({
           index={index}
           bundle={bundle}
           photos={photosOf(bundle)}
-          isAdmin={isAdmin}
           viewerHandle={viewerHandle}
           currentYear={currentYear}
           hasPrev={index > 0}
