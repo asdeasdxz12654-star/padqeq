@@ -460,7 +460,7 @@ function AdvancedFields({
   return (
     <details className="rounded-xl border border-line px-4 py-2">
       <summary className="flex min-h-10 cursor-pointer list-none items-center gap-2 text-sm [&::-webkit-details-marker]:hidden">
-        <span className="font-semibold">고급 설정</span>
+        <span className="shrink-0 font-semibold">고급 설정</span>
         <span className="min-w-0 truncate text-xs text-quiet">{summary.join(" · ")}</span>
         <span aria-hidden="true" className="ml-auto text-quiet">
           ▾
