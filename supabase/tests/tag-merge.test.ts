@@ -57,15 +57,19 @@ const merge = (user: string, from: string, to: string, note = "같은 장소") =
   as(user, "select merge_tags($1, $2, $3) as r", [tag[from], tag[to], note]).then((rows) => (rows[0] as { r: Record<string, unknown> }).r);
 
 describe("태그 합치기", () => {
-  it("최고 관리자만, 이유와 함께, 같은 종류 · 공식 태그로만", async () => {
+  it("최고 관리자만, 이유와 함께, 같은 종류 태그로만", async () => {
     await expect(merge(FAN, "exco-addr", "exco")).rejects.toThrow(/admin_only/);
     await expect(merge(MOD, "exco-addr", "exco")).rejects.toThrow(/admin_only/);
     await expect(merge(ADMIN, "exco-addr", "exco", " ")).rejects.toThrow(/note_required/);
     await expect(merge(ADMIN, "exco", "exco")).rejects.toThrow(/same_tag/);
     await expect(merge(ADMIN, "exco", "genshin")).rejects.toThrow(/kind_mismatch/);
-    await db.query("update public.tags set status = 'pending' where slug = 'park'");
-    await expect(merge(ADMIN, "exco", "park")).rejects.toThrow(/target_not_official/);
     await expect(as(FAN, "delete from tags")).rejects.toThrow(/permission denied/);
+  });
+
+  it("확인 전 새 태그로도 바로 합치고, 남길 태그는 확인됨(공식)이 된다", async () => {
+    await db.query("update public.tags set status = 'pending' where slug in ('park', 'exco-addr')");
+    await merge(ADMIN, "exco-addr", "park");
+    expect((await db.query<{ status: string }>("select status from tags where slug = 'park'")).rows[0]!.status).toBe("official");
   });
 
   it("게시물 · 팔로우 · 별칭 · 위치 · 예전 주소를 옮기고 없앤 태그는 지운다", async () => {
