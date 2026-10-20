@@ -21,7 +21,7 @@ export type BundleState =
   | { kind: "edit" }
   | { kind: "uploading"; sent: number; total: number }
   | { kind: "publishing" }
-  | { kind: "published"; postId: string }
+  | { kind: "published"; postId: string; /** 게시 완료 화면에 쓰는 대표 사진 (이 기기에서만) */ cover?: string }
   | { kind: "error"; message: string };
 
 export type Bundle = {

@@ -165,13 +165,10 @@ export function useConverter({ stage = false }: { stage?: boolean } = {}) {
     pump.current();
 
     const created = urls.current;
-    const leftovers = slots.current;
     return () => {
       w.terminate();
       created.forEach((url) => URL.revokeObjectURL(url));
-      // 화면을 떠나면 게시하지 않은 자리를 정리한다 (못 지운 것은 3일 뒤 자동 정리)
-      if (leftovers.size) void discardUploadSlots([...leftovers.values()]);
-      leftovers.clear();
+      // 화면을 떠나도 게시하지 않은 자리는 남겨 둔다: 다시 오면 '이어서 올리기'로 쓰고, 안 쓰면 3일 뒤 자동 정리
     };
   }, [stage, stageUpload, patch]);
 
@@ -253,7 +250,21 @@ export function useConverter({ stage = false }: { stage?: boolean } = {}) {
     });
   }, []);
 
-  return { photos, addFiles, release, retry };
+  /** 이어서 올리기: 준비가 끝난 사진(업로드 자리에 있음)을 저장해 둔 정보로 되살린다 */
+  const restore = useCallback((saved: { photo: Omit<Photo, "preview">; thumb: Blob | null }[]) => {
+    const back: Record<string, Photo> = {};
+    for (const { photo, thumb } of saved) {
+      if (photo.status !== "ready" || !photo.slotId) continue;
+      const preview = thumb ? URL.createObjectURL(thumb) : undefined;
+      if (preview) urls.current.add(preview);
+      slots.current.set(photo.id, photo.slotId);
+      back[photo.id] = { ...photo, ...(preview && { preview }) };
+    }
+    setPhotos((all) => ({ ...all, ...back }));
+    return Object.keys(back);
+  }, []);
+
+  return { photos, addFiles, release, retry, restore };
 }
 
 async function readTakenAt(file: File): Promise<string | null> {

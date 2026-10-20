@@ -3,12 +3,15 @@
 import { useLeaveWarning } from "@/lib/ui/use-details-dismiss";
 import { loadAudienceDefaults } from "./audience-defaults";
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import Link from "next/link";
+import { ShareButton } from "@/components/share-button";
 import { groupByShootingTime, timeRange } from "@/lib/photos/grouping";
 import { MAX_PHOTOS_PER_POST } from "@/lib/photos/post-input";
 import { type Category, peopleByDefault } from "@/lib/photos/write-defaults";
 import { type Bundle, BundleCard, bundleProblem, effectiveYear, emptyConsent, titleFor } from "./bundle-card";
-import { discardDraft } from "./actions";
+import { discardDraft, discardUploadSlots } from "./actions";
+import { clearDraft, DRAFT_DAYS, loadDraft, type SavedPhoto, saveDraft, type UploadDraft } from "./draft-store";
 import type { CreditDraft } from "./credit-editor";
 import { toCreditInput } from "./credit-editor";
 import { localDate, publishBundle } from "./publish-bundle";
@@ -64,7 +67,14 @@ export function UploadStudio({
 }) {
   const router = useRouter();
   const inputId = useId();
-  const { photos, addFiles, release, retry } = useConverter({ stage: true });
+  const { photos, addFiles, release, retry, restore } = useConverter({ stage: true });
+  // 이어서 올리기: 이 기기에 저장해 둔 지난번 내용 (계정마다 따로)
+  const draftKey = `upload:${viewerHandle ?? "me"}`;
+  const [resume, setResume] = useState<UploadDraft | null>(null);
+  const thumbs = useRef(new Map<string, Blob>());
+  // 전체 진행 · 남은 시간 (사진을 고른 때부터)
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [now, setNow] = useState(0);
   const [bundles, setBundles] = useState<Bundle[]>([]);
   const [current, setCurrent] = useState(0);
   const [notice, setNotice] = useState<string | null>(null);
@@ -113,6 +123,9 @@ export function UploadStudio({
   async function onFiles(list: FileList | null) {
     if (!list?.length) return;
     setNotice(null);
+    // 새로 고르면 지난번 내용은 이어 쓰지 않는다 (미리 올린 사진은 3일 뒤 자동 정리)
+    setResume(null);
+    if (startedAt === null || Object.values(photos).every((p) => p.status === "ready")) setStartedAt(Date.now());
     const { added, skipped } = await addFiles(Array.from(list), MAX_SESSION_PHOTOS - sessionCount);
     if (skipped.length) setNotice(`올리지 않은 파일: ${skipped.join(", ")}`);
     if (!added.length) return;
@@ -255,7 +268,9 @@ export function UploadStudio({
           onPublishing: () => update(bundle.id, { state: { kind: "publishing" } }),
         },
       );
-      update(bundle.id, { state: { kind: "published", postId } });
+      // 게시 완료 화면에 쓸 대표 사진은 따로 남긴다 (변환본은 아래에서 놓는다)
+      const cover = list[0]?.preview ? await fetch(list[0].preview).then((r) => r.blob()).then((b) => URL.createObjectURL(b)).catch(() => undefined) : undefined;
+      update(bundle.id, { state: { kind: "published", postId, cover } });
       // 게시한 사진의 변환본은 더 들고 있을 필요가 없다
       release(bundle.photoIds, { published: true });
       return true;
@@ -286,7 +301,83 @@ export function UploadStudio({
     }
     release(pending.flatMap((b) => b.photoIds));
     setBundles((list) => list.filter((b) => b.state.kind === "published"));
+    void clearDraft(draftKey);
   }
+
+  // 지난번 내용 불러오기 (처음 한 번)
+  useEffect(() => {
+    let alive = true;
+    void loadDraft(draftKey).then((d) => alive && d && setResume(d));
+    return () => {
+      alive = false;
+    };
+  }, [draftKey]);
+
+  // 적은 내용 · 준비가 끝난 사진을 이 기기에 저장 (잠깐 멈췄을 때)
+  useEffect(() => {
+    if (resume) return;
+    const timer = setTimeout(async () => {
+      const open = bundles.filter((b) => b.state.kind !== "published");
+      const ids = open.flatMap((b) => b.photoIds);
+      const readyPhotos = ids.map((id) => photos[id]).filter((p): p is Photo => p?.status === "ready" && Boolean(p.slotId));
+      if (readyPhotos.length === 0) {
+        if (bundles.length === 0 || open.length === 0) void clearDraft(draftKey);
+        return;
+      }
+      const readyIds = new Set(readyPhotos.map((p) => p.id));
+      const saved: SavedPhoto[] = [];
+      for (const p of readyPhotos) {
+        if (!thumbs.current.has(p.id) && p.preview) {
+          const blob = await fetch(p.preview).then((r) => r.blob()).catch(() => null);
+          if (blob) thumbs.current.set(p.id, blob);
+        }
+        // 미리보기 주소(blob:)는 다시 열면 쓸 수 없어 그림(thumb)으로 따로 저장한다
+        const { preview, ...rest } = p;
+        void preview;
+        saved.push({ ...rest, thumb: thumbs.current.get(p.id) ?? null });
+      }
+      await saveDraft(draftKey, {
+        savedAt: new Date().toISOString(),
+        category,
+        bundles: open.map((b) => ({ ...b, photoIds: b.photoIds.filter((id) => readyIds.has(id)), state: { kind: "edit" } as const })).filter((b) => b.photoIds.length > 0),
+        photos: saved,
+        missing: ids.length - readyPhotos.length,
+      });
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [bundles, photos, resume, draftKey, category]);
+
+  function resumeDraft(d: UploadDraft) {
+    const back = new Set(restore(d.photos.map(({ thumb, ...photo }) => ({ photo, thumb }))));
+    const next = d.bundles.map((b) => ({ ...b, photoIds: b.photoIds.filter((id) => back.has(id)) })).filter((b) => b.photoIds.length > 0);
+    setBundles(next);
+    setCurrent(0);
+    setResume(null);
+    if (d.missing > 0) setNotice(`준비가 끝나지 않았던 사진 ${d.missing}장은 다시 골라 주세요.`);
+  }
+
+  async function discardResume(d: UploadDraft) {
+    setResume(null);
+    void discardUploadSlots(d.photos.flatMap((p) => (p.slotId ? [p.slotId] : [])));
+    for (const b of d.bundles) if (b.draft) await discardDraft({ postId: b.draft.postId });
+    await clearDraft(draftKey);
+  }
+
+  // 다 게시했으면 저장해 둔 내용은 지운다
+  const allPublished = bundles.length > 0 && bundles.every((b) => b.state.kind === "published");
+  useEffect(() => {
+    if (allPublished) void clearDraft(draftKey);
+  }, [allPublished, draftKey]);
+
+  // 전체 진행: 준비 중인 사진이 있을 때만 시계를 돌린다 (남은 시간 계산)
+  const openPhotos = bundles.filter((b) => b.state.kind !== "published").flatMap(photosOf);
+  const readyCount = openPhotos.filter((p) => p.status === "ready").length;
+  const preparing = openPhotos.some((p) => p.status === "converting" || p.status === "uploading");
+  useEffect(() => {
+    if (!preparing) return;
+    const timer = setInterval(() => setNow(Date.now()), 2000);
+    return () => clearInterval(timer);
+  }, [preparing]);
 
   const ready = pending.filter((b) => bundleProblem(b, photosOf(b)) === null);
   const firstProblem = pending.map((b) => bundleProblem(b, photosOf(b))).find((p) => p !== null) ?? null;
@@ -349,6 +440,10 @@ export function UploadStudio({
         }}
       />
 
+      {resume && bundles.length === 0 && <ResumeCard draft={resume} onResume={() => resumeDraft(resume)} onDiscard={() => void discardResume(resume)} />}
+
+      {preparing && <ProgressLine photos={openPhotos} readyCount={readyCount} startedAt={startedAt} now={now} />}
+
       {bundles.length === 0 && (
         <label
           htmlFor={inputId}
@@ -363,7 +458,8 @@ export function UploadStudio({
             +
           </span>
           <span className="font-semibold">
-            사진 고르기<span className="hidden md:inline"> · 끌어다 놓아도 돼요</span>
+            {resume ? "새로 사진 고르기" : "사진 고르기"}
+            <span className="hidden md:inline"> · 끌어다 놓아도 돼요</span>
           </span>
           <span className="text-xs leading-relaxed text-quiet">
             JPEG · HEIC · PNG · WebP · AVIF · RAW, 한 번에 {MAX_SESSION_PHOTOS}장까지 · 게시물 하나에 {MAX_PHOTOS_PER_POST}장
@@ -393,7 +489,7 @@ export function UploadStudio({
         </div>
       )}
 
-      {bundles.length > 1 && (
+      {!allDone && bundles.length > 1 && (
         <div role="tablist" aria-label="게시물" className="-mx-4 flex gap-1.5 overflow-x-auto px-4 md:mx-0 md:px-0">
           {bundles.map((b, i) => {
             const done = b.state.kind === "published";
@@ -414,7 +510,7 @@ export function UploadStudio({
         </div>
       )}
 
-      {shown && (
+      {shown && !allDone && (
         <BundleCard
           key={shown.id}
           bundle={shown}
@@ -434,12 +530,15 @@ export function UploadStudio({
       )}
 
       {allDone && (
-        <p role="status" className="text-sm text-quiet">
-          모두 게시했어요. 사진을 더 고르면 새 게시물로 이어서 올릴 수 있어요.{" "}
-          <label htmlFor={inputId} className="cursor-pointer font-semibold text-accent underline underline-offset-4">
-            사진 더 고르기
-          </label>
-        </p>
+        <DoneScreen
+          bundles={bundles}
+          viewerHandle={viewerHandle}
+          onMore={() => {
+            setBundles([]);
+            setCurrent(0);
+            document.getElementById(inputId)?.click();
+          }}
+        />
       )}
 
       {/* 휴대폰: 아래 탭 위에 붙는 게시 줄 (PC는 오른쪽 칸 맨 아래) */}
@@ -449,5 +548,123 @@ export function UploadStudio({
         </div>
       )}
     </div>
+  );
+}
+
+const savedFormat = new Intl.DateTimeFormat("ko-KR", { month: "long", day: "numeric", hour: "numeric", minute: "2-digit" });
+
+/** 지난번 올리던 내용 (이 기기에 3일) */
+function ResumeCard({ draft, onResume, onDiscard }: { draft: UploadDraft; onResume(): void; onDiscard(): void }) {
+  const first = draft.bundles[0];
+  const thumbs = draft.photos.slice(0, 4).flatMap((p) => (p.thumb ? [{ id: p.id, url: URL.createObjectURL(p.thumb) }] : []));
+  const facts = [
+    `사진 ${draft.photos.length}장`,
+    first?.title ? `제목 '${first.title}'` : null,
+    first?.tags.length ? `태그 ${first.tags.length}` : null,
+    first?.hasPeople && first.consent.subjectLabel ? "동의 기록 있음" : null,
+    draft.bundles.length > 1 ? `게시물 ${draft.bundles.length}개` : null,
+  ].filter(Boolean);
+  return (
+    <section aria-label="올리던 사진" className="flex flex-col gap-3 rounded-2xl border border-accent bg-accent-soft/40 p-4">
+      <p className="font-semibold">올리던 사진이 있어요</p>
+      <p className="text-xs text-quiet">
+        {savedFormat.format(new Date(draft.savedAt))} · {facts.join(" · ")}
+      </p>
+      {thumbs.length > 0 && (
+        <ul className="grid max-w-sm grid-cols-4 gap-1.5">
+          {thumbs.map((t, i) => (
+            <li key={t.id} className="relative aspect-square overflow-hidden rounded-lg bg-slot">
+              {/* 이 기기에 저장해 둔 미리보기(blob:) */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={t.url} alt="" className="size-full object-cover" />
+              {i === 3 && draft.photos.length > 4 && (
+                <span className="absolute inset-0 flex items-center justify-center bg-black/45 text-sm font-bold text-white">+{draft.photos.length - 3}</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="flex flex-wrap items-center gap-3">
+        <button type="button" onClick={onResume} className="min-h-11 rounded-xl bg-accent px-5 font-semibold text-on-accent">
+          이어서 올리기
+        </button>
+        <button type="button" onClick={onDiscard} className="min-h-11 text-sm text-quiet underline underline-offset-4">
+          지우고 새로 시작
+        </button>
+      </div>
+      <p className="text-xs text-quiet">이 기기에서만 기억해요 · {DRAFT_DAYS}일이 지나면 저절로 지워져요</p>
+    </section>
+  );
+}
+
+/** 전체 진행 한 줄: 준비 중 17 / 25 · 약 1분 남음 */
+function ProgressLine({ photos, readyCount, startedAt, now }: { photos: Photo[]; readyCount: number; startedAt: number | null; now: number }) {
+  const total = photos.length;
+  const uploading = photos.filter((p) => p.status === "uploading").length;
+  const converting = photos.filter((p) => p.status === "converting").length;
+  const failed = photos.filter((p) => p.status === "error").length;
+  const elapsed = startedAt && now > startedAt ? now - startedAt : 0;
+  const left = readyCount >= 2 && elapsed > 0 ? ((elapsed / readyCount) * (total - readyCount - failed)) / 1000 : null;
+  const eta = left === null ? null : left < 60 ? "1분 안" : `약 ${Math.round(left / 60)}분`;
+  const pct = (n: number) => `${(n / Math.max(total, 1)) * 100}%`;
+  return (
+    <div role="status" className="flex flex-col gap-1.5 rounded-xl bg-surface px-3.5 py-2.5 text-sm">
+      <p className="flex items-baseline justify-between gap-2">
+        <strong>
+          사진 준비 중 · {readyCount} / {total}
+        </strong>
+        {eta && <span className="text-xs text-quiet">{eta} 남음</span>}
+      </p>
+      <div aria-hidden="true" className="flex h-1.5 overflow-hidden rounded-full bg-line">
+        <span className="bg-emerald-500" style={{ width: pct(readyCount) }} />
+        <span className="bg-accent" style={{ width: pct(uploading) }} />
+      </div>
+      <p className="text-xs text-quiet">
+        준비됨 {readyCount} · 올리는 중 {uploading} · 기다림 {converting}
+        {failed > 0 && ` · 다시 시도 필요 ${failed}`} — 기다리는 동안 계속 적어도 돼요
+      </p>
+    </div>
+  );
+}
+
+/** 게시 완료: 대표 사진 · 카카오톡으로 보내기 · 함께한 사람 안내 · 글 보기 · 더 올리기 */
+function DoneScreen({ bundles, viewerHandle, onMore }: { bundles: Bundle[]; viewerHandle: string | null; onMore(): void }) {
+  const done = bundles.flatMap((b) => (b.state.kind === "published" ? [{ bundle: b, postId: b.state.postId, cover: b.state.cover }] : []));
+  const first = done[0];
+  if (!first) return null;
+  const others = [...new Set(done.flatMap((d) => d.bundle.credits.flatMap((c) => (c.kind === "member" && c.handle !== viewerHandle ? [`@${c.handle}`] : []))))];
+  return (
+    <section aria-labelledby="done-heading" className="mx-auto flex w-full max-w-xl flex-col gap-4">
+      <h2 id="done-heading" className="text-xl font-bold">
+        {done.length > 1 ? `${done.length}개 게시했어요` : "게시했어요"}
+      </h2>
+      <ul className="flex flex-col gap-4">
+        {done.map((d, i) => (
+          <li key={d.postId} className="flex flex-col gap-2">
+            {d.cover && (
+              // 이 기기에서 만든 미리보기(blob:)
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={d.cover} alt="" className={`w-full rounded-2xl bg-slot object-cover ${i === 0 && done.length === 1 ? "aspect-[4/3]" : "aspect-[3/1]"}`} />
+            )}
+            <div className="flex flex-wrap items-center gap-2">
+              <strong className="min-w-0 flex-1 truncate">{d.bundle.title || "제목 없는 글"}</strong>
+              <ShareButton path={`/p/${d.postId}`} title={d.bundle.title} />
+              <Link href={`/p/${d.postId}`} className="inline-flex min-h-10 items-center rounded-full border border-line px-4 text-sm hover:border-quiet">
+                글 보기
+              </Link>
+            </div>
+          </li>
+        ))}
+      </ul>
+      {others.length > 0 && (
+        <p className="rounded-xl border border-line px-4 py-3 text-sm">
+          <strong>함께한 사람에게 알림이 갔어요</strong>
+          <span className="block text-xs text-quiet">{others.join(" · ")} — 승인하면 그분 프로필에도 보여요</span>
+        </p>
+      )}
+      <button type="button" onClick={onMore} className="min-h-12 rounded-xl border border-line font-semibold hover:border-quiet">
+        사진 더 올리기
+      </button>
+    </section>
   );
 }
