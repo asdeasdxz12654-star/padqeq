@@ -59,7 +59,7 @@ export function AnswerForm({ id, initial }: { id: string; initial: string }) {
       />
       <Feedback error={error} done={done} />
       <button type="submit" disabled={!reply.trim() || pending} className={`${primary} self-start`}>
-        {pending ? "보내는 중…" : initial ? "답변 고치기" : "답변하기"}
+        {pending ? "보내는 중…" : initial ? "답변 수정" : "답변하기"}
       </button>
     </form>
   );
@@ -146,7 +146,7 @@ export function NoticeForm({ notice }: { notice: NoticeDraft }) {
       <Feedback error={error} done={null} />
       <div className="flex gap-2">
         <button type="submit" disabled={!title.trim() || !body.trim() || pending} className={primary}>
-          {pending ? "저장 중…" : notice.id ? "고치기" : "올리기"}
+          {pending ? "저장 중…" : notice.id ? "수정" : "올리기"}
         </button>
         {notice.id && <DeleteNoticeButton id={notice.id} />}
       </div>
@@ -179,7 +179,7 @@ function DeleteNoticeButton({ id }: { id: string }) {
 }
 
 const SWITCHES = [
-  ["readOnly", "읽기 전용", "회원은 보기만 할 수 있어요. 올리기 · 고치기 · 신고 · 가입이 모두 멈춰요."],
+  ["readOnly", "읽기 전용", "회원은 보기만 할 수 있어요. 올리기 · 수정 · 신고 · 가입이 모두 멈춰요."],
   ["signupClosed", "가입 중단", "새 가입만 멈춰요. 이미 가입한 회원은 그대로 써요."],
   ["uploadsClosed", "업로드 중단", "새 게시물 · 사진 올리기만 멈춰요."],
 ] as const;

@@ -47,7 +47,7 @@ export default async function WritePage({ searchParams }: PageProps<"/community/
       <Link href={editId ? `/community/${editId}` : `/community${board === "free" ? "" : `?board=${board}`}`} className="text-sm text-quiet hover:underline">
         ‹ 돌아가기
       </Link>
-      <h1 className="mt-4 text-2xl font-bold">{editId ? "글 고치기" : WRITE_TITLE[board]}</h1>
+      <h1 className="mt-4 text-2xl font-bold">{editId ? "글 수정" : WRITE_TITLE[board]}</h1>
       {!editId && <p className="mt-2 text-sm text-quiet">{BOARD_LABEL[board].help}</p>}
       {viewer.restriction && <p className="mt-3 text-sm text-danger">이용이 제한된 기간이라 글을 쓸 수 없어요.</p>}
       <div className="mt-6">

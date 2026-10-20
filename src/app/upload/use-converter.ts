@@ -97,7 +97,7 @@ export function useConverter({ stage = false }: { stage?: boolean } = {}) {
         patch(id, { status: "ready", progress: 1, slotId, result: { ...result, files: null } });
       } catch (error) {
         failed.current.set(id, result);
-        patch(id, { status: "error", error: error instanceof Error ? error.message : "사진을 올리지 못했어요", retryable: true });
+        patch(id, { status: "error", error: error instanceof Error ? error.message : "사진을 준비하지 못했어요", retryable: true });
       } finally {
         waiting.current--;
         pump.current();

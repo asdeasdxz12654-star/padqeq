@@ -66,7 +66,7 @@ export default async function CollectionPage({ params }: PageProps<"/c/[id]">) {
         )}
         {isOwner && (
           <details className="mt-2 max-w-xl rounded-xl border border-line p-4">
-            <summary className="cursor-pointer text-sm font-semibold">컬렉션 고치기</summary>
+            <summary className="cursor-pointer text-sm font-semibold">컬렉션 수정</summary>
             <div className="mt-4">
               <CollectionForm
                 collection={{ id: collection.id, title: collection.title, description: collection.description, isPublic: collection.is_public }}

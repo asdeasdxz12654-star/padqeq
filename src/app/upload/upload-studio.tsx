@@ -260,7 +260,7 @@ export function UploadStudio({
       release(bundle.photoIds, { published: true });
       return true;
     } catch (e) {
-      update(bundle.id, { state: { kind: "error", message: e instanceof Error ? e.message : "업로드하지 못했어요" } });
+      update(bundle.id, { state: { kind: "error", message: e instanceof Error ? e.message : "게시하지 못했어요" } });
       return false;
     }
   }
@@ -309,7 +309,7 @@ export function UploadStudio({
         className="min-h-12 w-full rounded-xl bg-accent px-5 font-bold text-on-accent disabled:opacity-50"
       >
         {working?.kind === "uploading"
-          ? `올리는 중… ${working.sent} / ${working.total}`
+          ? `게시하는 중… ${working.sent} / ${working.total}`
           : running
             ? "게시하는 중…"
             : pending.length > 1
@@ -318,7 +318,15 @@ export function UploadStudio({
                 ? "다시 시도"
                 : "게시"}
       </button>
-      {!running && firstProblem && <p className="text-center text-xs text-quiet">{firstProblem}</p>}
+      {!running &&
+        firstProblem &&
+        (firstProblem.startsWith("동의 기록") ? (
+          <button type="button" onClick={() => document.getElementById("consent")?.scrollIntoView({ behavior: "smooth", block: "center" })} className="min-h-9 text-center text-xs text-accent underline underline-offset-2">
+            {firstProblem} ↑
+          </button>
+        ) : (
+          <p className="text-center text-xs text-quiet">{firstProblem}</p>
+        ))}
       {hasDrafts && !running && (
         <button type="button" onClick={() => void giveUpDrafts()} className="text-sm text-quiet underline underline-offset-4">
           남은 업로드 모두 그만두기
@@ -359,6 +367,8 @@ export function UploadStudio({
           </span>
           <span className="text-xs leading-relaxed text-quiet">
             JPEG · HEIC · PNG · WebP · AVIF · RAW, 한 번에 {MAX_SESSION_PHOTOS}장까지 · 게시물 하나에 {MAX_PHOTOS_PER_POST}장
+            <br />
+            원본 파일은 서버에 저장하지 않으니 따로 보관해 주세요
           </span>
         </label>
       )}

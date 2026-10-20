@@ -200,7 +200,7 @@ function CommentForm({
   const [body, setBody] = useState(initial);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
-  const label = editId ? "댓글 고치기" : parentId ? "답글 쓰기" : "댓글 쓰기";
+  const label = editId ? "댓글 수정" : parentId ? "답글 쓰기" : "댓글 쓰기";
 
   return (
     <form
@@ -240,7 +240,7 @@ function CommentForm({
           disabled={!body.trim() || pending}
           className="min-h-10 rounded-xl bg-accent px-4 text-sm font-semibold text-on-accent disabled:opacity-50"
         >
-          {pending ? "저장 중…" : editId ? "고치기" : parentId ? "답글 달기" : "댓글 달기"}
+          {pending ? "저장 중…" : editId ? "수정" : parentId ? "답글 달기" : "댓글 달기"}
         </button>
         {onDone && (
           <button type="button" onClick={onDone} className="min-h-10 rounded-xl border border-line px-4 text-sm">

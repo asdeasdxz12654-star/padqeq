@@ -139,7 +139,7 @@ export function BoardPostForm({ id, initial }: { id: string | null; initial: Boa
         disabled={pending || (casting && !guideRead)}
         className="min-h-11 self-start rounded-xl bg-accent px-6 font-semibold text-on-accent disabled:opacity-50"
       >
-        {pending ? "저장 중…" : id ? "고치기" : "올리기"}
+        {pending ? "저장 중…" : id ? "수정" : "올리기"}
       </button>
     </form>
   );

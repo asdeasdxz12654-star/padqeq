@@ -144,12 +144,12 @@ export function AddPhotos({ postId, room }: { postId: string; room: number }) {
             className="min-h-11 rounded-xl bg-accent px-5 text-sm font-semibold text-on-accent disabled:opacity-50"
           >
             {stage.kind === "uploading"
-              ? `올리는 중 ${stage.total ? Math.round((stage.sent / stage.total) * 100) : 0}%`
+              ? `사진 준비 중 ${stage.total ? Math.round((stage.sent / stage.total) * 100) : 0}%`
               : stage.kind === "finishing"
                 ? "확인하는 중…"
                 : converting
-                  ? "변환하는 중…"
-                  : `${list.length}장 올리기`}
+                  ? "사진 준비 중…"
+                  : `${list.length}장 더하기`}
           </button>
         )}
       </div>

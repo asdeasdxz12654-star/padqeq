@@ -41,7 +41,7 @@ export function PostActions({ id, mine, closed, isCasting, canReport }: { id: st
         {mine && (
           <>
             <Link href={`/community/write?edit=${id}`} className={small}>
-              고치기
+              수정
             </Link>
             {isCasting && (
               <button type="button" disabled={pending} className={small} onClick={() => run(() => closeBoardPost(id, !closed))}>
@@ -215,10 +215,10 @@ function ReplyItem({ postId, reply, viewerId, postAuthorId }: { postId: string; 
             run(() => editReply({ postId, id: reply.id, body }), () => setMode("idle"));
           }}
         >
-          <textarea value={body} onChange={(e) => setBody(e.target.value)} maxLength={2000} rows={2} aria-label="답글 고치기" className="rounded-xl border border-line bg-bg px-3 py-2 text-base" />
+          <textarea value={body} onChange={(e) => setBody(e.target.value)} maxLength={2000} rows={2} aria-label="답글 수정" className="rounded-xl border border-line bg-bg px-3 py-2 text-base" />
           <div className="flex gap-2">
             <button type="submit" disabled={pending} className="min-h-10 rounded-xl bg-accent px-4 text-sm font-semibold text-on-accent">
-              고치기
+              수정
             </button>
             <button type="button" onClick={() => setMode("idle")} className="min-h-10 rounded-xl border border-line px-4 text-sm">
               취소

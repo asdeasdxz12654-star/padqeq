@@ -85,7 +85,9 @@ export function TagPicker({
   return (
     <div className="flex flex-col gap-2">
       <span className="text-sm font-medium">
-        태그 <span className="text-xs font-normal text-quiet">(작품 · 캐릭터 · 행사 · 장소, {MAX_TAGS_PER_POST}개까지)</span>
+        태그
+        {/* 한도는 거의 찼을 때만 */}
+        {value.length >= MAX_TAGS_PER_POST - 2 && <span className="ml-1 text-xs font-normal text-quiet">{MAX_TAGS_PER_POST - value.length}개 더</span>}
       </span>
 
       {value.length > 0 && (
@@ -137,7 +139,7 @@ export function TagPicker({
               setQuery(e.target.value);
               setCreating(false);
             }}
-            placeholder="예: 원신, 라이덴 쇼군, Raiden"
+            placeholder="작품 · 캐릭터 · 행사 · 장소 찾기"
             aria-autocomplete="list"
             aria-controls={listId}
             className={`${inputClass} w-full`}
@@ -225,14 +227,11 @@ function NewTagForm({
     <div className="mt-2 flex flex-col gap-3 rounded-xl border border-line p-3">
       <p className="text-sm">
         새 태그 <strong>{name}</strong>
-        <span className="block text-xs text-quiet">만들면 바로 모두에게 보여요. 같은 대상의 태그가 이미 있으면 그걸 붙여 주세요.</span>
+        {similarTags.length === 0 && <span className="block text-xs text-quiet">만들면 바로 모두에게 보여요.</span>}
       </p>
       {similarTags.length > 0 && (
         <div role="status" className="flex flex-col gap-2 rounded-lg bg-slot p-3">
-          <p className="text-sm">
-            비슷한 태그가 이미 있어요. 같은 대상이면 새로 만들지 말고 이걸 붙여 주세요.
-            <span className="block text-xs text-quiet">같은 장소 · 작품이 여러 태그로 나뉘면 사진이 흩어져요.</span>
-          </p>
+          <p className="text-sm">이미 있어요 · 같은 거면 이걸 붙여 주세요</p>
           <ul className="flex flex-wrap gap-1.5">
             {similarTags.map((tag) => (
               <li key={tag.id}>

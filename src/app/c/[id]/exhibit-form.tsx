@@ -33,7 +33,7 @@ export function ExhibitForm({ id, exhibited, note: initial }: { id: string; exhi
         )}
         <div className="flex gap-2">
           <button type="button" disabled={pending} onClick={() => run(true)} className="min-h-10 rounded-xl bg-accent px-4 font-semibold text-on-accent disabled:opacity-50">
-            {exhibited ? "소개 고치기" : "전시로 걸기"}
+            {exhibited ? "소개 수정" : "전시로 걸기"}
           </button>
           {exhibited && (
             <button type="button" disabled={pending} onClick={() => run(false)} className="min-h-10 rounded-xl border border-line px-4 disabled:opacity-50">

@@ -84,7 +84,8 @@ export function CreditEditor({
   return (
     <div className="flex flex-col gap-2">
       <span className="text-sm font-medium">
-        크레딧 <span className="text-xs font-normal text-quiet">(회원은 승인하면 표시 · {MAX_CREDITS_PER_POST}명까지)</span>
+        크레딧
+        {value.length >= MAX_CREDITS_PER_POST - 2 && <span className="ml-1 text-xs font-normal text-quiet">{MAX_CREDITS_PER_POST - value.length}명 더</span>}
       </span>
 
       {value.length > 0 && (
@@ -96,7 +97,7 @@ export function CreditEditor({
                 <span>
                   @{c.handle}
                   {c.displayName && <span className="text-quiet"> · {c.displayName}</span>}
-                  <span className="ml-2 text-xs text-quiet">{c.handle === viewerHandle ? "나" : c.status ? STATUS_LABEL[c.status] : "승인 요청"}</span>
+                  <span className="ml-2 text-xs text-quiet">{c.handle === viewerHandle ? "나" : c.status ? STATUS_LABEL[c.status] : "승인 요청 알림이 가요"}</span>
                 </span>
               ) : (
                 <span className="truncate">

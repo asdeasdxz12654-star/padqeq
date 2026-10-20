@@ -112,7 +112,7 @@ export async function uploadPhotoFiles(
       // 서버가 파일을 거부한 경우(4xx)는 다시 보내도 같다
       if (attempt >= 2 || (res.status >= 400 && res.status < 500)) {
         const detail = await res.json().catch(() => null);
-        throw new Error(detail?.error ?? "사진을 올리지 못했어요");
+        throw new Error(detail?.error ?? "사진을 준비하지 못했어요");
       }
     }
     onProgress(++sent, jobs.length);

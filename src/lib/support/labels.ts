@@ -32,7 +32,7 @@ export const UPLOAD_STAGE_LABEL: Record<UploadStage, { title: string; help: stri
 /** 모든 화면 위 안내 문구. 켜진 스위치가 없으면 null */
 export function switchBannerText(s: SiteSwitches): string | null {
   if (s.message) return s.readOnly || s.signupClosed || s.uploadsClosed ? s.message : null;
-  if (s.readOnly) return "지금은 사진 보기만 가능해요. 올리기 · 고치기는 잠시 후 다시 열립니다.";
+  if (s.readOnly) return "지금은 사진 보기만 가능해요. 올리기 · 수정은 잠시 후 다시 열립니다.";
   if (s.uploadsClosed && s.signupClosed) return "지금은 새 가입과 사진 올리기를 잠시 멈췄어요.";
   if (s.uploadsClosed) return "지금은 사진 올리기를 잠시 멈췄어요.";
   if (s.signupClosed) return "지금은 새 가입을 잠시 멈췄어요.";

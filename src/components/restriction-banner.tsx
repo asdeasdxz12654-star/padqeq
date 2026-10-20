@@ -16,7 +16,7 @@ export async function RestrictionBanner() {
           <span className="font-semibold">{dateFormat.format(new Date(until))}까지 이용이 제한돼요.</span> 사유: {reason}
         </p>
         <p className="mt-1 text-xs text-danger">
-          기간 동안 사진 올리기 · 글 고치기 · 신고 · 컬렉션 만들기를 할 수 없어요. 보기 · 저장 · 소명 · 탈퇴는 할 수 있어요. 이의가
+          기간 동안 사진 올리기 · 글 수정 · 신고 · 컬렉션 만들기를 할 수 없어요. 보기 · 저장 · 소명 · 탈퇴는 할 수 있어요. 이의가
           있으면{" "}
           <a href={`mailto:${OPERATOR.email}`} className="underline underline-offset-2">
             {OPERATOR.email}

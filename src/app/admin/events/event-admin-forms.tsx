@@ -36,7 +36,7 @@ export function EventAdminEditor({
         initial={initial}
         withTagSlug
         submit={(input) => saveEventAdmin(id, input)}
-        submitLabel={proposed ? "승인하고 등록" : id ? "고치기" : "등록"}
+        submitLabel={proposed ? "승인하고 등록" : id ? "수정" : "등록"}
         doneHref={doneHref}
       />
       {id && <EventPlaceForm key={id} eventId={id} current={placeId} places={places} />}

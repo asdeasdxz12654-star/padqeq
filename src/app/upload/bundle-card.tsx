@@ -57,12 +57,11 @@ export const emptyConsent = (): ConsentInput => ({
 /** 게시할 수 없는 이유 (없으면 null) */
 export function bundleProblem(bundle: Bundle, photos: Photo[]): string | null {
   if (photos.length === 0) return "사진이 없어요";
-  if (photos.some((p) => p.status === "error")) return "실패한 사진을 다시 시도하거나 빼 주세요";
-  if (photos.some((p) => p.status === "converting")) return "사진 변환 중";
-  if (photos.some((p) => p.status !== "ready")) return "사진 올리는 중";
+  if (photos.some((p) => p.status === "error")) return "준비 못 한 사진을 다시 시도하거나 빼 주세요";
+  if (photos.some((p) => p.status !== "ready")) return "사진 준비 중";
   if (bundle.hasPeople) {
     const c = bundle.consent;
-    if (!c.subjectLabel.trim() || !c.consentedOn) return "촬영 동의 기록을 입력해 주세요";
+    if (!c.subjectLabel.trim() || !c.consentedOn) return "동의 기록 칸을 채워 주세요";
     if (c.hasMinor && !c.guardianConsent) return "미성년자가 있으면 보호자 동의가 필요해요";
   }
   return null;
@@ -83,13 +82,14 @@ export function titleFor(bundle: Bundle, photos: Photo[]): string {
 }
 
 const RAW_LABEL = {
-  pending: "RAW 해석 중",
-  preview: "RAW · 내장 미리보기",
-  full: "RAW · 전체 현상",
-  "preview-small": "RAW · 작은 미리보기",
+  pending: "RAW 읽는 중",
+  preview: "RAW · 보통 화질",
+  full: "RAW · 고화질",
+  "preview-small": "RAW · 낮은 화질",
 } as const;
 
 const inputClass = "min-h-11 w-full rounded-xl border border-line bg-surface px-3 text-base outline-none focus:border-accent";
+const COMMENT_SHORT: Record<CommentPolicy, string> = { everyone: "댓글 모두", followers: "댓글 팔로워만", off: "댓글 끔" };
 const dayFormat = new Intl.DateTimeFormat("ko-KR", { month: "long", day: "numeric" });
 
 /**
@@ -188,7 +188,7 @@ export function BundleCard({
                   <span className="absolute right-1 bottom-1 rounded-md bg-bg/85 px-1.5 text-[10px] font-semibold">{RAW_LABEL[photo.raw.method]}</span>
                 )}
                 {(photo.status === "converting" || photo.status === "uploading") && (
-                  <span className="absolute inset-x-0 bottom-0 h-1 bg-line" title={photo.status === "uploading" ? "올리는 중" : "변환 중"}>
+                  <span className="absolute inset-x-0 bottom-0 h-1 bg-line" title="준비 중">
                     <span
                       className={`block h-full ${photo.status === "uploading" ? "bg-emerald-400" : "bg-accent"}`}
                       style={{ width: `${Math.round(photo.progress * 100)}%` }}
@@ -271,12 +271,12 @@ export function BundleCard({
           )}
         </ol>
         <p className="text-xs leading-relaxed text-quiet">
-          사진을 누르면 순서를 바꿀 수 있어요<span className="hidden md:inline"> (끌어서 옮겨도 돼요)</span> · 첫 사진이 대표 · 원본 파일은 서버에 저장하지 않으니 따로 보관해 주세요.
+          누르면 순서 · 대표를 바꿔요<span className="hidden md:inline"> · 끌어서 옮겨도 돼요</span>
         </p>
         {photos.some((p) => p.raw) && (
           <p className="rounded-xl bg-surface px-3 py-2 text-xs leading-relaxed text-quiet">
-            RAW 사진은 보정하지 않은 원본 그대로 올라가요. 색 · 밝기가 카메라 JPEG나 보정본과 다를 수 있어요.
-            {photos.some((p) => p.raw?.method === "preview-small") && " 휴대폰에서는 RAW 안의 작은 미리보기로 올라가니, 고화질은 PC에서 올려 주세요."}
+            RAW는 보정 전 원본 그대로 올라가요 (색 · 밝기가 보정본과 다를 수 있어요).
+            {photos.some((p) => p.raw?.method === "preview-small") && " 휴대폰에서는 낮은 화질로 올라가니, 고화질은 PC에서 올려 주세요."}
           </p>
         )}
       </div>
@@ -313,9 +313,7 @@ export function BundleCard({
         </div>
 
         <label className="flex flex-col gap-1.5 text-sm font-medium">
-          <span>
-            제목 <span className="text-xs font-normal text-quiet">(선택)</span>
-          </span>
+          제목
           <input
             maxLength={80}
             value={bundle.title}
@@ -326,9 +324,7 @@ export function BundleCard({
           />
         </label>
         <label className="flex flex-col gap-1.5 text-sm font-medium">
-          <span>
-            설명 <span className="text-xs font-normal text-quiet">(선택)</span>
-          </span>
+          설명
           <textarea rows={2} maxLength={2000} value={bundle.body} disabled={locked} onChange={(e) => set({ body: e.target.value })} className={`${inputClass} py-2`} />
         </label>
 
@@ -373,21 +369,21 @@ export function PeopleAndConsent({
           className="relative ml-auto h-6 w-11 shrink-0 rounded-full bg-line transition-colors peer-checked:bg-accent after:absolute after:top-0.5 after:left-0.5 after:size-5 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-5 peer-focus-visible:outline-2 peer-focus-visible:outline-accent"
         />
       </label>
-      {!hasPeople && <p className="-mt-2 text-xs text-quiet">사람이 나오면 켜 주세요. 켜면 촬영 동의 기록을 적어요.</p>}
       {hasPeople && (
-        <div className="flex flex-col gap-3 rounded-xl border border-line p-3">
-          <p className="text-xs font-semibold">
-            촬영 동의 기록 <span className="font-normal text-quiet">· 비공개 · 운영자만 열람</span>
-            <span className="block font-normal text-quiet">사진에 나온 분께 공개 게시 동의를 받았다는 기록이에요. 초상권 신고가 들어오면 운영자가 확인해요.</span>
-          </p>
+        <div id="consent" className="flex scroll-mt-24 flex-col gap-3 rounded-xl border border-line p-3">
+          <p className="text-xs text-quiet">사진에 나온 분께 받은 게시 동의를 남겨요 · 운영자만 봐요</p>
           {note}
           <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_10rem]">
             <label className="flex flex-col gap-1 text-sm">
-              사진 속 인물
+              <span>
+                사진 속 인물 <span className="text-xs text-accent">필수</span>
+              </span>
               <input maxLength={60} placeholder="예: 코스어 @moon_cos" value={consent.subjectLabel} onChange={(e) => setConsent({ subjectLabel: e.target.value })} className={inputClass} />
             </label>
             <label className="flex flex-col gap-1 text-sm">
-              동의 받은 날
+              <span>
+                동의 받은 날 <span className="text-xs text-accent">필수</span>
+              </span>
               <input
                 type="date"
                 max={new Date().toISOString().slice(0, 10)}
@@ -421,8 +417,9 @@ export function PeopleAndConsent({
           </div>
           {memoOpen && (
             <label className="flex flex-col gap-1 text-sm">
-              메모 <span className="text-xs text-quiet">(서면 · 메시지 · 구두 등 동의 방법)</span>
-              <input maxLength={500} value={consent.note} onChange={(e) => setConsent({ note: e.target.value })} className={inputClass} />
+              메모
+              <span className="sr-only">동의 방법</span>
+              <input maxLength={500} placeholder="서면 · 메시지 · 구두 등 동의 방법" value={consent.note} onChange={(e) => setConsent({ note: e.target.value })} className={inputClass} />
             </label>
           )}
         </div>
@@ -452,8 +449,8 @@ function AdvancedFields({
   const showVeil = veilOffered(bundle.category) || bundle.veil !== null;
   const summary = [
     CATEGORY_LABEL[bundle.category],
-    VISIBILITY_LABEL[bundle.visibility].title + " 공개",
-    COMMENT_POLICY_LABEL[bundle.commentPolicy],
+    bundle.visibility === "private" ? "나만 보기" : `${VISIBILITY_LABEL[bundle.visibility].title} 공개`,
+    COMMENT_SHORT[bundle.commentPolicy],
     bundle.showExif ? "촬영 정보 보임" : "촬영 정보 숨김",
     bundle.veil ? "가림 표시" : null,
   ].filter(Boolean);

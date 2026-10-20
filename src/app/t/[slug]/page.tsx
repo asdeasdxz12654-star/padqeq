@@ -241,7 +241,7 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
         )}
         {tag.kind === "place" && tag.status === "official" && isStaffRole(viewer?.profile?.role) && (
           <details className="rounded-xl border border-line p-3 text-sm">
-            <summary className="cursor-pointer font-semibold">촬영지 가이드 고치기 (운영자)</summary>
+            <summary className="cursor-pointer font-semibold">촬영지 가이드 수정 (운영자)</summary>
             <GuideForm tagId={tag.id} initial={guide} />
           </details>
         )}

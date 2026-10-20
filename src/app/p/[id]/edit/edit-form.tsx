@@ -135,9 +135,7 @@ export function EditForm({ initial, viewerHandle }: { initial: Initial; viewerHa
       </label>
 
       <label className="flex flex-col gap-1.5 text-sm">
-        <span>
-          설명 <span className="text-xs text-quiet">(선택 · 2000자까지)</span>
-        </span>
+        설명
         <textarea
           value={body}
           onChange={(e) => setBody(e.target.value)}
@@ -148,7 +146,7 @@ export function EditForm({ initial, viewerHandle }: { initial: Initial; viewerHa
       </label>
 
       <fieldset className="flex flex-col gap-1.5 text-sm">
-        <legend className="mb-1.5">분야</legend>
+        <legend className="mb-1.5">분류</legend>
         <div className="flex flex-wrap gap-2">
           {CATEGORIES.map((c) => (
             <label
@@ -183,9 +181,7 @@ export function EditForm({ initial, viewerHandle }: { initial: Initial; viewerHa
           </select>
         </label>
         <label className="flex flex-col gap-1.5 text-sm">
-          <span>
-            촬영 날짜 <span className="text-xs text-quiet">(선택)</span>
-          </span>
+          촬영 날짜
           <input
             type="date"
             value={shotOn}
@@ -197,17 +193,8 @@ export function EditForm({ initial, viewerHandle }: { initial: Initial; viewerHa
         </label>
       </div>
 
-      <div className="flex flex-col gap-1.5 text-sm">
-        <span>태그</span>
-        <TagPicker value={tags} onChange={setTags} disabled={pending} />
-      </div>
-
-      <div className="flex flex-col gap-1.5 text-sm">
-        <span>
-          크레딧 <span className="text-xs text-quiet">(새로 태그한 회원에게는 승인 요청 알림이 가요)</span>
-        </span>
-        <CreditEditor value={credits} onChange={setCredits} disabled={pending} viewerHandle={viewerHandle} />
-      </div>
+      <TagPicker value={tags} onChange={setTags} disabled={pending} />
+      <CreditEditor value={credits} onChange={setCredits} disabled={pending} viewerHandle={viewerHandle} collapsible />
 
       <PeopleAndConsent
         hasPeople={hasPeople}
@@ -219,13 +206,23 @@ export function EditForm({ initial, viewerHandle }: { initial: Initial; viewerHa
         }}
         note={
           initial.hasPeople && (
-            <p className="text-xs text-quiet">이미 남긴 동의 기록이 있어요. 바뀐 내용이 있을 때만 새로 적어 주세요 (기록이 하나 더 남아요).</p>
+            <p className="text-xs font-semibold">동의 기록 있음 · 바뀌었을 때만 새로 적기</p>
           )
         }
       />
 
-      <fieldset className="grid gap-3 sm:grid-cols-3">
-        <legend className="mb-1.5 text-sm">공개 설정</legend>
+      <details className="rounded-xl border border-line px-4 py-2">
+        <summary className="flex min-h-10 cursor-pointer list-none items-center gap-2 text-sm [&::-webkit-details-marker]:hidden">
+          <span className="shrink-0 font-semibold">고급 설정</span>
+          <span className="min-w-0 truncate text-xs text-quiet">
+            {[visibility === "private" ? "나만 보기" : `${VISIBILITY_LABEL[visibility].title} 공개`, COMMENT_POLICY_LABEL[commentPolicy], showExif ? "촬영 정보 보임" : "촬영 정보 숨김", veil ? "가림 표시" : null].filter(Boolean).join(" · ")}
+          </span>
+          <span aria-hidden="true" className="ml-auto text-quiet">
+            ▾
+          </span>
+        </summary>
+      <fieldset className="mt-2 mb-2 grid gap-3 sm:grid-cols-3">
+        <legend className="sr-only">고급 설정</legend>
         <label className="flex flex-col gap-1.5 text-sm">
           공개 범위
           <select value={visibility} onChange={(e) => setVisibility(e.target.value as Visibility)} disabled={pending} className={field}>
@@ -257,16 +254,17 @@ export function EditForm({ initial, viewerHandle }: { initial: Initial; viewerHa
         </div>
         {initial.scheduledAt && (
           <label className="flex flex-col gap-1.5 text-sm">
-            예약 시각 <span className="text-xs text-quiet">(비우면 바로 공개)</span>
+            예약 시각
             <input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} disabled={pending} className={field} />
+            <span className="text-xs text-quiet">비우면 바로 공개돼요</span>
           </label>
         )}
       </fieldset>
+      </details>
 
       <fieldset className="flex flex-col gap-3">
-        <legend className="mb-1.5 text-sm">
-          사진 <span className="text-xs text-quiet">(순서 · 빼기 · 설명. 설명은 화면 낭독기로 사진을 듣는 분들께 읽어 줘요)</span>
-        </legend>
+        <legend className="mb-1.5 text-sm">사진</legend>
+        <p className="-mt-2 text-xs text-quiet">사진 설명은 화면 낭독기로 사진을 듣는 분들께 읽어 줘요. 뒷면 메모는 사진 뒷면에 손글씨로 보여요.</p>
         {order.map((id, i) => {
           const p = photoById.get(id)!;
           return (
@@ -276,25 +274,25 @@ export function EditForm({ initial, viewerHandle }: { initial: Initial; viewerHa
                 <ProtectedPhoto sources={p.sources} alt="" width={p.width} height={p.height} sizes="64px" className="block size-full object-cover" />
               )}
             </div>
-            <label className="flex flex-1 flex-col gap-1 text-xs text-quiet">
-              {i + 1}번째 사진
+            <div className="flex flex-1 flex-col gap-1.5">
               <input
+                aria-label={`${i + 1}번째 사진 설명`}
                 value={alts[p.id] ?? ""}
                 onChange={(e) => setAlts((a) => ({ ...a, [p.id]: e.target.value }))}
                 maxLength={300}
-                placeholder="예) 벚꽃이 핀 강변을 걷는 사람"
-                className={`${field} text-text`}
+                placeholder="사진 설명 (예: 벚꽃이 핀 강변을 걷는 사람)"
+                className={`${field} text-sm`}
               />
-              <span className="mt-1">뒷면 메모 (선택 · 사진 뒷면에 손글씨로 보여요)</span>
               <textarea
+                aria-label={`${i + 1}번째 사진 뒷면 메모`}
                 value={memos[p.id] ?? ""}
                 onChange={(e) => setMemos((m) => ({ ...m, [p.id]: e.target.value }))}
                 maxLength={200}
                 rows={2}
-                placeholder="예) 바람이 많이 불던 날, 세 번째 컷에서 웃음이 터졌다"
-                className={`${field} min-h-16 py-2 text-text`}
+                placeholder="뒷면 메모 (예: 바람이 많이 불던 날, 세 번째 컷에서 웃음이 터졌다)"
+                className={`${field} min-h-16 py-2 text-sm`}
               />
-            </label>
+            </div>
             <div className="flex shrink-0 flex-col gap-1 pt-4">
               <div className="flex gap-1">
                 <button type="button" disabled={pending || i === 0} onClick={() => move(i, -1)} aria-label={`${i + 1}번째 사진을 앞으로`} className="size-9 rounded-lg border border-line disabled:opacity-30">

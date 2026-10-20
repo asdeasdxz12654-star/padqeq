@@ -8,7 +8,7 @@ export type SanctionAction = (typeof SANCTION_ACTIONS)[number];
 
 export const SANCTION_LABEL: Record<SanctionAction, { label: string; help: string }> = {
   warn: { label: "경고", help: "사유와 함께 알림이 가고, 회원 설정에 기록이 남아요. 이용은 그대로예요." },
-  suspend: { label: "이용 정지", help: "기간 동안 올리기 · 고치기 · 신고 · 컬렉션이 막혀요. 다시 하면 새 기간으로 바뀌어요." },
+  suspend: { label: "이용 정지", help: "기간 동안 올리기 · 수정 · 신고 · 컬렉션이 막혀요. 다시 하면 새 기간으로 바뀌어요." },
   lift: { label: "정지 해제", help: "남은 기간과 상관없이 바로 풀어요." },
   revoke_upload: { label: "업로드 권한 회수", help: "이미 올린 게시물은 그대로 두고, 새로 올리지 못하게 해요." },
   grant_upload: { label: "업로드 권한 주기", help: "사진을 올릴 수 있게 해요 (초대)." },

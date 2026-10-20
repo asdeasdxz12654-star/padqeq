@@ -9,7 +9,7 @@ import { MAX_PHOTOS_PER_POST } from "@/lib/photos/post-input";
 import { AddPhotos } from "./add-photos";
 import { EditForm } from "./edit-form";
 
-export const metadata: Metadata = { title: "게시물 편집", robots: { index: false } };
+export const metadata: Metadata = { title: "게시물 수정", robots: { index: false } };
 
 
 // S-07 ⑨ 게시물 편집 (작성자만). 사진 더하기는 게시된 글에서만 (초안은 업로드 화면에서).
@@ -57,7 +57,7 @@ export default async function EditPostPage({ params }: PageProps<"/p/[id]/edit">
 
   return (
     <div className="mx-auto max-w-2xl px-4 pt-8 pb-16 md:px-6">
-      <h1 className="mb-6 text-2xl font-bold">게시물 편집</h1>
+      <h1 className="mb-6 text-2xl font-bold">게시물 수정</h1>
       {post.status !== "draft" && !post.removed_at && viewer.profile?.can_upload && photos.length < MAX_PHOTOS_PER_POST && (
         <div className="mb-8">
           <AddPhotos postId={post.id} room={MAX_PHOTOS_PER_POST - post.photos.length} />

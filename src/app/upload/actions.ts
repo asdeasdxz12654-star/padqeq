@@ -25,7 +25,7 @@ export async function createDraft(input: DraftInput): Promise<Result<{ postId: s
   const parsed = draftSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "입력을 확인해 주세요." };
   const viewer = await uploader();
-  if (!viewer) return { ok: false, error: "업로드 권한이 없어요." };
+  if (!viewer) return { ok: false, error: "사진을 올릴 수 없는 계정이에요." };
 
   const { title, body, category, shotYear, shotOn, hasPeople, photos, tagIds, credits, visibility, commentPolicy, scheduledAt, showExif, veil } = parsed.data;
   const supabase = await createClient();
@@ -134,13 +134,13 @@ export async function reserveUploadSlot(input: z.input<typeof slotSchema>): Prom
   const parsed = slotSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "잘못된 요청이에요." };
   const viewer = await uploader();
-  if (!viewer) return { ok: false, error: "업로드 권한이 없어요." };
+  if (!viewer) return { ok: false, error: "사진을 올릴 수 없는 계정이에요." };
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("reserve_upload_slot", parsed.data);
   if (error) {
     if (isMonthlyLimitError(error.message)) return { ok: false, error: MONTHLY_LIMIT_MESSAGE };
     if (error.message.includes("too_many_slots")) return { ok: false, error: "게시하지 않은 사진이 500장이에요. 먼저 게시해 주세요." };
-    return { ok: false, error: "업로드를 시작하지 못했어요." };
+    return { ok: false, error: "사진 준비를 시작하지 못했어요." };
   }
   return { ok: true, data: { slotId: data } };
 }
@@ -167,7 +167,7 @@ export async function publishPost(
     return { ok: false, error: consentParsed.error.issues[0]?.message ?? "동의 기록을 확인해 주세요." };
   }
   const viewer = await uploader();
-  if (!viewer) return { ok: false, error: "업로드 권한이 없어요." };
+  if (!viewer) return { ok: false, error: "사진을 올릴 수 없는 계정이에요." };
 
   const supabase = await createClient();
   const { data: post, error } = await supabase
@@ -215,7 +215,7 @@ export async function discardDraft(input: { postId: string }): Promise<Result<nu
   const parsed = publishSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "잘못된 요청이에요." };
   const viewer = await uploader();
-  if (!viewer) return { ok: false, error: "업로드 권한이 없어요." };
+  if (!viewer) return { ok: false, error: "사진을 올릴 수 없는 계정이에요." };
   const supabase = await createClient();
   const { error } = await supabase
     .from("posts")
