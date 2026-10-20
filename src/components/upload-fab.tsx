@@ -11,7 +11,7 @@ const HIDDEN = ["/upload", "/login", "/welcome", "/settings", "/admin", "/commun
 export function UploadFab() {
   const pathname = usePathname();
   const sheet = useRef<HTMLDialogElement>(null);
-  // 아래로 스크롤하는 동안은 숨기고, 위로 올리거나 맨 위면 다시 (맨 아래의 '더 보기' · 입력칸을 가리지 않게)
+  // 아래로 스크롤하는 동안은 그 자리에서 작아지며 사라지고(아래로 밀면 아래 탭에 걸친다), 위로 올리거나 맨 위면 다시 (맨 아래의 '더 보기' · 입력칸을 가리지 않게)
   const [hidden, setHidden] = useState(false);
   useEffect(() => {
     let last = window.scrollY;
@@ -36,8 +36,8 @@ export function UploadFab() {
         tabIndex={hidden ? -1 : undefined}
         aria-hidden={hidden || undefined}
         onClick={() => sheet.current?.showModal()}
-        className={`fixed right-4 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-40 flex size-14 items-center justify-center rounded-full bg-accent text-on-accent shadow-lg shadow-black/20 transition-transform duration-200 active:scale-95 md:hidden ${
-          hidden ? "pointer-events-none translate-y-24" : ""
+        className={`fixed right-4 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-40 flex size-14 items-center justify-center rounded-full bg-accent text-on-accent shadow-lg shadow-black/20 transition-[opacity,transform] duration-200 active:scale-95 md:hidden ${
+          hidden ? "pointer-events-none scale-50 opacity-0" : ""
         }`}
       >
         <svg aria-hidden="true" viewBox="0 0 24 24" className="size-7" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
