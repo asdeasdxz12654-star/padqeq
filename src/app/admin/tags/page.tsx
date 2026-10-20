@@ -167,9 +167,8 @@ function SimilarList({ pairs, byId }: { pairs: SimilarPair[]; byId: Map<string, 
         {pairs.map((p) => {
           let keep = byId.get(p.keep.id)!;
           let drop = byId.get(p.drop.id)!;
-          // 합칠 때 남길 태그는 공식이어야 한다
+          // 한쪽만 확인됐으면 확인된 쪽을 남긴다 (둘 다 확인 전이어도 합칠 수 있고, 남긴 쪽은 확인됨이 된다)
           if (keep.status === "pending" && drop.status === "official") [keep, drop] = [drop, keep];
-          const mergeable = keep.status === "official";
           return (
             <li key={`${p.keep.id}-${p.drop.id}`} className="flex flex-col gap-2 px-4 py-3 md:flex-row md:items-center">
               <div className="flex min-w-0 flex-1 flex-col gap-1 text-sm">
@@ -191,16 +190,12 @@ function SimilarList({ pairs, byId }: { pairs: SimilarPair[]; byId: Map<string, 
                   <span className="text-quiet"> (게시물 {drop.post_tags[0]?.count ?? 0}{drop.status === "pending" ? " · 확인 전" : ""})</span>
                 </span>
               </div>
-              {mergeable ? (
-                <Link
-                  href={`${tagHref(drop.slug)}?merge=${keep.id}#merge`}
-                  className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl border border-line px-4 text-sm hover:border-quiet"
-                >
-                  합치기 화면으로
-                </Link>
-              ) : (
-                <span className="shrink-0 text-xs text-quiet">둘 다 승인 대기예요. 하나를 먼저 승인해 주세요.</span>
-              )}
+              <Link
+                href={`${tagHref(drop.slug)}?merge=${keep.id}#merge`}
+                className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl border border-line px-4 text-sm hover:border-quiet"
+              >
+                합치기 화면으로
+              </Link>
             </li>
           );
         })}

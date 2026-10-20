@@ -60,7 +60,6 @@ const MERGE_ERRORS: Record<string, string> = {
   admin_only: "최고 관리자만 합칠 수 있어요. (2단계 인증 필요)",
   same_tag: "같은 태그끼리는 합칠 수 없어요.",
   kind_mismatch: "종류가 같은 태그끼리만 합칠 수 있어요.",
-  target_not_official: "남길 태그는 공식 태그여야 해요.",
   target_is_child: "이 태그 아래에 있는 캐릭터로는 합칠 수 없어요.",
   event_conflict: "두 태그 모두 행사에 이어져 있어요. 행사 하나를 먼저 정리해 주세요.",
   not_found: "태그를 찾지 못했어요. 새로 고침 해 주세요.",

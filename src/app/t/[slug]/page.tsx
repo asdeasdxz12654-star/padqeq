@@ -122,10 +122,10 @@ export default async function TagHubPage({ params, searchParams }: PageProps<"/t
   const following = viewer?.profile ? (await getFollowedTags(viewer.id)).some((t) => t.id === tag.id) : false;
   // 태그 관리 › 비슷한 이름에서 넘어오면 남길 태그를 미리 골라 둔다
   const mergeTarget = typeof query.merge === "string" ? query.merge : "";
-  // 합칠 대상: 같은 종류의 공식 태그 (최고 관리자만 본다)
+  // 합칠 대상: 같은 종류의 태그 (확인 전 새 태그 포함, 최고 관리자만 본다)
   const mergeCandidates: MergeCandidate[] | null =
     viewer?.profile?.role === "admin"
-      ? ((await supabase.from("tags").select("id, name, slug").eq("kind", tag.kind).eq("status", "official").neq("id", tag.id).order("name").limit(500)).data ?? [])
+      ? ((await supabase.from("tags").select("id, name, slug").eq("kind", tag.kind).neq("id", tag.id).order("name").limit(500)).data ?? [])
       : null;
   if (years.error) throw years.error;
 
