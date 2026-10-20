@@ -14,12 +14,15 @@ export function EventAdminEditor({
   proposed,
   placeId,
   places,
+  doneHref = "/admin/events",
 }: {
   id: string | null;
   initial: EventDraft;
   proposed: boolean;
   placeId: string | null;
   places: PlaceOption[];
+  /** 등록 · 거절 · 지우기 뒤 갈 곳 (처리함에서 열면 처리함) */
+  doneHref?: string;
 }) {
   const router = useRouter();
   const [note, setNote] = useState("");
@@ -34,7 +37,7 @@ export function EventAdminEditor({
         withTagSlug
         submit={(input) => saveEventAdmin(id, input)}
         submitLabel={proposed ? "승인하고 등록" : id ? "고치기" : "등록"}
-        doneHref="/admin/events"
+        doneHref={doneHref}
       />
       {id && <EventPlaceForm key={id} eventId={id} current={placeId} places={places} />}
       {id && proposed && (
@@ -45,7 +48,7 @@ export function EventAdminEditor({
             startTransition(async () => {
               const result = await rejectEventAdmin(id, note);
               if (!result.ok) return setError(result.error);
-              router.push("/admin/events");
+              router.push(doneHref);
               router.refresh();
             });
           }}
@@ -68,7 +71,7 @@ export function EventAdminEditor({
             startTransition(async () => {
               const result = await deleteEventAdmin(id);
               if (!result.ok) return setError(result.error);
-              router.push("/admin/events");
+              router.push(doneHref);
               router.refresh();
             });
           }}

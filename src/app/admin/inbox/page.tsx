@@ -4,7 +4,24 @@ import { getViewer } from "@/lib/auth/viewer";
 import { loadInbox } from "@/lib/admin/inbox";
 import { ageLabel, INBOX_KIND_LABEL, type InboxItem, type InboxKind, type InboxLevel } from "@/lib/admin/inbox-rank";
 import { createClient } from "@/lib/supabase/server";
+import { EventAdminEditor } from "../events/event-admin-forms";
+import {
+  BOARD_REPORT_SELECT,
+  BoardReportCard,
+  type BoardReportRow,
+  CLAIM_SELECT,
+  ClaimCard,
+  type ClaimRow,
+  COMMENT_REPORT_SELECT,
+  CommentReportCard,
+  type CommentReportRow,
+  MESSAGE_REPORT_SELECT,
+  MessageReportCard,
+  type MessageReportRow,
+} from "../reports/cards";
 import { APPEAL_POST, AppealDetail, type AppealRow, REPORT_SELECT, ReportDetail, type ReportRow } from "../reports/details";
+import { INQUIRY_SELECT, InquiryCard, type InquiryRow } from "../support/inquiry-card";
+import { REGIONS, type Region } from "@/lib/events/calendar";
 
 export const metadata: Metadata = { title: "처리함" };
 
@@ -14,8 +31,8 @@ const LEVEL_CLASS: Record<InboxLevel, string> = {
   보통: "border border-line text-quiet",
 };
 
-// 처리함 (관리자 디자인 v2): 신고 · 소명 · 문의 · 요청을 급한 순서 한 목록.
-// 게시물 신고 · 소명은 고르면 오른쪽 칸(휴대폰은 위)에서 바로 처리하고, 나머지는 원래 화면으로 간다.
+// 처리함 (관리 시안 43): 신고 · 소명 · 문의 · 요청을 급한 순서 한 목록.
+// 고르면 오른쪽 칸(휴대폰은 목록 대신 전체 화면)에서 바로 처리하고, 처리해서 사라지면 같은 목록의 다음 건을 연다.
 export default async function AdminInboxPage({ searchParams }: PageProps<"/admin/inbox">) {
   const params = await searchParams;
   const isAdmin = (await getViewer())?.profile?.role === "admin";
@@ -24,15 +41,17 @@ export default async function AdminInboxPage({ searchParams }: PageProps<"/admin
   const kind = typeof params.kind === "string" && kinds.includes(params.kind as InboxKind) ? (params.kind as InboxKind) : null;
   const items = kind ? all.filter((i) => i.kind === kind) : all;
   const urgent = all.filter((i) => i.level === "긴급").length;
-  const selected = typeof params.item === "string" ? (all.find((i) => i.key === params.item && inline(i)) ?? null) : null;
+  // 고른 건이 처리돼 사라졌으면 같은 목록의 다음 건 (처리하면 화면이 같은 주소로 새로 그려진다)
+  const asked = typeof params.item === "string" ? params.item : null;
+  const selected = asked ? (all.find((i) => i.key === asked) ?? items[0] ?? null) : null;
   const qs = (item: string | null) => {
     const q = new URLSearchParams();
     if (kind) q.set("kind", kind);
     if (item) q.set("item", item);
     return q.size ? `/admin/inbox?${q}` : "/admin/inbox";
   };
-  // 처리하고 나면 같은 종류 목록으로 돌아온다
-  const detail = selected ? await loadDetail(selected, qs(null)) : null;
+  // 처리하고 나면 같은 주소로 돌아와 다음 건이 열린다
+  const detail = selected ? await loadDetail(selected, qs(selected.key)) : null;
 
   return (
     <div className="flex flex-col gap-5">
@@ -79,7 +98,7 @@ export default async function AdminInboxPage({ searchParams }: PageProps<"/admin
           {items.map((i) => (
             <li key={i.key}>
               <Link
-                href={inline(i) ? qs(i.key) : i.href}
+                href={qs(i.key)}
                 prefetch={false}
                 aria-current={selected?.key === i.key ? "true" : undefined}
                 className="flex items-center gap-3 px-4 py-3 hover:bg-surface aria-[current=true]:bg-accent-soft"
@@ -107,21 +126,80 @@ export default async function AdminInboxPage({ searchParams }: PageProps<"/admin
   );
 }
 
-/** 처리함 안에서 바로 처리하는 종류 */
-const inline = (i: InboxItem) => i.kind === "report" || i.kind === "appeal";
-
+/** 고른 건의 처리 칸 (종류마다 원래 화면의 처리 카드를 그대로 쓴다) */
 async function loadDetail(item: InboxItem, backHref: string) {
   const supabase = await createClient();
-  if (item.kind === "report") {
-    const postId = item.key.slice("report-".length);
-    const { data } = await supabase.from("reports").select(REPORT_SELECT).eq("status", "open").eq("post_id", postId).order("created_at").limit(100);
-    const reports = (data ?? []) as unknown as ReportRow[];
-    const post = reports[0]?.post;
-    return post ? <ReportDetail group={{ post, reports }} backHref={backHref} /> : null;
+  const id = item.key.slice(item.kind.length + 1);
+  switch (item.kind) {
+    case "report": {
+      const { data } = await supabase.from("reports").select(REPORT_SELECT).eq("status", "open").eq("post_id", id).order("created_at").limit(100);
+      const reports = (data ?? []) as unknown as ReportRow[];
+      const post = reports[0]?.post;
+      return post ? <ReportDetail group={{ post, reports }} backHref={backHref} /> : null;
+    }
+    case "appeal": {
+      const { data } = await supabase.from("appeals").select(`id, statement, created_at, ${APPEAL_POST}`).eq("id", id).eq("status", "open").maybeSingle();
+      const appeal = data as unknown as AppealRow | null;
+      return appeal?.post ? <AppealDetail appeal={appeal} post={appeal.post} backHref={backHref} /> : null;
+    }
+    case "comment": {
+      // 같은 댓글에 들어온 신고를 함께 본다
+      const { data: one } = await supabase.from("comment_reports").select("comment_id").eq("id", id).maybeSingle();
+      if (!one) return null;
+      const { data } = await supabase.from("comment_reports").select(COMMENT_REPORT_SELECT).eq("status", "open").eq("comment_id", one.comment_id).order("created_at");
+      const reports = (data ?? []) as unknown as CommentReportRow[];
+      const comment = reports[0]?.comment;
+      return comment ? <CommentReportCard comment={comment} reports={reports} /> : null;
+    }
+    case "board": {
+      // 같은 글(또는 같은 답글)에 들어온 신고를 함께 본다
+      const { data: one } = await supabase.from("board_reports").select("board_post_id, reply_id").eq("id", id).maybeSingle();
+      if (!one) return null;
+      let query = supabase.from("board_reports").select(BOARD_REPORT_SELECT).eq("status", "open").eq("board_post_id", one.board_post_id);
+      query = one.reply_id ? query.eq("reply_id", one.reply_id) : query.is("reply_id", null);
+      const { data } = await query.order("created_at");
+      const reports = (data ?? []) as unknown as BoardReportRow[];
+      const post = reports[0]?.post;
+      return post ? <BoardReportCard post={post} reply={reports[0]!.reply} reports={reports} /> : null;
+    }
+    case "message": {
+      const { data } = await supabase.from("message_reports").select(MESSAGE_REPORT_SELECT).eq("id", id).eq("status", "open").maybeSingle();
+      return data ? <MessageReportCard report={data as unknown as MessageReportRow} /> : null;
+    }
+    case "inquiry": {
+      const { data } = await supabase.from("inquiries").select(INQUIRY_SELECT).eq("id", id).eq("status", "open").maybeSingle();
+      return data ? <InquiryCard inquiry={data as unknown as InquiryRow} /> : null;
+    }
+    case "claim": {
+      const { data } = await supabase.from("credit_claims").select(CLAIM_SELECT).eq("id", id).eq("status", "open").maybeSingle();
+      return data ? <ClaimCard claim={data as unknown as ClaimRow} /> : null;
+    }
+    case "event": {
+      const [{ data: e }, { data: places }] = await Promise.all([
+        supabase.from("events").select("id, name, starts_on, ends_on, venue, region, url, description, place_tag_id").eq("id", id).eq("status", "proposed").maybeSingle(),
+        supabase.from("tags").select("id, name, lat").eq("kind", "place").order("name").limit(1000),
+      ]);
+      if (!e) return null;
+      return (
+        <EventAdminEditor
+          id={e.id}
+          proposed
+          placeId={e.place_tag_id}
+          places={(places ?? []).map((p) => ({ id: p.id, name: p.name, hasLocation: p.lat !== null }))}
+          doneHref={backHref}
+          initial={{
+            name: e.name,
+            startsOn: e.starts_on,
+            endsOn: e.ends_on,
+            venue: e.venue,
+            region: (REGIONS as readonly string[]).includes(e.region) ? (e.region as Region) : "서울",
+            url: e.url ?? "",
+            description: e.description ?? "",
+          }}
+        />
+      );
+    }
   }
-  const { data } = await supabase.from("appeals").select(`id, statement, created_at, ${APPEAL_POST}`).eq("id", item.key.slice("appeal-".length)).eq("status", "open").maybeSingle();
-  const appeal = data as unknown as AppealRow | null;
-  return appeal?.post ? <AppealDetail appeal={appeal} post={appeal.post} backHref={backHref} /> : null;
 }
 
 function Chip({ href, current, children }: { href: string; current: boolean; children: React.ReactNode }) {

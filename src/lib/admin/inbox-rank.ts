@@ -1,7 +1,7 @@
 // 처리함 (관리자 디자인 v2): 신고 · 소명 · 문의 · 요청을 급한 순서 한 목록으로.
 // 순서: 긴급(미성년자 · 초상권 · 도촬 · 딥페이크 신고) → 주의(24시간 넘음) → 보통, 같은 단계 안에서는 오래된 것부터.
 
-export type InboxKind = "report" | "appeal" | "comment" | "board" | "message" | "inquiry" | "claim" | "event" | "tag";
+export type InboxKind = "report" | "appeal" | "comment" | "board" | "message" | "inquiry" | "claim" | "event";
 export type InboxLevel = "긴급" | "주의" | "보통";
 
 export const INBOX_KIND_LABEL: Record<InboxKind, string> = {
@@ -13,7 +13,6 @@ export const INBOX_KIND_LABEL: Record<InboxKind, string> = {
   inquiry: "1:1 문의",
   claim: "크레딧 연결",
   event: "행사 제안",
-  tag: "승인 대기 태그",
 };
 
 export type InboxItem = {

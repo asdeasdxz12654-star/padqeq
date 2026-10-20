@@ -1,11 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { REASON_LABEL, queueStatus, type ReportReason } from "@/lib/moderation/reasons";
+import { REASON_LABEL, queueStatus } from "@/lib/moderation/reasons";
 import { getViewer } from "@/lib/auth/viewer";
 import { createClient } from "@/lib/supabase/server";
-import { CommentDecisionForm } from "./comment-decision-form";
-import { BoardDecisionForm, MessageReportPanel } from "./community-report-forms";
-import { ClaimDecision } from "./claim-decision";
+import {
+  BOARD_REPORT_SELECT,
+  BoardReportCard,
+  type BoardReportRow,
+  CLAIM_SELECT,
+  ClaimCard,
+  type ClaimRow,
+  COMMENT_REPORT_SELECT,
+  CommentReportCard,
+  type CommentReportRow,
+  MESSAGE_REPORT_SELECT,
+  MessageReportCard,
+  type MessageReportRow,
+} from "./cards";
 import { APPEAL_POST, AppealDetail, type AppealRow, REPORT_SELECT, ReportDetail, type ReportRow } from "./details";
 import { KST } from "@/lib/format/kst";
 
@@ -102,7 +113,7 @@ export default async function AdminReportsPage({ searchParams }: PageProps<"/adm
       .limit(500),
     supabase
       .from("message_reports")
-      .select("id, reason, detail, created_at, reporter:profiles!message_reports_reporter_id_fkey(handle), reported:profiles!message_reports_reported_id_fkey(id, handle)")
+      .select(MESSAGE_REPORT_SELECT)
       .eq("status", "open")
       .order("created_at", { ascending: true })
       .limit(200),
@@ -112,18 +123,16 @@ export default async function AdminReportsPage({ searchParams }: PageProps<"/adm
   // 크레딧 연결 요청 (S-19 ②): 운영자가 본인인지 확인한다
   const { data: claimRows, error: claimError } = await supabase
     .from("credit_claims")
-    .select(
-      "id, note, created_at, claimant:profiles!credit_claims_claimant_id_fkey(id, handle, display_name, bio), credit:credits!credit_claims_credit_id_fkey(role, external_label, external_url, post:posts!credits_post_id_fkey(id, title, author:profiles!posts_author_id_fkey(handle)))",
-    )
+    .select(CLAIM_SELECT)
     .eq("status", "open")
     .order("created_at")
     .limit(200);
   if (claimError) throw claimError;
-  const claims = claimRows;
+  const claims = claimRows as unknown as ClaimRow[];
   const boardGroups = [
     ...Map.groupBy(boardRows as unknown as BoardReportRow[], (r) => r.reply?.id ?? r.post?.id ?? r.id).values(),
   ].map((reports) => ({ post: reports[0]!.post, reply: reports[0]!.reply, reports }));
-  const messageReports = messageRows;
+  const messageReports = messageRows as unknown as MessageReportRow[];
 
   return (
     <div className="flex flex-col gap-6">
@@ -230,35 +239,8 @@ export default async function AdminReportsPage({ searchParams }: PageProps<"/adm
         <ul className="flex max-w-3xl flex-col gap-4">
           {claims.length === 0 && <p className="rounded-xl border border-line p-6 text-center text-sm text-quiet">확인할 연결 요청이 없어요.</p>}
           {claims.map((c) => (
-            <li key={c.id} className="flex flex-col gap-2 rounded-xl border border-line p-4 text-sm">
-              <p>
-                {c.credit?.post ? (
-                  <Link href={`/p/${c.credit.post.id}`} className="font-semibold hover:underline">
-                    {c.credit.post.title}
-                  </Link>
-                ) : (
-                  "(지워진 글)"
-                )}
-                <span className="text-xs text-quiet"> · 업로더 @{c.credit?.post?.author?.handle ?? "?"} · {timeFormat.format(new Date(c.created_at))}</span>
-              </p>
-              <p>
-                미가입 표기 &lsquo;{c.credit?.external_label}&rsquo;
-                {c.credit?.external_url && (
-                  <a href={c.credit.external_url} target="_blank" rel="noopener noreferrer nofollow" className="ml-1 text-xs underline underline-offset-2">
-                    {c.credit.external_url}
-                  </a>
-                )}
-                {" → "}
-                {c.claimant && (
-                  <Link href={`/admin/members/${c.claimant.id}`} className="font-semibold hover:underline">
-                    @{c.claimant.handle}
-                  </Link>
-                )}
-              </p>
-              {c.claimant?.bio && <p className="rounded-lg bg-slot p-2 text-xs whitespace-pre-line text-quiet">프로필 소개: {c.claimant.bio}</p>}
-              {c.note && <p className="text-xs">요청 메모: &ldquo;{c.note}&rdquo;</p>}
-              <p className="text-xs text-quiet">표기된 SNS 계정과 같은 사람인지 확인해 주세요 (예: 그 SNS에 해담 핸들을 잠시 올려 달라고 1:1 문의로 요청).</p>
-              <ClaimDecision claimId={c.id} />
+            <li key={c.id}>
+              <ClaimCard claim={c} />
             </li>
           ))}
         </ul>
@@ -268,19 +250,8 @@ export default async function AdminReportsPage({ searchParams }: PageProps<"/adm
         <ul className="flex max-w-3xl flex-col gap-4">
           {messageReports.length === 0 && <p className="rounded-xl border border-line p-6 text-center text-sm text-quiet">처리할 메시지 신고가 없어요.</p>}
           {messageReports.map((r) => (
-            <li key={r.id} className="flex flex-col gap-3 rounded-xl border border-line p-4 text-sm">
-              <p className="flex flex-wrap gap-x-3 text-xs text-quiet">
-                <span className="font-semibold text-text">{REASON_LABEL[r.reason].title}</span>
-                <span>신고 @{r.reporter?.handle ?? "?"}</span>
-                {r.reported && (
-                  <Link href={`/admin/members/${r.reported.id}`} className="hover:underline">
-                    대상 @{r.reported.handle} · 회원 관리
-                  </Link>
-                )}
-                <span>{timeFormat.format(new Date(r.created_at))}</span>
-              </p>
-              {r.detail && <p className="whitespace-pre-line">{r.detail}</p>}
-              <MessageReportPanel reportId={r.id} />
+            <li key={r.id}>
+              <MessageReportCard report={r} />
             </li>
           ))}
         </ul>
@@ -334,113 +305,30 @@ export default async function AdminReportsPage({ searchParams }: PageProps<"/adm
   );
 }
 
-type CommentReportRow = {
-  id: string;
-  reason: ReportReason;
-  detail: string;
-  created_at: string;
-  reporter: { handle: string } | null;
-  comment: {
-    id: string;
-    body: string;
-    hidden_at: string | null;
-    created_at: string;
-    author: { id: string; handle: string } | null;
-    post: { id: string; title: string } | null;
-  } | null;
-};
-
-const COMMENT_REPORT_SELECT = `id, reason, detail, created_at,
-  reporter:profiles!comment_reports_reporter_id_fkey(handle),
-  comment:comments!comment_reports_comment_id_fkey(id, body, hidden_at, created_at,
-    author:profiles!comments_author_id_fkey(id, handle), post:posts!comments_post_id_fkey(id, title))`;
-
 function CommentReports({ groups }: { groups: { comment: NonNullable<CommentReportRow["comment"]>; reports: CommentReportRow[] }[] }) {
   if (groups.length === 0) return <p className="rounded-xl border border-line p-6 text-center text-sm text-quiet">처리할 댓글 신고가 없어요.</p>;
   return (
     <ul className="flex max-w-3xl flex-col gap-4">
       {groups.map(({ comment, reports }) => (
-        <li key={comment.id} className="flex flex-col gap-3 rounded-xl border border-line p-4 text-sm">
-          <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-quiet">
-            {comment.hidden_at && <span className="text-warn">자동으로 가려짐</span>}
-            {comment.author && (
-              <Link href={`/admin/members/${comment.author.id}`} className="hover:underline">
-                @{comment.author.handle} · 회원 관리
-              </Link>
-            )}
-            {comment.post && (
-              <Link href={`/p/${comment.post.id}#comments`} className="hover:underline">
-                글: {comment.post.title}
-              </Link>
-            )}
-            <span>{timeFormat.format(new Date(comment.created_at))}</span>
-          </p>
-          <blockquote className="rounded-lg bg-slot p-3 whitespace-pre-line">{comment.body}</blockquote>
-          <ol className="flex flex-col gap-1 text-xs">
-            {reports.map((r) => (
-              <li key={r.id}>
-                <span className="font-semibold">{REASON_LABEL[r.reason].title}</span>
-                <span className="text-quiet"> · @{r.reporter?.handle ?? "?"} · {timeFormat.format(new Date(r.created_at))}</span>
-                {r.detail && <span className="block whitespace-pre-line">{r.detail}</span>}
-              </li>
-            ))}
-          </ol>
-          <CommentDecisionForm commentId={comment.id} />
+        <li key={comment.id}>
+          <CommentReportCard comment={comment} reports={reports} />
         </li>
       ))}
     </ul>
   );
 }
 
-type BoardReportRow = {
-  id: string;
-  reason: ReportReason;
-  detail: string;
-  created_at: string;
-  reporter: { handle: string } | null;
-  post: { id: string; title: string; body: string; hidden_at: string | null; author: { id: string; handle: string } | null } | null;
-  reply: { id: string; body: string; hidden_at: string | null; author: { id: string; handle: string } | null } | null;
-};
-
-const BOARD_REPORT_SELECT = `id, reason, detail, created_at,
-  reporter:profiles!board_reports_reporter_id_fkey(handle),
-  post:board_posts!board_reports_board_post_id_fkey(id, title, body, hidden_at, author:profiles!board_posts_author_id_fkey(id, handle)),
-  reply:board_replies!board_reports_reply_id_fkey(id, body, hidden_at, author:profiles!board_replies_author_id_fkey(id, handle))`;
-
 function BoardReports({ groups }: { groups: { post: BoardReportRow["post"]; reply: BoardReportRow["reply"]; reports: BoardReportRow[] }[] }) {
   if (groups.length === 0) return <p className="rounded-xl border border-line p-6 text-center text-sm text-quiet">처리할 게시판 신고가 없어요.</p>;
   return (
     <ul className="flex max-w-3xl flex-col gap-4">
-      {groups.map(({ post, reply, reports }) => {
-        if (!post) return null;
-        const target = reply ?? post;
-        return (
-          <li key={reply?.id ?? post.id} className="flex flex-col gap-3 rounded-xl border border-line p-4 text-sm">
-            <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-quiet">
-              <span>{reply ? "답글" : "글"}</span>
-              {target.hidden_at && <span className="text-warn">자동으로 가려짐</span>}
-              {target.author && (
-                <Link href={`/admin/members/${target.author.id}`} className="hover:underline">
-                  @{target.author.handle} · 회원 관리
-                </Link>
-              )}
-              <Link href={`/community/${post.id}`} className="hover:underline">
-                글: {post.title}
-              </Link>
-            </p>
-            <blockquote className="max-h-48 overflow-y-auto rounded-lg bg-slot p-3 whitespace-pre-line">{target.body}</blockquote>
-            <ol className="flex flex-col gap-1 text-xs">
-              {reports.map((r) => (
-                <li key={r.id}>
-                  <span className="font-semibold">{REASON_LABEL[r.reason].title}</span>
-                  <span className="text-quiet"> · @{r.reporter?.handle ?? "?"} · {timeFormat.format(new Date(r.created_at))}</span>
-                </li>
-              ))}
-            </ol>
-            <BoardDecisionForm postId={post.id} replyId={reply?.id ?? null} />
+      {groups.map(({ post, reply, reports }) =>
+        post ? (
+          <li key={reply?.id ?? post.id}>
+            <BoardReportCard post={post} reply={reply} reports={reports} />
           </li>
-        );
-      })}
+        ) : null,
+      )}
     </ul>
   );
 }

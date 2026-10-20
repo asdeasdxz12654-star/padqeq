@@ -16,6 +16,7 @@ const ICONS: Record<(typeof NAV_ITEMS)[number]["href"], { line: string }> = {
 /** 모바일 하단 탭 (767px 이하). 같은 탭을 다시 누르면 맨 위로. */
 export function TabBar() {
   const pathname = usePathname();
+  if (pathname.startsWith("/admin")) return null;
 
   return (
     <nav

@@ -23,7 +23,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   // 운영 도우미가 처리하는 것: 게시물 · 댓글 · 게시판 신고
   const inbox = isAdmin ? pending.total : pending.reports + pending.comments + pending.board;
   return (
-    <div className="mx-auto max-w-7xl px-4 pt-4 pb-16 md:px-6 lg:grid lg:grid-cols-[200px_minmax(0,1fr)] lg:gap-8">
+    <div className="mx-auto max-w-7xl px-4 pt-4 pb-28 md:px-6 lg:pb-16 lg:grid lg:grid-cols-[200px_minmax(0,1fr)] lg:gap-8">
       <Suspense>
         <AdminNav isAdmin={isAdmin} inbox={inbox} />
       </Suspense>

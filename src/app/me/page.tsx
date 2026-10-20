@@ -159,10 +159,10 @@ export default async function MePage() {
         {/* 웹앱 설치 안내 (설치했거나 닫았으면 보이지 않는다) */}
         <InstallCard />
 
-        {/* 운영진에게만: 운영 화면 하나 (나머지 메뉴는 운영 화면 왼쪽에 있다) */}
+        {/* 운영진에게만: 운영 화면 하나 (휴대폰은 처리함부터, 나머지 메뉴는 운영 화면 아래 탭에 있다) */}
         {staff && (
           <Link
-            href={profile.role === "admin" ? "/admin" : "/admin/reports"}
+            href="/admin/inbox"
             className="flex min-h-11 items-center justify-between rounded-xl border border-line px-4 text-sm hover:border-quiet"
           >
             운영 화면

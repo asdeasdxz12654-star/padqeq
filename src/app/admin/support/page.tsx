@@ -2,12 +2,13 @@ import { requireTopAdmin } from "@/lib/auth/require-admin";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { INQUIRY_CATEGORY_LABEL, NOTICE_CATEGORY_LABEL } from "@/lib/support/labels";
+import { NOTICE_CATEGORY_LABEL } from "@/lib/support/labels";
 import { getSiteSwitches } from "@/lib/support/switches";
-import { AnswerForm, type NoticeDraft, NoticeForm, SwitchesForm } from "./forms";
+import { type NoticeDraft, NoticeForm, SwitchesForm } from "./forms";
 import { BannedWords, InviteCodes, StageForm } from "./opening-forms";
 import { LIMIT_ORDER } from "@/lib/admin/limits";
 import { LimitsForm } from "./limits-form";
+import { INQUIRY_SELECT, InquiryCard, type InquiryRow } from "./inquiry-card";
 import { KST } from "@/lib/format/kst";
 
 export const metadata: Metadata = { title: "고객센터 운영" };
@@ -19,16 +20,6 @@ const timeFormat = KST.dateTime;
 const TABS = { open: "답변 대기", answered: "답변 완료", notices: "공지", system: "시스템" } as const;
 type Tab = keyof typeof TABS;
 
-type InquiryRow = {
-  id: string;
-  category: keyof typeof INQUIRY_CATEGORY_LABEL;
-  body: string;
-  error_ref: string | null;
-  answer: string | null;
-  created_at: string;
-  answered_at: string | null;
-  author: { id: string; handle: string } | null;
-};
 
 export default async function AdminSupportPage({ searchParams }: PageProps<"/admin/support">) {
   await requireTopAdmin();
@@ -71,7 +62,7 @@ async function Inquiries({ status }: { status: "open" | "answered" }) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("inquiries")
-    .select("id, category, body, error_ref, answer, created_at, answered_at, author:profiles!inquiries_author_id_fkey(id, handle)")
+    .select(INQUIRY_SELECT)
     .eq("status", status)
     .order(status === "open" ? "created_at" : "answered_at", { ascending: status === "open" })
     .limit(100);
@@ -82,23 +73,8 @@ async function Inquiries({ status }: { status: "open" | "answered" }) {
   return (
     <ul className="flex max-w-3xl flex-col gap-4">
       {rows.map((q) => (
-        <li key={q.id} className="rounded-xl border border-line p-4 text-sm">
-          <p className="flex flex-wrap items-center gap-2 text-xs text-quiet">
-            <span className="rounded border border-line px-1.5 py-0.5">{INQUIRY_CATEGORY_LABEL[q.category]}</span>
-            {q.author ? (
-              <Link href={`/admin/members/${q.author.id}`} className="hover:underline">
-                @{q.author.handle}
-              </Link>
-            ) : (
-              <span>탈퇴한 회원</span>
-            )}
-            <span>{timeFormat.format(new Date(q.created_at))}</span>
-            {q.error_ref && <span className="font-mono">오류 {q.error_ref}</span>}
-          </p>
-          <p className="mt-2 whitespace-pre-line">{q.body}</p>
-          <div className="mt-3">
-            <AnswerForm id={q.id} initial={q.answer ?? ""} />
-          </div>
+        <li key={q.id}>
+          <InquiryCard inquiry={q} />
         </li>
       ))}
     </ul>

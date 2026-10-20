@@ -21,7 +21,7 @@ export async function loadInbox(isAdmin: boolean): Promise<RankedItem[]> {
   const supabase = await createClient();
   const none = Promise.resolve({ data: [] as never[], error: null });
 
-  const [reports, comments, board, appeals, messages, inquiries, claims, events, tags] = await Promise.all([
+  const [reports, comments, board, appeals, messages, inquiries, claims, events] = await Promise.all([
     supabase
       .from("reports")
       .select("id, reason, created_at, post:posts!reports_post_id_fkey(id, title)")
@@ -70,9 +70,8 @@ export async function loadInbox(isAdmin: boolean): Promise<RankedItem[]> {
           .limit(LIMIT)
       : none,
     isAdmin ? supabase.from("events").select("id, name, created_at").eq("status", "proposed").order("created_at").limit(LIMIT) : none,
-    isAdmin ? supabase.from("tags").select("id, name, created_at").eq("status", "pending").order("created_at").limit(LIMIT) : none,
   ]);
-  for (const r of [reports, comments, board, appeals, messages, inquiries, claims, events, tags]) if (r.error) throw r.error;
+  for (const r of [reports, comments, board, appeals, messages, inquiries, claims, events]) if (r.error) throw r.error;
 
   const items: InboxItem[] = [];
 
@@ -167,8 +166,6 @@ export async function loadInbox(isAdmin: boolean): Promise<RankedItem[]> {
   for (const e of events.data as unknown as { id: string; name: string; created_at: string }[])
     items.push({ key: `event-${e.id}`, kind: "event", title: e.name, sub: "승인하면 행사 태그가 생겨요", at: e.created_at, href: "/admin/events", urgent: false });
 
-  for (const t of tags.data as unknown as { id: string; name: string; created_at: string }[])
-    items.push({ key: `tag-${t.id}`, kind: "tag", title: t.name, sub: "회원이 만든 태그", at: t.created_at, href: "/admin/tags?view=pending", urgent: false });
 
   return rankInbox(items);
 }

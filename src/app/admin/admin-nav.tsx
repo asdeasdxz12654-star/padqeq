@@ -6,18 +6,20 @@ import { usePathname, useSearchParams } from "next/navigation";
 type Item = { href: string; label: string; badge?: number; adminOnly?: boolean };
 type Group = { title: string; items: Item[] };
 
-/** 운영 메뉴 (관리자 디자인 v2): 5묶음. 운영 도우미에게는 쓸 수 있는 메뉴만 보인다. */
+/**
+ * 운영 메뉴 (관리 시안 43): 4묶음 — 오늘 · 콘텐츠 · 사람 · 설정. 운영 도우미에게는 쓸 수 있는 메뉴만 보인다.
+ * PC는 왼쪽 세로 메뉴, 휴대폰은 아래 4칸(묶음) + 위쪽에 지금 묶음의 메뉴.
+ * 신고 · 소명 · 문의 · 요청은 모두 처리함에서 처리하고, '처리한 기록'은 지난 처리를 본다.
+ */
 export function AdminNav({ isAdmin, inbox }: { isAdmin: boolean; inbox: number }) {
   const pathname = usePathname();
   const params = useSearchParams();
   const groups: Group[] = [
-    { title: "오늘", items: [{ href: "/admin", label: "대시보드", adminOnly: true }] },
     {
-      title: "처리",
+      title: "오늘",
       items: [
         { href: "/admin/inbox", label: "처리함", badge: inbox },
-        { href: "/admin/reports", label: "신고 · 소명" },
-        { href: "/admin/support", label: "1:1 문의", adminOnly: true },
+        { href: "/admin", label: "대시보드", adminOnly: true },
       ],
     },
     {
@@ -26,14 +28,21 @@ export function AdminNav({ isAdmin, inbox }: { isAdmin: boolean; inbox: number }
         { href: "/admin/posts", label: "게시물", adminOnly: true },
         { href: "/admin/tags", label: "태그", adminOnly: true },
         { href: "/admin/events", label: "행사", adminOnly: true },
-        { href: "/admin/support?tab=notices", label: "공지", adminOnly: true },
       ],
     },
-    { title: "사람", items: [{ href: "/admin/members", label: "회원" }] },
     {
-      title: "시스템",
+      title: "사람",
       items: [
-        { href: "/admin/support?tab=system", label: "운영 단계 · 스위치 · 한도", adminOnly: true },
+        { href: "/admin/members", label: "회원" },
+        { href: "/admin/reports?tab=done", label: "처리한 기록" },
+        { href: "/admin/support?tab=answered", label: "답변한 문의", adminOnly: true },
+      ],
+    },
+    {
+      title: "설정",
+      items: [
+        { href: "/admin/support?tab=notices", label: "공지", adminOnly: true },
+        { href: "/admin/support?tab=system", label: "운영 단계 · 한도 · 금칙어", adminOnly: true },
         { href: "/admin/audit", label: "감사 로그", adminOnly: true },
       ],
     },
@@ -45,13 +54,18 @@ export function AdminNav({ isAdmin, inbox }: { isAdmin: boolean; inbox: number }
   const active = (href: string) => {
     const [path, query] = href.split("?");
     if (path === "/admin") return pathname === "/admin";
-    if (path === "/admin/support") {
+    // 같은 화면을 탭으로 나눈 메뉴 (고객센터 · 처리한 기록)
+    if (path === "/admin/support" || path === "/admin/reports") {
       const want = query ? new URLSearchParams(query).get("tab") : null;
-      const now = tab === "notices" || tab === "system" ? tab : null;
-      return pathname === path && want === now;
+      return pathname === path && want === tab;
     }
     return pathname === path || pathname.startsWith(`${path}/`);
   };
+  // 지금 화면이 속한 묶음 (예전 주소 /admin/reports · /admin/support도 묶음에 넣는다)
+  const current =
+    groups.find((g) => g.items.some((i) => active(i.href))) ??
+    groups.find((g) => g.items.some((i) => pathname.startsWith(i.href.split("?")[0]!) && i.href !== "/admin")) ??
+    groups[0]!;
 
   const link = (i: Item, compact: boolean) => (
     <Link
@@ -66,17 +80,43 @@ export function AdminNav({ isAdmin, inbox }: { isAdmin: boolean; inbox: number }
       }
     >
       {i.label}
-      {i.badge ? (
-        <span className="rounded-full bg-accent px-1.5 text-xs font-bold text-on-accent tabular-nums">{i.badge > 99 ? "99+" : i.badge}</span>
-      ) : null}
+      {i.badge ? <span className="rounded-full bg-accent px-1.5 text-xs font-bold text-on-accent tabular-nums">{i.badge > 99 ? "99+" : i.badge}</span> : null}
     </Link>
   );
 
   return (
     <>
-      {/* 휴대폰: 한 줄 칩 (가로로 밀기) */}
-      <nav aria-label="운영 메뉴" className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:hidden">
-        {groups.flatMap((g) => g.items).map((i) => link(i, true))}
+      {/* 휴대폰: 위쪽은 지금 묶음의 메뉴, 아래는 묶음 4칸 */}
+      {current.items.length > 1 && (
+        <nav aria-label={`${current.title} 메뉴`} className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:hidden">
+          {current.items.map((i) => link(i, true))}
+        </nav>
+      )}
+      <nav
+        aria-label="운영 메뉴"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-bg/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+      >
+        <ul className="grid" style={{ gridTemplateColumns: `repeat(${groups.length}, minmax(0, 1fr))` }}>
+          {groups.map((g) => {
+            const first = g.items[0]!;
+            const badge = g.items.reduce((n, i) => n + (i.badge ?? 0), 0);
+            return (
+              <li key={g.title}>
+                <Link
+                  href={first.href}
+                  prefetch={false}
+                  aria-current={g === current ? "page" : undefined}
+                  className="flex min-h-14 flex-col items-center justify-center gap-0.5 text-xs text-quiet aria-[current=page]:font-bold aria-[current=page]:text-text"
+                >
+                  <span className="flex items-center gap-1">
+                    {g.title === "오늘" ? "처리함" : g.title}
+                    {badge > 0 && <span className="rounded-full bg-accent px-1.5 text-[11px] font-bold text-on-accent tabular-nums">{badge > 99 ? "99+" : badge}</span>}
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
       </nav>
       {/* PC: 왼쪽 고정 메뉴 */}
       <nav aria-label="운영 메뉴" className="sticky top-20 hidden self-start lg:flex lg:flex-col lg:gap-5">

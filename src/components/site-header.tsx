@@ -50,7 +50,7 @@ export async function SiteHeader() {
               )}
               {pending && (
                 <Link prefetch={false}
-                  href={viewer?.profile?.role === "admin" ? "/admin" : "/admin/reports"}
+                  href={viewer?.profile?.role === "admin" ? "/admin" : "/admin/inbox"}
                   aria-label={pending.total ? `운영, 처리할 일 ${pending.total}건` : "운영"}
                   className="flex min-h-11 items-center gap-1.5 text-quiet hover:text-text"
                 >
