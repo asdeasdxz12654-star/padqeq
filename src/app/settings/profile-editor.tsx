@@ -12,6 +12,7 @@ import { REGIONS } from "@/lib/events/calendar";
 import { CREDIT_ROLE_LABEL } from "@/lib/photos/credit-roles";
 import type { FeedItem } from "@/lib/posts/feed";
 import { AVATAR_SIZE, avatarUrl } from "@/lib/profiles/avatar";
+import { type AvatarCrop, AvatarCropper } from "./avatar-cropper";
 import { confirmAction } from "@/lib/ui/confirm";
 
 const ROLES = ["cosplayer", "photographer", "model", "retoucher"] as const;
@@ -84,13 +85,19 @@ export function ProfileEditor({
     return () => URL.revokeObjectURL(avatar.preview);
   }, [avatar]);
 
-  const pickAvatar = async (file: File) => {
+  const [cropping, setCropping] = useState<{ file: File; url: string } | null>(null);
+  const closeCrop = () => {
+    if (cropping) URL.revokeObjectURL(cropping.url);
+    setCropping(null);
+  };
+  const failAvatar = () => setMessage({ ok: false, text: "이 사진은 쓸 수 없어요. 다른 사진으로 해 보세요." });
+  const pickAvatar = async (file: File, crop: AvatarCrop) => {
     setMessage(null);
     try {
-      const body = await toAvatarAvif(file);
+      const body = await toAvatarAvif(file, crop);
       setAvatar({ kind: "new", body, preview: URL.createObjectURL(new Blob([body as BlobPart], { type: "image/avif" })) });
     } catch {
-      setMessage({ ok: false, text: "이 사진은 쓸 수 없어요. 다른 사진으로 해 보세요." });
+      failAvatar();
     }
   };
 
@@ -181,7 +188,7 @@ export function ProfileEditor({
                 </button>
               )}
             </div>
-            <p className="text-sm text-quiet">가운데를 기준으로 정사각형으로 잘려요. 올리지 않으면 빈 자리로 둬요.</p>
+            <p className="text-sm text-quiet">고른 뒤 끌어서 위치 · 크기를 맞춰요. 올리지 않으면 빈 자리로 둬요.</p>
           </div>
           <input
             ref={fileRef}
@@ -191,9 +198,26 @@ export function ProfileEditor({
             onChange={(e) => {
               const file = e.target.files?.[0];
               e.target.value = "";
-              if (file) void pickAvatar(file);
+              if (file) {
+                setMessage(null);
+                setCropping({ file, url: URL.createObjectURL(file) });
+              }
             }}
           />
+          {cropping && (
+            <AvatarCropper
+              src={cropping.url}
+              onDone={(crop) => {
+                closeCrop();
+                void pickAvatar(cropping.file, crop);
+              }}
+              onCancel={closeCrop}
+              onFail={() => {
+                closeCrop();
+                failAvatar();
+              }}
+            />
+          )}
         </div>
       </div>
 
@@ -363,14 +387,13 @@ export function ProfileEditor({
   );
 }
 
-/** 고른 사진을 가운데 기준 정사각형으로 잘라 256px AVIF로 (서버가 다시 확인한다) */
-async function toAvatarAvif(file: File): Promise<Uint8Array> {
+/** 고른 사진에서 맞춘 정사각형을 잘라 256px AVIF로 (서버가 다시 확인한다) */
+async function toAvatarAvif(file: File, crop: AvatarCrop): Promise<Uint8Array> {
   const bitmap = await createImageBitmap(file);
-  const side = Math.min(bitmap.width, bitmap.height);
   const canvas = new OffscreenCanvas(AVATAR_SIZE, AVATAR_SIZE);
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("그릴 수 없어요");
-  ctx.drawImage(bitmap, (bitmap.width - side) / 2, (bitmap.height - side) / 2, side, side, 0, 0, AVATAR_SIZE, AVATAR_SIZE);
+  ctx.drawImage(bitmap, crop.x, crop.y, crop.side, crop.side, 0, 0, AVATAR_SIZE, AVATAR_SIZE);
   bitmap.close();
   const { encodeAvif } = await import("@/app/upload/avif-encoder");
   return encodeAvif(ctx.getImageData(0, 0, AVATAR_SIZE, AVATAR_SIZE), { quality: 65, speed: 7 });

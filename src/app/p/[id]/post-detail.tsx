@@ -270,6 +270,12 @@ export async function PostDetail({ id }: { id: string }) {
                     count={likeStats?.likes ?? 0}
                     loginHref={viewer?.profile ? null : `/login?next=${encodeURIComponent(`/p/${post.id}`)}`}
                   />
+                  {/* 누가 좋아했는지는 글쓴이만 (회원 시안 46) */}
+                  {isAuthor && (likeStats?.likes ?? 0) > 0 && (
+                    <Link href={`/p/${post.id}/likes`} className="inline-flex min-h-10 items-center px-1 text-sm text-quiet underline-offset-2 hover:underline">
+                      좋아한 사람
+                    </Link>
+                  )}
                   {canSave ? (
                     <SaveButton postId={post.id} initial={saved} collections={canCollect ? myCollections : undefined} />
                   ) : (
