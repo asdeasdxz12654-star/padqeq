@@ -4,8 +4,9 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { CastingFormCard } from "@/app/me/messages/[id]/thread-view";
 import { moderateBoard, openReportedThread, type ReportedMessage, resolveMessageReport } from "./actions";
+import { KST } from "@/lib/format/kst";
 
-const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+const timeFormat = KST.monthDayTime;
 
 function DecisionRow<D extends string>({
   name,

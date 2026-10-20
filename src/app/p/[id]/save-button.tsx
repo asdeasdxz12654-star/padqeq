@@ -1,5 +1,6 @@
 "use client";
 
+import { useDetailsDismiss } from "@/lib/ui/use-details-dismiss";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { setCollectionPost } from "@/lib/collections/actions";
@@ -65,26 +66,8 @@ export function SaveButton({ postId, initial, collections }: { postId: string; i
     return () => window.removeEventListener("keydown", onKey);
   }, [toggle]);
 
-  // 창은 바깥을 누르거나 Esc면 닫힌다
-  useEffect(() => {
-    if (!collections) return;
-    const close = (e: Event) => {
-      const d = panel.current;
-      if (!d?.open) return;
-      if (e instanceof KeyboardEvent) {
-        if (e.key === "Escape") d.open = false;
-        return;
-      }
-      if (e.target instanceof Node && d.contains(e.target)) return;
-      d.open = false;
-    };
-    document.addEventListener("pointerdown", close);
-    document.addEventListener("keydown", close);
-    return () => {
-      document.removeEventListener("pointerdown", close);
-      document.removeEventListener("keydown", close);
-    };
-  }, [collections]);
+  // 바깥을 누르거나 Esc면 닫는다
+  useDetailsDismiss(panel, { enabled: Boolean(collections) });
 
   const active = saved || collected > 0;
   const buttonClass = `inline-flex min-h-10 items-center gap-1.5 rounded-full px-4 text-sm font-semibold ${

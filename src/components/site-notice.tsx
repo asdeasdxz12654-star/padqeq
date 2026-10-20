@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { switchBannerText } from "@/lib/support/labels";
 import { getSiteSwitches, getUpcomingMaintenance } from "@/lib/support/switches";
+import { KST } from "@/lib/format/kst";
 
-const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
+const timeFormat = KST.monthDayTimeLong;
 
 /** 모든 화면 위 안내 (S-20 ⑦ · ⑧): 긴급 스위치 · 24시간 안의 점검 공지 */
 export async function SiteNotice() {

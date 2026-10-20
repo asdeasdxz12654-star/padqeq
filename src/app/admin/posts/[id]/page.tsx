@@ -8,10 +8,11 @@ import { isUuid } from "@/lib/ids";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { createClient } from "@/lib/supabase/server";
 import { VeilForm } from "./veil-form";
+import { KST } from "@/lib/format/kst";
 
 export const metadata: Metadata = { title: "게시물 처리 이력" };
 
-const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "medium", timeStyle: "short" });
+const timeFormat = KST.dateTime;
 const TONE: Record<HistoryTone, string> = { normal: "bg-quiet", warn: "bg-amber-400", danger: "bg-red-400", good: "bg-emerald-400" };
 
 // A-03 ⑧ 게시물 처리 이력: 업로드 · 게시 · 수정 · 사진 추가 · 크레딧 · 신고 · 운영 조치 · 소명 · 오늘의 픽 (새것이 위)

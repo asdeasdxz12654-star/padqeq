@@ -8,10 +8,11 @@ import { withNext } from "@/lib/auth/next-path";
 import { getViewer } from "@/lib/auth/viewer";
 import { CATEGORY_LABEL } from "@/lib/photos/categories";
 import { createClient } from "@/lib/supabase/server";
+import { KST } from "@/lib/format/kst";
 
 export const metadata: Metadata = { title: "내 글 관리", robots: { index: false } };
 
-const dateFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "medium" });
+const dateFormat = KST.date;
 const DAY = 86_400_000;
 const TRASH_DAYS = 30;
 

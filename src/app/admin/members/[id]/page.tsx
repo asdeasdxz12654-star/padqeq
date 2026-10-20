@@ -11,14 +11,15 @@ import { createClient } from "@/lib/supabase/server";
 import { RevealEmail } from "./reveal-email";
 import { RoleForm } from "./role-form";
 import { SanctionForm } from "./sanction-form";
+import { KST } from "@/lib/format/kst";
 
 export const metadata: Metadata = { title: "회원 관리" };
 
 // A-05 회원 상세: 상태 · 게시물 · 받은 신고 · 제재 기록 · 조치 · 역할
 // 운영 도우미는 경고만 하고, 계정 정보(가린 이메일 · 로그인)와 역할은 보지 못한다.
 
-const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "medium", timeStyle: "short" });
-const dateFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "medium" });
+const timeFormat = KST.dateTime;
+const dateFormat = KST.date;
 
 const STATUS_LABEL: Record<string, string> = { draft: "초안", published: "게시", hidden: "게시 중단" };
 

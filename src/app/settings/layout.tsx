@@ -6,37 +6,51 @@ import { SettingsTabs } from "./settings-tabs";
 // 고객센터 · 로그아웃 · 정책 링크는 모든 탭의 맨 아래에. 로그인 확인은 탭 화면마다 (돌아올 주소를 그 탭으로)
 export default function SettingsLayout({ children }: LayoutProps<"/settings">) {
   return (
-    <div className="mx-auto max-w-5xl px-4 pt-8 pb-16 md:grid md:grid-cols-[180px_minmax(0,1fr)] md:gap-10 md:px-6">
-      <SettingsTabs />
-      <div className="flex min-w-0 flex-col gap-8">
-        <header className="flex items-center gap-3">
-          <Link href="/me" className="text-sm text-quiet hover:text-text">
-            ‹ 마이페이지
-          </Link>
-          <p className="text-2xl font-bold">설정</p>
-        </header>
+    <div className="mx-auto max-w-5xl px-4 pt-6 pb-16 md:px-6 md:pt-8">
+      {/* 제목이 먼저, 그 아래 탭 (휴대폰은 가로 탭, PC는 왼쪽 세로 탭) */}
+      <header className="mb-2 flex items-center gap-3 md:mb-8">
+        <Link href="/me" className="text-sm text-quiet hover:text-text">
+          ‹ 마이페이지
+        </Link>
+        <p className="text-2xl font-bold">설정</p>
+      </header>
+      <div className="md:grid md:grid-cols-[180px_minmax(0,1fr)] md:gap-10">
+        <SettingsTabs />
+        <div className="flex min-w-0 flex-col gap-8">
+          {children}
 
-        {children}
+          <section
+            aria-label="고객센터 · 로그아웃"
+            className="flex flex-col gap-3 border-t border-line pt-8"
+          >
+            <Link
+              href="/help?tab=inquiry"
+              className="flex min-h-11 items-center justify-between text-sm hover:text-text"
+            >
+              문의 내역 · 고객센터 <span aria-hidden="true">›</span>
+            </Link>
+            <form action={signOut}>
+              <button
+                type="submit"
+                className="min-h-11 rounded-full border border-line px-5 text-sm font-semibold text-quiet hover:border-quiet hover:text-text"
+              >
+                로그아웃
+              </button>
+            </form>
+          </section>
 
-        <section aria-label="고객센터 · 로그아웃" className="flex flex-col gap-3 border-t border-line pt-8">
-          <Link href="/help?tab=inquiry" className="flex min-h-11 items-center justify-between text-sm hover:text-text">
-            문의 내역 · 고객센터 <span aria-hidden="true">›</span>
-          </Link>
-          <form action={signOut}>
-            <button type="submit" className="min-h-11 rounded-full border border-line px-5 text-sm font-semibold text-quiet hover:border-quiet hover:text-text">
-              로그아웃
-            </button>
-          </form>
-        </section>
-
-        <nav aria-label="정책" className="flex gap-4 border-t border-line pt-6 text-sm text-quiet">
-          <Link href="/terms" className="hover:text-text">
-            이용약관
-          </Link>
-          <Link href="/privacy" className="font-semibold hover:text-text">
-            개인정보처리방침
-          </Link>
-        </nav>
+          <nav
+            aria-label="정책"
+            className="flex gap-4 border-t border-line pt-6 text-sm text-quiet"
+          >
+            <Link href="/terms" className="hover:text-text">
+              이용약관
+            </Link>
+            <Link href="/privacy" className="font-semibold hover:text-text">
+              개인정보처리방침
+            </Link>
+          </nav>
+        </div>
       </div>
     </div>
   );

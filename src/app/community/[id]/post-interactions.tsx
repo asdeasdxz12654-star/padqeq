@@ -10,10 +10,11 @@ import { REASON_LABEL } from "@/lib/moderation/reasons";
 import { Avatar } from "@/components/avatar";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { addReply, applyCasting, closeBoardPost, deleteBoardPost, deleteReply, editReply, reportBoard } from "../actions";
+import { KST } from "@/lib/format/kst";
 
 type Result = { ok: true } | { ok: false; error: string };
 const small = "min-h-8 text-xs text-quiet hover:text-text disabled:opacity-50";
-const dateFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+const dateFormat = KST.monthDayTime;
 
 function useRun() {
   const router = useRouter();

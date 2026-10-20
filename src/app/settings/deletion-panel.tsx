@@ -3,8 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { cancelDeletion, requestDeletion } from "./actions";
+import { KST } from "@/lib/format/kst";
 
-const dateFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "long" });
+const dateFormat = KST.dateLong;
 
 /** 계정 삭제 (S-14 ⑤): 요청 → 30일 유예 → 영구 삭제. 유예 중에는 취소할 수 있다. */
 export function DeletionPanel({ handle, requestedAt }: { handle: string; requestedAt: string | null }) {

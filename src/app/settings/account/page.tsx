@@ -5,10 +5,11 @@ import { loginProviders } from "@/lib/auth/providers";
 import { createClient } from "@/lib/supabase/server";
 import { settingsViewer } from "../load";
 import { LINK_ERRORS, LoginMethods } from "../login-methods";
+import { KST } from "@/lib/format/kst";
 
 export const metadata: Metadata = { title: "계정 · 설정", robots: { index: false } };
 
-const dayFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "long" });
+const dayFormat = KST.dateLong;
 
 // 설정 › 계정: 핸들 · 이메일 · 가입일 · 로그인 방법(계정 연결) · 받은 경고
 export default async function SettingsAccountPage({ searchParams }: PageProps<"/settings/account">) {

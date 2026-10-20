@@ -1,7 +1,8 @@
 "use client";
 
+import { useDetailsDismiss } from "@/lib/ui/use-details-dismiss";
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { CATEGORIES, CATEGORY_LABEL } from "@/lib/photos/categories";
 
 // 글쓰기 작성 목록 (캔버스 36–40): 사진 올리기(분류 5) · 커뮤니티 글(촬영 장소 · 자유 · Q&A) · 행사 알리기.
@@ -77,24 +78,8 @@ export function HeaderWriteButton() {
   const close = () => {
     if (box.current) box.current.open = false;
   };
-  useEffect(() => {
-    const onDown = (e: Event) => {
-      const d = box.current;
-      if (!d?.open) return;
-      if (e instanceof KeyboardEvent) {
-        if (e.key === "Escape") d.open = false;
-        return;
-      }
-      if (e.target instanceof Node && d.contains(e.target)) return;
-      d.open = false;
-    };
-    document.addEventListener("pointerdown", onDown);
-    document.addEventListener("keydown", onDown);
-    return () => {
-      document.removeEventListener("pointerdown", onDown);
-      document.removeEventListener("keydown", onDown);
-    };
-  }, []);
+  // 바깥을 누르거나 Esc면 닫는다
+  useDetailsDismiss(box);
   return (
     <details ref={box} className="relative hidden md:block">
       <summary className="inline-flex min-h-10 cursor-pointer list-none items-center gap-1.5 rounded-full bg-accent px-4 font-bold text-on-accent [&::-webkit-details-marker]:hidden">

@@ -1,7 +1,8 @@
 "use client";
 
+import { useLeaveWarning } from "@/lib/ui/use-details-dismiss";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { uploadPhotoFiles } from "@/app/upload/publish-bundle";
 import { ACCEPT_INPUT, type Photo, useConverter } from "@/app/upload/use-converter";
 import { addPhotos, finishPhotos } from "./photo-actions";
@@ -26,12 +27,7 @@ export function AddPhotos({ postId, room }: { postId: string; room: number }) {
   const ready = list.length > 0 && list.every((p) => p.status === "ready") && (!hasRaw || rawConfirmed);
 
   // 변환 · 업로드 중에 창을 닫으면 작업이 끊긴다
-  useEffect(() => {
-    if (!busy && !converting) return;
-    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [busy, converting]);
+  useLeaveWarning(busy || converting);
 
   async function upload() {
     setStage({ kind: "uploading", sent: 0, total: list.length * 5 });

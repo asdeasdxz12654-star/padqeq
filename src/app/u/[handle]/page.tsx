@@ -25,11 +25,12 @@ import { rankCollaborators, sharedPostIds } from "@/lib/profiles/rank-collaborat
 import { createClient } from "@/lib/supabase/server";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { parseYearParam } from "@/lib/year-chips";
+import { KST } from "@/lib/format/kst";
 
 // S-09 프로필: 커버 · 소개 · 링크 · 크리에이터 정보 · 작업물 / 크레딧된 작업 / 컬렉션 · 촬영 연도. 주소는 /@handle (next.config.ts에서 연결)
 // 팔로우는 홈 '팔로우' 피드로 이어진다 (팔로워 수는 공개하지 않음).
 
-const yearFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric" });
+const yearFormat = KST.year;
 
 export async function generateMetadata({ params }: PageProps<"/u/[handle]">): Promise<Metadata> {
   const profile = await getProfileByHandle((await params).handle);

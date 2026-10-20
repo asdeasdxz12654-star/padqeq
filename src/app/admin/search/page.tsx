@@ -7,13 +7,14 @@ import { REASON_LABEL, type ReportReason } from "@/lib/moderation/reasons";
 import { escapeLike } from "@/lib/posts/feed-params";
 import { createClient } from "@/lib/supabase/server";
 import { TAG_KIND_LABEL } from "@/lib/tags/tag-rules";
+import { KST } from "@/lib/format/kst";
 
 export const metadata: Metadata = { title: "운영 검색" };
 
 // A-01 ③ 운영 전체 검색: 게시물 ID · 신고 번호 · 소명 번호 · 회원 ID(UUID) / @핸들 / 제목 · 태그 · 이름
 // 볼 수 있는 것만 나온다 (운영 도우미는 RLS상 휴지통 · 소명 · 이메일이 빠진다).
 
-const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "medium" });
+const timeFormat = KST.date;
 
 export default async function AdminSearchPage({ searchParams }: PageProps<"/admin/search">) {
   const raw = (await searchParams).q;

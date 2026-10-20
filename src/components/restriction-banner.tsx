@@ -1,7 +1,8 @@
 import { getViewer } from "@/lib/auth/viewer";
 import { OPERATOR } from "@/lib/policy";
+import { KST } from "@/lib/format/kst";
 
-const dateFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "long", timeStyle: "short" });
+const dateFormat = KST.dateTimeLong;
 
 /** 이용 정지 안내 (본인에게만, 모든 화면 위에). 다른 사람에게는 정지 여부가 드러나지 않는다. */
 export async function RestrictionBanner() {

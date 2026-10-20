@@ -5,12 +5,13 @@ import { redirect } from "next/navigation";
 import { withNext } from "@/lib/auth/next-path";
 import { getViewer } from "@/lib/auth/viewer";
 import { createClient } from "@/lib/supabase/server";
+import { KST } from "@/lib/format/kst";
 
 export const metadata: Metadata = { title: "메시지", robots: { index: false } };
 
 // S-16 메시지 목록: 전체 · 섭외 · 메시지 요청
 
-const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+const timeFormat = KST.monthDayTime;
 const TABS = { all: "전체", casting: "섭외", requests: "메시지 요청" } as const;
 type Tab = keyof typeof TABS;
 

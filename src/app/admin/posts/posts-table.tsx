@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { BULK_LABEL, type BulkAction, PURGE_CONFIRM, postStateLabel, purgeDate } from "@/lib/admin/post-bulk";
 import { bulkPosts } from "./actions";
+import { KST } from "@/lib/format/kst";
 
 export type AdminPostRow = {
   id: string;
@@ -28,8 +29,8 @@ export type AdminPostRow = {
   reports: { count: number }[];
 };
 
-const dateFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "2-digit", day: "2-digit" });
-const fullDate = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "medium" });
+const dateFormat = KST.monthDay2;
+const fullDate = KST.date;
 const VISIBILITY = { public: "", followers: "팔로워", private: "나만" } as const;
 
 /** 게시물 표 + 일괄 작업 바 (A-03 ③ ④). 실행 전 대상 수를 다시 확인한다. */

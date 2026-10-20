@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { Avatar } from "@/components/avatar";
 import { FeedList } from "@/components/feed-list";
@@ -18,13 +19,14 @@ import { loadYearShelf } from "@/lib/profiles/shelf";
 import { createClient } from "@/lib/supabase/server";
 import { type CreditClaim, CreditClaims } from "./credit-claims";
 import { type CreditRequest, CreditRequests } from "./credit-requests";
+import { KST } from "@/lib/format/kst";
 
 export const metadata: Metadata = {
   title: "마이페이지",
   robots: { index: false },
 };
 
-const yearFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric" });
+const yearFormat = KST.year;
 
 // 마이페이지 (마이 A안 · 캔버스 28–30): 나만 보는 것 + 나의 기록.
 //  · 왼쪽(휴대폰은 위): 받은 요청(있을 때만) · 저장 · 컬렉션 · 내 글 관리 · 추억 · 팔로우 한 줄 · (운영진) 운영 화면
@@ -39,8 +41,7 @@ export default async function MePage() {
 
   const supabase = await createClient();
   const scope: FeedScope = { kind: "author", authorId: viewer.id, year: null, month: null };
-  const [mine, creditRows, claimRows, followedTags, followedMembers, hiddenCount, trashedCount, pending, first, { data: account }] = await Promise.all([
-    getProfileByHandle(profile.handle),
+  const [creditRows, claimRows, followedTags, followedMembers, hiddenCount, trashedCount, pending, { data: account }] = await Promise.all([
     // 나를 태그했고 아직 답하지 않은 크레딧 (게시된 글만 보인다, RLS)
     supabase
       .from("credits")
@@ -64,11 +65,8 @@ export default async function MePage() {
     supabase.from("posts").select("id", { count: "exact", head: true }).eq("author_id", viewer.id).eq("status", "hidden").is("trashed_at", null),
     supabase.from("posts").select("id", { count: "exact", head: true }).eq("author_id", viewer.id).eq("trashed_by_author", true).not("trashed_at", "is", null),
     staff ? getAdminPending() : Promise.resolve(null),
-    // 나의 기록: 내 사진
-    loadScopePage(scope),
     supabase.from("profiles").select("deletion_requested_at, created_at").eq("id", viewer.id).single(),
   ]);
-  const shelfYears = (await loadYearShelf(viewer.id, mine?.years ?? [])).filter((y) => y.count > 0);
 
   const creditClaims: CreditClaim[] = (claimRows.data ?? []).flatMap((c) =>
     c.credit?.post && c.credit.post.author_id === viewer.id && c.claimant
@@ -177,15 +175,30 @@ export default async function MePage() {
         <h2 id="record-heading" className="text-lg font-bold">
           나의 기록
         </h2>
-        {shelfYears.length > 0 && (
-          <div className="-mx-4 md:-mx-6">
-            <YearShelf years={shelfYears} selected={null} hrefFor={(y) => (y === null ? myProfile : `${myProfile}?year=${y}`)} />
-          </div>
-        )}
-        <div className="-mx-4 md:-mx-6">
-          <FeedList scope={scope} initial={first} empty="아직 올린 사진이 없어요. 글쓰기(휴대폰은 '+')에서 첫 사진을 담아 보세요." />
-        </div>
+        {/* 책장 · 사진은 조회가 많아 뒤이어 그린다 (위쪽 메뉴를 먼저 보여 준다) */}
+        <Suspense fallback={<div aria-hidden="true" className="mt-2 h-64 animate-pulse rounded-2xl bg-slot" />}>
+          <MyRecord userId={viewer.id} handle={profile.handle} scope={scope} />
+        </Suspense>
       </section>
     </div>
+  );
+}
+
+/** 나의 기록: 연도 책장과 내 사진 */
+async function MyRecord({ userId, handle, scope }: { userId: string; handle: string; scope: FeedScope }) {
+  const [mine, first] = await Promise.all([getProfileByHandle(handle), loadScopePage(scope)]);
+  const shelfYears = (await loadYearShelf(userId, mine?.years ?? [])).filter((y) => y.count > 0);
+  const myProfile = profileHref(handle);
+  return (
+    <>
+      {shelfYears.length > 0 && (
+        <div className="-mx-4 md:-mx-6">
+          <YearShelf years={shelfYears} selected={null} hrefFor={(y) => (y === null ? myProfile : `${myProfile}?year=${y}`)} />
+        </div>
+      )}
+      <div className="-mx-4 md:-mx-6">
+        <FeedList scope={scope} initial={first} empty="아직 올린 사진이 없어요. 글쓰기(휴대폰은 '+')에서 첫 사진을 담아 보세요." />
+      </div>
+    </>
   );
 }

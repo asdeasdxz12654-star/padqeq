@@ -1,8 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { AppealForm } from "./appeal-form";
+import { KST } from "@/lib/format/kst";
 
-const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "medium", timeStyle: "short" });
-const dayFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "long" });
+const timeFormat = KST.dateTime;
+const dayFormat = KST.dateLong;
 const APPEAL_DAYS = 30;
 
 /** 소명 기한 (조치 시각 + 30일) */

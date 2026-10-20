@@ -7,13 +7,14 @@ import { CommentDecisionForm } from "./comment-decision-form";
 import { BoardDecisionForm, MessageReportPanel } from "./community-report-forms";
 import { ClaimDecision } from "./claim-decision";
 import { APPEAL_POST, AppealDetail, type AppealRow, REPORT_SELECT, ReportDetail, type ReportRow } from "./details";
+import { KST } from "@/lib/format/kst";
 
 export const metadata: Metadata = { title: "신고 처리" };
 
 // A-04 신고 · 검수 처리 (신고 대기열 · 소명 · 처리 완료)
 // 같은 게시물의 신고는 하나로 묶고, 가장 급한 사유 · 가장 오래된 접수 순으로 놓는다.
 
-const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "short", timeStyle: "short" });
+const timeFormat = KST.dateTimeShort;
 
 export default async function AdminReportsPage({ searchParams }: PageProps<"/admin/reports">) {
   const params = await searchParams;

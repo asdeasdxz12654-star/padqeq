@@ -7,13 +7,14 @@ import { createClient } from "@/lib/supabase/server";
 import { FAQ } from "@/lib/support/faq";
 import { INQUIRY_ANSWER_DAYS, INQUIRY_CATEGORY_LABEL, NOTICE_CATEGORY_LABEL } from "@/lib/support/labels";
 import { InquiryForm } from "./inquiry-form";
+import { KST } from "@/lib/format/kst";
 
 export const metadata: Metadata = { title: "고객센터" };
 
 // S-20 고객센터: 공지 · 자주 묻는 질문 · 1:1 문의 (비로그인은 공지 · FAQ만)
 
-const dateFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "2-digit", day: "2-digit" });
-const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "medium", timeStyle: "short" });
+const dateFormat = KST.monthDay2;
+const timeFormat = KST.dateTime;
 
 const TABS = { notices: "공지", faq: "자주 묻는 질문", inquiry: "1:1 문의" } as const;
 type Tab = keyof typeof TABS;

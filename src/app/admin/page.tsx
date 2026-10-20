@@ -10,10 +10,11 @@ import { getAdminPending } from "@/lib/admin/pending";
 import { countTagChores, type TagChores } from "@/lib/admin/tag-chores";
 import { createClient } from "@/lib/supabase/server";
 import { getSiteSwitches } from "@/lib/support/switches";
+import { KST } from "@/lib/format/kst";
 
 export const metadata: Metadata = { title: "운영" };
 
-const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+const timeFormat = KST.monthDayTime;
 const BACKUP_LABEL = { ok: "정상", stale: "늦음", missing: "없음", unknown: "확인 못 함" } as const;
 
 // 운영 첫 화면 (관리자 디자인 v2): 지금 처리할 일(처리함 위 5건) → 할 일 → 오늘 지표 → 사이트 상태. 메뉴는 왼쪽.

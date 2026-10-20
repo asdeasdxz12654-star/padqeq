@@ -4,9 +4,10 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { UPLOAD_STAGE_LABEL, type UploadStage } from "@/lib/support/labels";
 import { addBannedWord, createInvite, removeBannedWord, revokeInvite, setUploadStage } from "./opening-actions";
+import { KST } from "@/lib/format/kst";
 
 const input = "min-h-11 rounded-xl border border-line bg-bg px-3 text-base";
-const dateFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "medium" });
+const dateFormat = KST.date;
 
 /** 단계를 바꾸기 전 확인할 것 (A-05 ① 전환 전 체크리스트) */
 const CHECKLIST: Record<UploadStage, string[]> = {

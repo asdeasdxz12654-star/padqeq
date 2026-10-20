@@ -1,7 +1,8 @@
 "use client";
 
+import { useDetailsDismiss } from "@/lib/ui/use-details-dismiss";
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { signOut } from "@/app/me/actions";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { Avatar } from "./avatar";
@@ -22,24 +23,8 @@ const ITEMS = [
  */
 export function AccountMenu({ handle, avatarKey }: { handle: string; avatarKey: string | null }) {
   const box = useRef<HTMLDetailsElement>(null);
-  useEffect(() => {
-    const close = (e: Event) => {
-      const d = box.current;
-      if (!d?.open) return;
-      if (e instanceof KeyboardEvent) {
-        if (e.key === "Escape") d.open = false;
-        return;
-      }
-      if (e.target instanceof Node && d.contains(e.target)) return;
-      d.open = false;
-    };
-    document.addEventListener("pointerdown", close);
-    document.addEventListener("keydown", close);
-    return () => {
-      document.removeEventListener("pointerdown", close);
-      document.removeEventListener("keydown", close);
-    };
-  }, []);
+  // 바깥을 누르거나 Esc면 닫는다
+  useDetailsDismiss(box);
   const done = () => {
     if (box.current) box.current.open = false;
   };

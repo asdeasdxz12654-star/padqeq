@@ -4,8 +4,9 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { NOTICE_CATEGORY_LABEL } from "@/lib/support/labels";
+import { KST } from "@/lib/format/kst";
 
-const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "long", timeStyle: "short" });
+const timeFormat = KST.dateTimeLong;
 
 async function loadNotice(id: string) {
   if (!z.uuid().safeParse(id).success) return null;

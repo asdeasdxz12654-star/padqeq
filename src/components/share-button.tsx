@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useDetailsDismiss } from "@/lib/ui/use-details-dismiss";
+import { useRef, useState, useSyncExternalStore } from "react";
 import { KAKAO_JS_KEY, shareToKakao } from "@/lib/share/kakao";
 
 /**
@@ -45,24 +46,7 @@ export function ShareButton({ path, title }: { path: string; title: string }) {
   };
 
   // 바깥을 누르거나 Esc면 닫는다
-  useEffect(() => {
-    const onDown = (e: Event) => {
-      const d = box.current;
-      if (!d?.open) return;
-      if (e instanceof KeyboardEvent) {
-        if (e.key === "Escape") d.open = false;
-        return;
-      }
-      if (e.target instanceof Node && d.contains(e.target)) return;
-      d.open = false;
-    };
-    document.addEventListener("pointerdown", onDown);
-    document.addEventListener("keydown", onDown);
-    return () => {
-      document.removeEventListener("pointerdown", onDown);
-      document.removeEventListener("keydown", onDown);
-    };
-  }, []);
+  useDetailsDismiss(box);
 
   const icon = (
     <svg aria-hidden="true" viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">

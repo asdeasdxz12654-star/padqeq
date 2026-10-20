@@ -6,6 +6,7 @@ import { BOARD_LABEL, type BoardKind, CASTING_KIND_LABEL, type CastingKind, type
 import { REGIONS, formatRange } from "@/lib/events/calendar";
 import { upcomingEvents } from "@/lib/events/load";
 import { createClient } from "@/lib/supabase/server";
+import { KST } from "@/lib/format/kst";
 
 export const metadata: Metadata = { title: "커뮤니티" };
 
@@ -13,7 +14,7 @@ export const metadata: Metadata = { title: "커뮤니티" };
 // 글쓰기 버튼은 두지 않는다: 헤더 [글쓰기 ▾] · 휴대폰 [+]의 작성 목록에서 게시판을 고른다.
 // PC(1024px~)는 3단: 왼쪽 게시판 메뉴 · 가운데 글 목록 · 오른쪽 다가오는 행사 · 크리에이터. 휴대폰은 한 줄씩.
 
-const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric" });
+const timeFormat = KST.monthDay;
 
 type Row = {
   id: string;

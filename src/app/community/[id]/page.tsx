@@ -13,8 +13,9 @@ import { getSiteSwitches } from "@/lib/support/switches";
 import { ShareButton } from "@/components/share-button";
 import { AdultConfirm } from "../adult-confirm";
 import { CastingApply, PostActions, Replies, type ReplyView } from "./post-interactions";
+import { KST } from "@/lib/format/kst";
 
-const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "medium", timeStyle: "short" });
+const timeFormat = KST.dateTime;
 
 const getBoardPost = cache(async (id: string) => {
   if (!z.uuid().safeParse(id).success) return null;

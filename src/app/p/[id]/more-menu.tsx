@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useDetailsDismiss } from "@/lib/ui/use-details-dismiss";
+import { useRef } from "react";
 
 /**
  * ⋯ 더보기: 신고 · 컬렉션 · 작가 메뉴 · 운영 메뉴를 한곳에 (보는 사람 화면에는 좋아요 · 저장 · 공유만 크게).
@@ -8,25 +9,8 @@ import { useEffect, useRef } from "react";
  */
 export function MoreMenu({ children }: { children: React.ReactNode }) {
   const box = useRef<HTMLDetailsElement>(null);
-  useEffect(() => {
-    const close = (e: Event) => {
-      const d = box.current;
-      if (!d?.open) return;
-      if (e instanceof KeyboardEvent) {
-        if (e.key === "Escape") d.open = false;
-        return;
-      }
-      // 안에서 연 창(신고 등)을 누른 것은 닫지 않는다
-      if (e.target instanceof Node && (d.contains(e.target) || (e.target as Element).closest?.("dialog"))) return;
-      d.open = false;
-    };
-    document.addEventListener("pointerdown", close);
-    document.addEventListener("keydown", close);
-    return () => {
-      document.removeEventListener("pointerdown", close);
-      document.removeEventListener("keydown", close);
-    };
-  }, []);
+  // 바깥을 누르거나 Esc면 닫는다
+  useDetailsDismiss(box, { ignoreDialogs: true });
 
   return (
     <details ref={box} className="relative">

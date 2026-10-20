@@ -1,5 +1,6 @@
 "use client";
 
+import { useLeaveWarning } from "@/lib/ui/use-details-dismiss";
 import { loadAudienceDefaults } from "./audience-defaults";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useState } from "react";
@@ -100,12 +101,8 @@ export function UploadStudio({
     window.location.reload();
   }, []);
 
-  useEffect(() => {
-    if (!busy) return;
-    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [busy]);
+  // 작업 중에 창을 닫으면 끊긴다
+  useLeaveWarning(busy);
 
   // 지금 맞출 기준: 첫 번째 손댈 수 있는 게시물 (없으면 처음 값)
   const sharedNow = (): Shared => {
@@ -134,17 +131,32 @@ export function UploadStudio({
       const kept = open && head.length ? list.map((b) => (b.id === open.id ? { ...b, photoIds: [...b.photoIds, ...head] } : b)) : list;
       return [...kept, ...chunks.map((c) => newBundle(c, open?.category ?? category, shared))];
     });
-    // 새로 담긴 게시물(마지막)을 보여 준다
-    setCurrent(Number.MAX_SAFE_INTEGER);
+    // 새 사진이 처음 담긴 게시물을 보여 준다 (이어 담았으면 그 게시물, 아니면 새로 만든 첫 게시물)
+    const last = bundles.at(-1);
+    const continued = last && editable(last) && last.photoIds.length < MAX_PHOTOS_PER_POST;
+    setCurrent(continued ? bundles.length - 1 : bundles.length);
   }
 
-  // 손댈 수 있는 사진 전체를 촬영 시각으로 나눴을 때
+  // 화면이 준비되기 전에 고른 사진 (느린 휴대폰에서 고르기 창이 먼저 열린 경우)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const input = document.getElementById(inputId);
+      if (input instanceof HTMLInputElement && input.files?.length) void onFiles(input.files).then(() => (input.value = ""));
+    }, 0);
+    return () => clearTimeout(timer);
+    // 처음 한 번만
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 손댈 수 있는 사진 전체를 촬영 시각으로 나눴을 때. 지금 나뉜 모양과 다를 때만 제안한다.
   const loose = bundles.filter(editable);
   const loosePhotos = loose.flatMap(photosOf);
   const groups = groupByShootingTime(loosePhotos);
   const span = timeRange(loosePhotos);
   const spanHours = span ? (Date.parse(span.end) - Date.parse(span.start)) / 3_600_000 : 0;
-  const suggestSplit = !splitAnswered && groups.length > 1 && groups.length !== loose.length && (loosePhotos.length > MAX_PHOTOS_PER_POST || spanHours > 1);
+  const idsKey = (ids: string[]) => [...ids].sort().join();
+  const samePartition = groups.length === loose.length && groups.every((g, i) => idsKey(g.map((p) => p.id)) === idsKey(loose[i]!.photoIds));
+  const suggestSplit = !splitAnswered && groups.length > 1 && !samePartition && (loosePhotos.length > MAX_PHOTOS_PER_POST || spanHours > 1);
 
   function splitByTime() {
     const first = loose[0];

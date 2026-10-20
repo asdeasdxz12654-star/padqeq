@@ -3,12 +3,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { auditActionLabel, auditSummary, auditTargetHref } from "@/lib/admin/audit";
 import { createClient } from "@/lib/supabase/server";
+import { KST } from "@/lib/format/kst";
 
 export const metadata: Metadata = { title: "감사 로그" };
 
 // A-05 감사 로그: 운영자의 모든 조치 (고칠 수 없음, 3년 보관). 행동 이름 · 대상 ID · @운영자로 찾는다.
 
-const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "medium", timeStyle: "medium" });
+const timeFormat = KST.dateTimeSeconds;
 const PAGE = 50;
 
 export default async function AdminAuditPage({ searchParams }: PageProps<"/admin/audit">) {

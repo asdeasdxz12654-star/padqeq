@@ -38,9 +38,10 @@ import { WatermarkCheck } from "./watermark-check";
 import { FollowButton } from "@/components/follow-button";
 import { MenuGroup, MoreMenu } from "./more-menu";
 import { type PhotoBack, PhotoFlip } from "./photo-flip";
+import { KST } from "@/lib/format/kst";
 
-const dateFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "medium" });
-const dateTimeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+const dateFormat = KST.date;
+const dateTimeFormat = KST.monthDayTime;
 
 
 // S-06 / S-07 게시물 상세: 사진 뷰어 · 정보 · 반응(좋아요 · 저장 · 공유) · 크레딧 · 태그 · 촬영 정보 · 댓글 · 신고 · 소명 · 연관 게시물

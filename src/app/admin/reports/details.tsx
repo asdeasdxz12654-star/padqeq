@@ -7,10 +7,11 @@ import { createClient } from "@/lib/supabase/server";
 import { BlurredPreview } from "./blurred-preview";
 import { DecisionForm } from "./decision-form";
 import { EvidenceImage } from "./evidence-image";
+import { KST } from "@/lib/format/kst";
 
 // 신고 · 소명 상세 (신고 처리 화면과 처리함 오른쪽 칸이 함께 쓴다)
 
-const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "short", timeStyle: "short" });
+const timeFormat = KST.dateTimeShort;
 
 export type ReportRow = {
   id: string;

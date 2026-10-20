@@ -8,12 +8,13 @@ import { AnswerForm, type NoticeDraft, NoticeForm, SwitchesForm } from "./forms"
 import { BannedWords, InviteCodes, StageForm } from "./opening-forms";
 import { LIMIT_ORDER } from "@/lib/admin/limits";
 import { LimitsForm } from "./limits-form";
+import { KST } from "@/lib/format/kst";
 
 export const metadata: Metadata = { title: "고객센터 운영" };
 
 // A-05 소통 · 시스템: 1:1 문의 답변 · 공지 · 긴급 스위치
 
-const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "medium", timeStyle: "short" });
+const timeFormat = KST.dateTime;
 
 const TABS = { open: "답변 대기", answered: "답변 완료", notices: "공지", system: "시스템" } as const;
 type Tab = keyof typeof TABS;

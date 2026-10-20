@@ -11,8 +11,9 @@ import { splitMentions } from "@/lib/comments/mentions";
 import { REASON_LABEL } from "@/lib/moderation/reasons";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { addComment, deleteComment, editComment, pinComment, reportComment } from "./comment-actions";
+import { KST } from "@/lib/format/kst";
 
-const dateFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+const dateFormat = KST.monthDayTime;
 
 type Ctx = {
   postId: string;

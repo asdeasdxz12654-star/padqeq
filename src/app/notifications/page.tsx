@@ -14,10 +14,11 @@ import {
 } from "@/lib/notifications/describe";
 import { createClient } from "@/lib/supabase/server";
 import { MarkRead } from "./mark-read";
+import { KST } from "@/lib/format/kst";
 
 export const metadata: Metadata = { title: "알림", robots: { index: false } };
 
-const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "medium", timeStyle: "short" });
+const timeFormat = KST.dateTime;
 const GROUPS = Object.keys(NOTIFICATION_GROUP_LABEL) as NotificationGroup[];
 const isGroup = (v: unknown): v is NotificationGroup => typeof v === "string" && (GROUPS as string[]).includes(v);
 

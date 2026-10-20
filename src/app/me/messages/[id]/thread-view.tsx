@@ -6,8 +6,9 @@ import { CASTING_FORM_FIELDS, SAFETY_GUIDE } from "@/lib/boards/labels";
 import { COMMENT_REPORT_REASONS } from "@/lib/comments/limits";
 import { REASON_LABEL } from "@/lib/moderation/reasons";
 import { dismissGuide, markThreadRead, reportThread, respondThread, sendMessage, setBlock } from "../actions";
+import { KST } from "@/lib/format/kst";
 
-const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+const timeFormat = KST.monthDayTime;
 
 export type MessageView = { id: number; mine: boolean; body: string; form: Record<string, string> | null; createdAt: string };
 

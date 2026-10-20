@@ -1,5 +1,6 @@
 "use client";
 
+import { useLeaveWarning } from "@/lib/ui/use-details-dismiss";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
@@ -74,13 +75,8 @@ export function ProfileEditor({
   const changed = avatar.kind !== "keep" || cover !== initial.coverPostId || infoChanged || creatorChanged;
   const setField = <K extends keyof CreatorDraft>(key: K, value: CreatorDraft[K]) => setCreator((d) => ({ ...d, [key]: value }));
 
-  // 저장하지 않고 떠나면 고친 내용이 사라진다
-  useEffect(() => {
-    if (!changed) return;
-    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [changed]);
+  // 작업 중에 창을 닫으면 끊긴다
+  useLeaveWarning(changed);
 
   // 미리보기 주소는 바뀌거나 화면을 떠날 때 정리한다
   useEffect(() => {

@@ -3,12 +3,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { isActiveRestriction } from "@/lib/moderation/sanctions";
 import { createClient } from "@/lib/supabase/server";
+import { KST } from "@/lib/format/kst";
 
 export const metadata: Metadata = { title: "회원 관리" };
 
 // A-05 회원 관리: 찾기 · 업로드 권한 · 이용 정지 (운영자는 RLS상 모든 프로필 · 정지 기록을 본다)
 
-const dateFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "medium" });
+const dateFormat = KST.date;
 
 const FILTERS = { all: "전체", uploaders: "업로드 권한", suspended: "정지 중" } as const;
 type Filter = keyof typeof FILTERS;
