@@ -62,7 +62,27 @@ export async function setAdminAlerts(mode: AdminAlertMode): Promise<{ ok: true }
   const viewer = await getViewer();
   if (!viewer?.profile) return { ok: false, error: "로그인이 필요해요." };
   const supabase = await createClient();
-  const { error } = await supabase.from("admin_alert_settings").upsert({ user_id: viewer.id, mode, updated_at: new Date().toISOString() });
+  // upsert는 user_id까지 다시 쓰려 해서 권한(열 단위 update)에 막힌다 → 바꾸고, 없으면 만든다
+  const values = { mode, updated_at: new Date().toISOString() };
+  const updated = await supabase.from("admin_alert_settings").update(values).eq("user_id", viewer.id).select("user_id");
+  const { error } = updated.error || updated.data.length > 0 ? updated : await supabase.from("admin_alert_settings").insert({ user_id: viewer.id, ...values });
+  if (error) return { ok: false, error: "저장하지 못했어요." };
+  revalidatePath("/settings/alerts");
+  return { ok: true };
+}
+
+const NOTIFICATION_PREFS = ["likes", "comments", "messages", "events"] as const;
+export type NotificationPref = (typeof NOTIFICATION_PREFS)[number];
+
+/** 알림 종류별로 받기 (회원 시안 46): 끈 종류는 DB가 알림을 만들지 않는다 */
+export async function setNotificationPref(pref: NotificationPref, on: boolean): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!NOTIFICATION_PREFS.includes(pref) || typeof on !== "boolean") return { ok: false, error: "잘못된 요청이에요." };
+  const viewer = await getViewer();
+  if (!viewer?.profile) return { ok: false, error: "로그인이 필요해요." };
+  const supabase = await createClient();
+  const values = { ...({ [pref]: on } as Partial<Record<NotificationPref, boolean>>), updated_at: new Date().toISOString() };
+  const updated = await supabase.from("notification_prefs").update(values).eq("user_id", viewer.id).select("user_id");
+  const { error } = updated.error || updated.data.length > 0 ? updated : await supabase.from("notification_prefs").insert({ user_id: viewer.id, ...values });
   if (error) return { ok: false, error: "저장하지 못했어요." };
   revalidatePath("/settings/alerts");
   return { ok: true };

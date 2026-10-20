@@ -1658,6 +1658,41 @@ export type Database = {
           },
         ]
       }
+      notification_prefs: {
+        Row: {
+          comments: boolean
+          events: boolean
+          likes: boolean
+          messages: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comments?: boolean
+          events?: boolean
+          likes?: boolean
+          messages?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comments?: boolean
+          events?: boolean
+          likes?: boolean
+          messages?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_prefs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           actor_id: string | null

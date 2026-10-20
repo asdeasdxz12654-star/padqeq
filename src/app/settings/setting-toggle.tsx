@@ -1,9 +1,17 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { setCreditAutoApprove, setMemoryAlerts, setShowVeiled } from "./preferences";
+import { setCreditAutoApprove, setMemoryAlerts, setNotificationPref, setShowVeiled } from "./preferences";
 
-const ACTIONS = { memory: setMemoryAlerts, creditAuto: setCreditAutoApprove, showVeiled: setShowVeiled };
+const ACTIONS = {
+  memory: setMemoryAlerts,
+  creditAuto: setCreditAutoApprove,
+  showVeiled: setShowVeiled,
+  likes: (on: boolean) => setNotificationPref("likes", on),
+  comments: (on: boolean) => setNotificationPref("comments", on),
+  messages: (on: boolean) => setNotificationPref("messages", on),
+  events: (on: boolean) => setNotificationPref("events", on),
+};
 
 /** 켜기 · 끄기 설정 하나 (바로 저장, 실패하면 되돌린다) */
 export function SettingToggle({ kind, initial, title, help }: { kind: keyof typeof ACTIONS; initial: boolean; title: string; help: string }) {
