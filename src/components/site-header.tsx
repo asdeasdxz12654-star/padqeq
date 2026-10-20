@@ -9,8 +9,9 @@ import { HeaderNav } from "./header-nav";
 import { HeaderAutoHide } from "./header-auto-hide";
 import { HeaderSearch } from "./search-box";
 import { HaedamLogo } from "./haedam-logo";
+import { HeaderWriteButton } from "./write-menu";
 
-/** 상단 바. 데스크톱(768px~)에서는 GNB + 업로드 버튼 + 계정, 모바일에서는 로고와 가입 안내만. */
+/** 상단 바. 데스크톱(768px~)에서는 GNB + 글쓰기 버튼 + 계정, 모바일에서는 로고와 가입 안내만. */
 export async function SiteHeader() {
   const viewer = await getViewer();
   const isStaff = isStaffRole(viewer?.profile?.role);
@@ -41,12 +42,7 @@ export async function SiteHeader() {
             </Link>
           ) : (
             <>
-              <Link prefetch={false}
-                href="/upload"
-                className="hidden min-h-10 items-center rounded-full bg-accent px-4 font-bold text-on-accent md:inline-flex"
-              >
-                올리기
-              </Link>
+              <HeaderWriteButton />
               {mfaRequired && (
                 <Link prefetch={false} href="/admin" className="flex min-h-11 items-center text-quiet hover:text-text">
                   운영 (인증)

@@ -142,13 +142,15 @@ async function RestSections({ member }: { member: boolean }) {
   );
 }
 
-/** 커뮤니티 새 글 4개 (가려진 글은 빼고) */
+/** 커뮤니티 새 글 4개 (가려진 글 · 쉬는 구인 · 섭외 글은 빼고) */
 async function loadCommunityNew() {
   const supabase = await createClient();
   const { data } = await supabase
     .from("board_posts")
     .select("id, board, title, replies:board_replies(count)")
     .is("hidden_at", null)
+    // 구인 · 섭외는 쉰다
+    .neq("board", "casting")
     .order("created_at", { ascending: false })
     .limit(4);
   return (data ?? []).map((p) => ({ id: p.id, board: p.board, title: p.title, replies: p.replies[0]?.count ?? 0 }));

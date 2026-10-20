@@ -30,6 +30,7 @@ export function EventForm({
   doneHref,
   doneMessage,
   places,
+  singleDayFirst = false,
 }: {
   initial: EventDraft;
   submit: Submit;
@@ -38,11 +39,14 @@ export function EventForm({
   doneHref?: string;
   doneMessage?: string;
   places?: EventPlaceOption[];
+  /** 날짜 하나로 시작하고 '여러 날 열려요'를 켜면 끝 날짜를 받는다 (회원 행사 알리기) */
+  singleDayFirst?: boolean;
 }) {
   const router = useRouter();
   const [draft, setDraft] = useState(initial);
   const [tagSlug, setTagSlug] = useState<string | null>(null);
   const [placeId, setPlaceId] = useState("");
+  const [multiDay, setMultiDay] = useState(!singleDayFirst || initial.endsOn !== initial.startsOn);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -56,7 +60,7 @@ export function EventForm({
         e.preventDefault();
         setError(null);
         startTransition(async () => {
-          const result = await submit({ ...draft, tagSlug: slug, placeTagId: placeId || null });
+          const result = await submit({ ...draft, endsOn: multiDay ? draft.endsOn : draft.startsOn, tagSlug: slug, placeTagId: placeId || null });
           if (!result.ok) return setError(result.error);
           setDone(true);
           if (doneHref) router.push(doneHref);
@@ -70,14 +74,30 @@ export function EventForm({
       </label>
       <div className="grid grid-cols-2 gap-3">
         <label className="flex flex-col gap-1.5 text-sm">
-          시작
+          {multiDay ? "시작" : "날짜"}
           <input type="date" value={draft.startsOn} onChange={(e) => set("startsOn", e.target.value)} required className={input} />
         </label>
-        <label className="flex flex-col gap-1.5 text-sm">
-          끝
-          <input type="date" value={draft.endsOn} min={draft.startsOn} onChange={(e) => set("endsOn", e.target.value)} required className={input} />
-        </label>
+        {multiDay && (
+          <label className="flex flex-col gap-1.5 text-sm">
+            끝
+            <input type="date" value={draft.endsOn} min={draft.startsOn} onChange={(e) => set("endsOn", e.target.value)} required className={input} />
+          </label>
+        )}
       </div>
+      {singleDayFirst && (
+        <label className="-mt-1 flex min-h-10 items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={multiDay}
+            onChange={(e) => {
+              setMultiDay(e.target.checked);
+              if (e.target.checked && draft.endsOn < draft.startsOn) set("endsOn", draft.startsOn);
+            }}
+            className="size-5 accent-[var(--accent)]"
+          />
+          여러 날 열려요
+        </label>
+      )}
       <div className="grid grid-cols-[minmax(0,1fr)_7rem] gap-3">
         <label className="flex flex-col gap-1.5 text-sm">
           장소

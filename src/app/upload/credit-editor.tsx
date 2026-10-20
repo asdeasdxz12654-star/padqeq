@@ -38,12 +38,16 @@ export function CreditEditor({
   onChange,
   disabled,
   viewerHandle,
+  collapsible = false,
 }: {
   value: CreditDraft[];
   onChange(credits: CreditDraft[]): void;
   disabled: boolean;
   viewerHandle: string | null;
+  /** 찾기 칸을 접어 두고 [+ 함께한 사람]을 눌렀을 때만 연다 (올리기 화면) */
+  collapsible?: boolean;
 }) {
+  const [open, setOpen] = useState(!collapsible);
   const [role, setRole] = useState<CreditRole>("photographer");
   const [mode, setMode] = useState<"member" | "external">("member");
   const [query, setQuery] = useState("");
@@ -116,7 +120,13 @@ export function CreditEditor({
         </ul>
       )}
 
-      {!disabled && !full && (
+      {!disabled && !full && !open && (
+        <button type="button" onClick={() => setOpen(true)} className="flex min-h-10 items-center self-start text-sm font-semibold text-accent">
+          + 함께한 사람
+        </button>
+      )}
+
+      {!disabled && !full && open && (
         <div className="flex flex-col gap-2 rounded-xl border border-dashed border-line p-3">
           <div className="flex flex-wrap items-center gap-2">
             <select value={role} onChange={(e) => setRole(e.target.value as CreditRole)} className={inputClass} aria-label="역할">

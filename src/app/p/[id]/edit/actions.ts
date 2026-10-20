@@ -3,8 +3,47 @@
 import { revalidatePath } from "next/cache";
 import { getViewer } from "@/lib/auth/viewer";
 import { insertCredits } from "@/lib/photos/credit-rows";
+import { consentSchema, type ConsentInput } from "@/lib/photos/post-input";
 import { diffTags, editSchema, type EditInput } from "@/lib/posts/edit-input";
+import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+
+/**
+ * 사진에 사람이 나와요 · 촬영 동의 기록 (게시물 편집). 작성자만 (RLS: 동의 기록은 작성자 · 운영자가 남기고 운영자만 본다).
+ * 새로 켜면 동의 기록이 있어야 한다. 이미 켜져 있으면 새 기록을 더할 수 있다 (지난 기록은 그대로 남는다).
+ */
+export async function updatePeople(input: { postId: string; hasPeople: boolean; consent: ConsentInput | null }): Promise<{ ok: boolean; error?: string }> {
+  const postId = z.uuid().safeParse(input.postId);
+  const consent = input.consent ? consentSchema.safeParse(input.consent) : null;
+  if (!postId.success || typeof input.hasPeople !== "boolean") return { ok: false, error: "잘못된 요청이에요." };
+  if (consent && !consent.success) return { ok: false, error: consent.error.issues[0]?.message ?? "동의 기록을 확인해 주세요." };
+  const viewer = await getViewer();
+  if (!viewer?.profile) return { ok: false, error: "로그인이 필요해요." };
+
+  const supabase = await createClient();
+  const { data: post } = await supabase.from("posts").select("id, has_people").eq("id", postId.data).eq("author_id", viewer.id).maybeSingle();
+  if (!post) return { ok: false, error: "게시물을 찾을 수 없어요." };
+  if (input.hasPeople && !post.has_people && !consent) return { ok: false, error: "사람이 나오는 사진은 촬영 동의 기록이 필요해요." };
+
+  if (consent?.data) {
+    const c = consent.data;
+    const { error } = await supabase.from("consent_records").insert({
+      post_id: post.id,
+      subject_label: c.subjectLabel,
+      consented_on: c.consentedOn,
+      note: c.note,
+      has_minor: c.hasMinor,
+      guardian_consent: c.guardianConsent,
+      created_by: viewer.id,
+    });
+    if (error) return { ok: false, error: "동의 기록을 남기지 못했어요." };
+  }
+  if (input.hasPeople !== post.has_people) {
+    const { error } = await supabase.from("posts").update({ has_people: input.hasPeople }).eq("id", post.id).eq("author_id", viewer.id);
+    if (error) return { ok: false, error: "저장하지 못했어요." };
+  }
+  return { ok: true };
+}
 
 /** 게시물 편집 저장. 작성자만 (RLS · 열 권한). 태그는 쓸 수 있는 태그인지 RLS가 확인한다. */
 export async function updatePost(input: EditInput): Promise<{ ok: boolean; error?: string }> {

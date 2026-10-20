@@ -2,16 +2,15 @@ import type { Metadata } from "next";
 import { EmptyState } from "@/components/empty-state";
 import Link from "next/link";
 import { todayKst } from "@/lib/auth/signup-input";
-import { getViewer } from "@/lib/auth/viewer";
-import { BOARDS, BOARD_LABEL, type BoardKind, CASTING_KIND_LABEL, type CastingKind, type CastingTerms, TERMS_LABEL, isBoard } from "@/lib/boards/labels";
+import { BOARD_LABEL, type BoardKind, CASTING_KIND_LABEL, type CastingKind, type CastingTerms, OPEN_BOARDS, TERMS_LABEL, isOpenBoard } from "@/lib/boards/labels";
 import { REGIONS, formatRange } from "@/lib/events/calendar";
 import { upcomingEvents } from "@/lib/events/load";
 import { createClient } from "@/lib/supabase/server";
-import { Constants } from "@/lib/supabase/database.types";
 
 export const metadata: Metadata = { title: "커뮤니티" };
 
-// 커뮤니티: 구인 · 섭외 · 촬영 장소 · 자유 · Q&A (+ 행사 · 크리에이터)
+// 커뮤니티: 촬영 장소 · 자유 · Q&A (+ 행사 · 크리에이터). 구인 · 섭외는 쉰다 (OPEN_BOARDS).
+// 글쓰기 버튼은 두지 않는다: 헤더 [글쓰기 ▾] · 휴대폰 [+]의 작성 목록에서 게시판을 고른다.
 // PC(1024px~)는 3단: 왼쪽 게시판 메뉴 · 가운데 글 목록 · 오른쪽 다가오는 행사 · 크리에이터. 휴대폰은 한 줄씩.
 
 const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric" });
@@ -35,11 +34,8 @@ const one = (v: unknown) => (typeof v === "string" ? v : null);
 
 export default async function CommunityPage({ searchParams }: PageProps<"/community">) {
   const params = await searchParams;
-  const board = isBoard(params.board) ? params.board : null;
+  const board = isOpenBoard(params.board) ? params.board : null;
   const region = (REGIONS as readonly string[]).includes(one(params.region) ?? "") ? one(params.region) : null;
-  const kind = (Constants.public.Enums.casting_kind as readonly string[]).includes(one(params.kind) ?? "") ? (one(params.kind) as CastingKind) : null;
-  const terms = (Constants.public.Enums.casting_terms as readonly string[]).includes(one(params.terms) ?? "") ? (one(params.terms) as CastingTerms) : null;
-  const openOnly = params.open === "1";
   // 이어 보기: 이 시각보다 먼저 쓴 글
   const before = typeof params.before === "string" && !Number.isNaN(Date.parse(params.before)) ? new Date(params.before).toISOString() : null;
   const pageSize = board ? 50 : 20;
@@ -54,19 +50,14 @@ export default async function CommunityPage({ searchParams }: PageProps<"/commun
     .order("created_at", { ascending: false })
     .limit(pageSize);
   if (before) query = query.lt("created_at", before);
-  if (board) query = query.eq("board", board);
-  if (region && (board === "casting" || board === "places")) query = query.eq("region", region);
-  if (board === "casting") {
-    if (kind) query = query.eq("casting_kind", kind);
-    if (terms) query = query.eq("casting_terms", terms);
-    if (openOnly) query = query.is("closed_at", null);
-  }
-  const [{ data, error }, viewer, events] = await Promise.all([query, getViewer(), upcomingEvents(todayKst(), 4)]);
+  query = board ? query.eq("board", board) : query.neq("board", "casting");
+  if (region && board === "places") query = query.eq("region", region);
+  const [{ data, error }, events] = await Promise.all([query, upcomingEvents(todayKst(), 4)]);
   if (error) throw error;
   const posts = data as unknown as Row[];
 
   const href = (next: Record<string, string | null>) => {
-    const merged = { board, region, kind, terms, open: openOnly ? "1" : null, before: null, ...next };
+    const merged = { board, region, before: null, ...next };
     const search = new URLSearchParams(Object.entries(merged).filter((e): e is [string, string] => e[1] !== null)).toString();
     return search ? `/community?${search}` : "/community";
   };
@@ -75,16 +66,8 @@ export default async function CommunityPage({ searchParams }: PageProps<"/commun
   return (
     <div className="mx-auto max-w-[1440px] px-4 pt-6 pb-16 md:px-6">
       <div className="lg:grid lg:grid-cols-[200px_minmax(0,1fr)_300px] lg:items-start lg:gap-8">
-        {/* PC 왼쪽: 글쓰기 · 게시판 · 바로가기 */}
+        {/* PC 왼쪽: 게시판 · 바로가기 */}
         <nav aria-label="게시판 메뉴" className="sticky top-20 hidden flex-col gap-1 lg:flex">
-          {viewer?.profile && (
-            <Link
-              href={`/community/write${board ? `?board=${board}` : ""}`}
-              className="mb-4 flex min-h-12 items-center justify-center gap-1.5 rounded-full bg-accent font-bold text-on-accent"
-            >
-              <span aria-hidden="true">+</span> 글쓰기
-            </Link>
-          )}
           <Link
             href="/community"
             aria-current={!board ? "page" : undefined}
@@ -92,7 +75,7 @@ export default async function CommunityPage({ searchParams }: PageProps<"/commun
           >
             전체
           </Link>
-          {BOARDS.map((b) => (
+          {OPEN_BOARDS.map((b) => (
             <Link
               key={b}
               href={`/community?board=${b}`}
@@ -117,14 +100,6 @@ export default async function CommunityPage({ searchParams }: PageProps<"/commun
         <div className="min-w-0">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h1 className="text-2xl font-bold">{board ? BOARD_LABEL[board].title : "커뮤니티"}</h1>
-            {viewer?.profile && (
-              <Link
-                href={`/community/write${board ? `?board=${board}` : ""}`}
-                className="rounded-full bg-accent px-4 py-2 text-sm font-bold text-on-accent lg:hidden"
-              >
-                글쓰기
-              </Link>
-            )}
           </div>
 
           {!board && !before && (
@@ -162,7 +137,7 @@ export default async function CommunityPage({ searchParams }: PageProps<"/commun
             <Link href="/community" aria-current={!board ? "page" : undefined} className={`${chip} shrink-0`}>
               전체
             </Link>
-            {BOARDS.map((b) => (
+            {OPEN_BOARDS.map((b) => (
               <Link key={b} href={`/community?board=${b}`} aria-current={board === b ? "page" : undefined} className={`${chip} shrink-0`}>
                 {BOARD_LABEL[b].title}
               </Link>
@@ -170,30 +145,10 @@ export default async function CommunityPage({ searchParams }: PageProps<"/commun
           </nav>
           {board && <p className="mt-3 text-sm text-quiet">{BOARD_LABEL[board].help}</p>}
 
-          {(board === "casting" || board === "places") && (
+          {board === "places" && (
             <div className="mt-3 flex flex-col gap-2 text-xs">
-              {board === "casting" && (
-                <div className="flex flex-wrap gap-1.5">
-                  {Constants.public.Enums.casting_kind.map((k) => (
-                    <Link key={k} href={href({ kind: kind === k ? null : k })} aria-current={kind === k ? "page" : undefined} className={chip}>
-                      {CASTING_KIND_LABEL[k]}
-                    </Link>
-                  ))}
-                  {Constants.public.Enums.casting_terms.map((t) => (
-                    <Link key={t} href={href({ terms: terms === t ? null : t })} aria-current={terms === t ? "page" : undefined} className={chip}>
-                      {TERMS_LABEL[t]}
-                    </Link>
-                  ))}
-                  <Link href={href({ open: openOnly ? null : "1" })} aria-current={openOnly ? "page" : undefined} className={chip}>
-                    모집 중만
-                  </Link>
-                </div>
-              )}
               <form action="/community" className="flex items-center gap-2">
                 <input type="hidden" name="board" value={board} />
-                {kind && <input type="hidden" name="kind" value={kind} />}
-                {terms && <input type="hidden" name="terms" value={terms} />}
-                {openOnly && <input type="hidden" name="open" value="1" />}
                 <label htmlFor="region-filter">지역</label>
                 <select id="region-filter" name="region" defaultValue={region ?? ""} className="min-h-10 rounded-xl border border-line bg-bg px-2 text-sm">
                   <option value="">전체</option>
@@ -210,14 +165,8 @@ export default async function CommunityPage({ searchParams }: PageProps<"/commun
             </div>
           )}
 
-          {board === "casting" && (
-            <p className="mt-3 rounded-xl bg-slot px-3 py-2 text-xs leading-relaxed text-quiet">
-              첫 촬영 전 안전 가이드 — 공개 장소에서 만나고, 촬영 범위 · 결과물 사용 범위를 메시지로 미리 합의하세요. 선입금 요구는 신고 사유예요.
-            </p>
-          )}
-
           {posts.length === 0 ? (
-            <EmptyState className="mt-4" text="아직 글이 없어요. 첫 글을 남겨 주세요." action={{ href: "/community/write", label: "글쓰기" }} />
+            <EmptyState className="mt-4" text="아직 글이 없어요. 위쪽 글쓰기(휴대폰은 '+')에서 첫 글을 남겨 주세요." />
           ) : (
             <ul className="mt-4 flex flex-col gap-2">
               {posts.map((p) => (
@@ -290,9 +239,7 @@ export default async function CommunityPage({ searchParams }: PageProps<"/commun
             <span className="font-bold">크리에이터</span>
             <span className="text-sm text-quiet">코스어 · 포토그래퍼 · 모델 · 보정 작가를 찾아요.</span>
           </Link>
-          {board === "casting" ? null : (
-            <p className="px-1 text-xs leading-relaxed text-quiet">첫 촬영 전 안전 가이드: 공개 장소에서 만나고, 촬영 범위를 미리 합의하세요.</p>
-          )}
+          <p className="px-1 text-xs leading-relaxed text-quiet">첫 촬영 전 안전 가이드: 공개 장소에서 만나고, 촬영 범위를 미리 합의하세요.</p>
         </aside>
       </div>
     </div>

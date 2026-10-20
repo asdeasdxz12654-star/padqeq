@@ -51,13 +51,11 @@ export function ProfileEditor({
   handle,
   initial,
   posts,
-  adult,
   currentYear,
 }: {
   handle: string;
   initial: ProfileInitial;
   posts: FeedItem[];
-  adult: boolean;
   currentYear: number;
 }) {
   const router = useRouter();
@@ -277,7 +275,7 @@ export function ProfileEditor({
       <div className="flex flex-col gap-4">
         <h3 className={sub}>크리에이터 정보</h3>
         <p className="-mt-2 text-sm leading-relaxed text-quiet">
-          역할 · 지역 · 섭외 가능을 프로필과{" "}
+          역할 · 지역 · 작품을 프로필과{" "}
           <Link href="/creators" className="underline underline-offset-2">
             크리에이터 찾기
           </Link>
@@ -328,21 +326,7 @@ export function ProfileEditor({
           주로 하는 작품 <span className="text-xs text-quiet">(선택 · 100자)</span>
           <input value={creator.works} onChange={(e) => setField("works", e.target.value)} maxLength={100} placeholder="예: 원신 · 블루 아카이브" className={inputClass} />
         </label>
-        <label className="flex items-start gap-3 text-sm">
-          <input
-            type="checkbox"
-            checked={creator.castingOpen}
-            disabled={!adult}
-            onChange={(e) => setField("castingOpen", e.target.checked)}
-            className="mt-0.5 size-4 accent-[var(--accent)]"
-          />
-          <span>
-            섭외 가능 표시
-            <span className="block text-xs text-quiet">
-              {adult ? "디렉토리에서 '섭외 가능만'으로 찾을 수 있어요." : "만 19세 이상 확인을 한 회원만 켤 수 있어요 (섭외 게시판에서 확인)."}
-            </span>
-          </span>
-        </label>
+        {/* 섭외 가능 표시는 구인 · 섭외를 쉬는 동안 숨긴다 (저장된 값은 그대로 둔다) */}
         <label className="flex items-center gap-3 text-sm">
           <input type="checkbox" checked={creator.listed} onChange={(e) => setField("listed", e.target.checked)} className="size-4 accent-[var(--accent)]" />
           크리에이터 찾기에 보이기

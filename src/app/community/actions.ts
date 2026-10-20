@@ -25,6 +25,8 @@ export async function saveBoardPost(id: string | null, input: z.input<typeof boa
   if (!m) return { ok: false, error: "로그인이 필요해요." };
 
   const { board, title, body, region, castingKind, castingTerms, shootOn } = parsed.data;
+  // 구인 · 섭외는 쉰다: 새 글은 받지 않는다 (예전 글 고치기는 된다)
+  if (!id && board === "casting") return { ok: false, error: "구인 · 섭외 게시판은 지금 쉬고 있어요." };
   const fields = { title, body, region, casting_kind: castingKind, casting_terms: castingTerms, shoot_on: shootOn };
   const { data, error } = id
     ? await m.supabase.from("board_posts").update(fields).eq("id", id).select("id").single()

@@ -54,7 +54,7 @@ export default async function EventsPage({ searchParams }: PageProps<"/events">)
         <h1 className="text-2xl font-bold">행사 캘린더</h1>
         {viewer?.profile && (
           <Link href="/events/propose" className="rounded-full border border-line px-3 py-1.5 text-sm hover:border-quiet">
-            행사 제안
+            행사 알리기
           </Link>
         )}
       </div>

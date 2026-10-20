@@ -7,6 +7,7 @@ import { InAppBrowserNotice } from "@/components/in-app-browser-notice";
 import { discardStaleUploadSlots } from "@/lib/photos/upload-slots";
 import { createClient } from "@/lib/supabase/server";
 import { getSiteSwitches } from "@/lib/support/switches";
+import { parseCategory, uploadHeading } from "@/lib/photos/write-defaults";
 import { currentYearKst } from "@/lib/year-chips";
 import { z } from "zod";
 import type { TagOption } from "./tag-actions";
@@ -18,12 +19,16 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-// A-02 / S-08 업로드: 여러 장을 촬영 시각으로 묶어 게시물 여러 개로 (한 번에 500장, JPEG · HEIC · PNG · WebP · AVIF · RAW)
+// 글쓰기 › 사진 올리기 (A-02 / S-08, 캔버스 36–40): 작성 목록에서 고른 분류로 연다 (한 번에 500장, JPEG · HEIC · PNG · WebP · AVIF · RAW)
 export default async function UploadPage({ searchParams }: PageProps<"/upload">) {
-  // ?event=행사 id: 행사 끝난 뒤 알림 · 행사 화면에서 오면 행사 · 장소 태그를 붙인 채로 연다
-  const eventParam = (await searchParams).event;
-  const eventId = typeof eventParam === "string" && z.uuid().safeParse(eventParam).success ? eventParam : null;
-  const here = eventId ? `/upload?event=${eventId}` : "/upload";
+  const params = await searchParams;
+  // ?event=행사 id: 행사 끝난 뒤 알림 · 행사 화면에서 오면 행사 · 장소 태그를 붙인 채로 연다 (분류는 코스프레)
+  const eventId = typeof params.event === "string" && z.uuid().safeParse(params.event).success ? params.event : null;
+  // ?category=: 작성 목록에서 고른 분류. 없으면 제목은 그냥 '사진 올리기', 분류는 기타(고급 설정에서 바꾼다)
+  const picked = parseCategory(params.category);
+  const category = picked ?? (eventId ? "cosplay" : "other");
+  const query = new URLSearchParams({ ...(picked && { category: picked }), ...(eventId && { event: eventId }) }).toString();
+  const here = query ? `/upload?${query}` : "/upload";
   const viewer = await getViewer();
   if (!viewer) redirect(withNext("/login", here));
   if (!viewer.profile) redirect(withNext("/welcome", here));
@@ -103,13 +108,11 @@ export default async function UploadPage({ searchParams }: PageProps<"/upload">)
   ]);
 
   return (
-    <div className="mx-auto max-w-5xl px-4 pt-8 pb-16 md:px-6">
+    <div className="mx-auto max-w-6xl px-4 pt-6 pb-16 md:px-6 md:pt-8">
       <InAppBrowserNotice purpose="upload" />
-      <h1 className="text-2xl font-bold">사진 올리기</h1>
-      <p className="mt-2 text-sm leading-relaxed text-quiet">
-        사진은 이 브라우저에서 고화질로 변환한 뒤 올라가요. 원본 파일은 서버에 저장하지 않으니 따로 보관해 주세요.
-      </p>
-      {quota && (
+      <h1 className="text-2xl font-bold">{uploadHeading(picked ?? (eventId ? "cosplay" : null))}</h1>
+      {/* 이번 달 올린 수는 한도에 가까울 때만 (한 달 300장이라 대부분 해당 없음) */}
+      {quota && quota.used >= quota.quota * 0.8 && (
         <p className={`mt-1 text-sm ${quota.used >= quota.quota ? "text-danger" : "text-quiet"}`}>
           이번 달 {quota.used.toLocaleString("ko-KR")} / {quota.quota.toLocaleString("ko-KR")}장 올렸어요. 매달 1일에 다시 세요.
         </p>
@@ -119,19 +122,19 @@ export default async function UploadPage({ searchParams }: PageProps<"/upload">)
           <strong>{fromEvent.name}</strong>에서 찍은 사진을 올려요. 행사 태그{fromEvent.tags.length > 1 ? "와 장소 태그" : ""}가 미리 붙어 있어요. 묶음마다 빼거나 바꿀 수 있어요.
         </p>
       )}
-      <UploadStudio viewerHandle={viewer.profile.handle} currentYear={currentYearKst()} initialTags={fromEvent?.tags ?? []} />
+      <UploadStudio category={category} viewerHandle={viewer.profile.handle} currentYear={currentYearKst()} initialTags={fromEvent?.tags ?? []} />
     </div>
   );
 }
 
-/** 공식 행사의 행사 태그 · 장소 태그 (공식 태그만) */
+/** 공식 행사의 행사 태그 · 장소 태그 (새 태그도 모두에게 보이므로 운영자 확인 전 태그도 붙인다) */
 async function eventTags(eventId: string): Promise<{ name: string; tags: TagOption[] } | null> {
   const supabase = await createClient();
   const { data: event } = await supabase.from("events").select("name, tag_id, place_tag_id").eq("id", eventId).eq("status", "official").maybeSingle();
   if (!event) return null;
   const ids = [event.tag_id, event.place_tag_id].filter((id): id is string => id !== null);
   if (ids.length === 0) return { name: event.name, tags: [] };
-  const { data: tags } = await supabase.from("tags").select("id, kind, name, slug").in("id", ids).eq("status", "official");
+  const { data: tags } = await supabase.from("tags").select("id, kind, name, slug").in("id", ids);
   // 행사 태그가 먼저
   const sorted = ids.flatMap((id) => (tags ?? []).filter((t) => t.id === id));
   return { name: event.name, tags: sorted.map((t) => ({ id: t.id, kind: t.kind, name: t.name, slug: t.slug, parentName: null, pending: false })) };

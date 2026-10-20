@@ -152,7 +152,6 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
 
         {creator?.listed && (
           <p className="flex flex-wrap gap-1.5 text-xs text-quiet">
-            {creator.casting_open && <span className="rounded border border-accent px-1.5 py-0.5 text-accent">섭외 가능</span>}
             {creator.roles.map((r) => (
               <span key={r} className="rounded border border-line px-1.5 py-0.5">
                 {CREDIT_ROLE_LABEL[r]}

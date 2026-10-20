@@ -58,7 +58,7 @@ export default async function EditPostPage({ params }: PageProps<"/p/[id]/edit">
   return (
     <div className="mx-auto max-w-2xl px-4 pt-8 pb-16 md:px-6">
       <h1 className="mb-6 text-2xl font-bold">게시물 편집</h1>
-      {post.status !== "draft" && !post.removed_at && viewer.profile?.can_upload && (!post.has_people || viewer.profile.role === "admin") && photos.length < MAX_PHOTOS_PER_POST && (
+      {post.status !== "draft" && !post.removed_at && viewer.profile?.can_upload && photos.length < MAX_PHOTOS_PER_POST && (
         <div className="mb-8">
           <AddPhotos postId={post.id} room={MAX_PHOTOS_PER_POST - post.photos.length} />
         </div>
@@ -69,6 +69,7 @@ export default async function EditPostPage({ params }: PageProps<"/p/[id]/edit">
         initial={{
           postId: post.id,
           title: post.title,
+          hasPeople: post.has_people,
           body: post.body,
           category: post.category,
           shotYear: post.shot_year,

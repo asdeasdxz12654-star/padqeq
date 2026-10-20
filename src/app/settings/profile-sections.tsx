@@ -1,4 +1,3 @@
-import { AdultConfirm } from "@/app/community/adult-confirm";
 import { loadScopePage } from "@/lib/posts/feed-scope-server";
 import { createClient } from "@/lib/supabase/server";
 import { currentYearKst } from "@/lib/year-chips";
@@ -10,12 +9,11 @@ import { type CreatorDraft, ProfileEditor } from "./profile-editor";
  */
 export async function ProfileSections({ userId, handle, displayName }: { userId: string; handle: string; displayName: string }) {
   const supabase = await createClient();
-  const [{ data: full }, recent, { data: creator }, { data: adult }] = await Promise.all([
+  const [{ data: full }, recent, { data: creator }] = await Promise.all([
     supabase.from("profiles").select("bio, links, cover_post_id, avatar_key").eq("id", userId).single(),
     // 커버로 고를 수 있는 내 사진 (최근 것부터)
     loadScopePage({ kind: "author", authorId: userId, year: null, month: null }),
     supabase.from("creator_profiles").select("listed, roles, region, active_since, works, casting_open").eq("user_id", userId).maybeSingle(),
-    supabase.rpc("am_i_adult"),
   ]);
   const allowed = ["cosplayer", "photographer", "model", "retoucher"] as const;
   const draft: CreatorDraft = {
@@ -41,10 +39,8 @@ export async function ProfileSections({ userId, handle, displayName }: { userId:
           creatorExists: creator !== null,
         }}
         posts={recent.items}
-        adult={Boolean(adult)}
         currentYear={currentYearKst()}
       />
-      {!adult && <AdultConfirm reason="섭외 가능 표시 · 섭외 게시판은 만 19세 이상만 쓸 수 있어요." />}
     </div>
   );
 }

@@ -183,7 +183,7 @@ export default async function MePage() {
           </div>
         )}
         <div className="-mx-4 md:-mx-6">
-          <FeedList scope={scope} initial={first} empty="아직 올린 사진이 없어요. '+' 올리기 버튼으로 첫 사진을 담아 보세요." />
+          <FeedList scope={scope} initial={first} empty="아직 올린 사진이 없어요. 글쓰기(휴대폰은 '+')에서 첫 사진을 담아 보세요." />
         </div>
       </section>
     </div>

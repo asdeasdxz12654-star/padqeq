@@ -19,7 +19,8 @@ export default async function CreatorsPage({ searchParams }: PageProps<"/creator
   const params = await searchParams;
   const role = (ROLES as readonly string[]).includes(String(params.role)) ? (params.role as Role) : null;
   const region = (REGIONS as readonly string[]).includes(String(params.region)) ? String(params.region) : null;
-  const casting = params.casting === "1";
+  // '섭외 가능만'은 구인 · 섭외를 쉬는 동안 숨긴다
+  const casting = false;
   const page = Math.max(0, Math.min(50, Number.parseInt(String(params.page ?? "0"), 10) || 0));
 
   const supabase = await createClient();
@@ -79,9 +80,6 @@ export default async function CreatorsPage({ searchParams }: PageProps<"/creator
             보기
           </button>
         </form>
-        <Link href={href({ casting: casting ? null : "1" })} aria-current={casting ? "page" : undefined} className={chip}>
-          섭외 가능만
-        </Link>
       </div>
 
       {/* 고르는 곳(역할 · 지역 · 섭외)과 목록을 나눈다 */}
@@ -119,7 +117,6 @@ export default async function CreatorsPage({ searchParams }: PageProps<"/creator
                 <span className="truncate text-sm text-quiet">{c.display_name}</span>
               </p>
               <p className="flex flex-wrap gap-1.5 text-[11px] text-quiet">
-                {c.casting_open && <span className="rounded border border-accent px-1.5 py-0.5 text-accent">섭외 가능</span>}
                 {c.roles.map((r) => (
                   <span key={r} className="rounded border border-line px-1.5 py-0.5">
                     {CREDIT_ROLE_LABEL[r]}

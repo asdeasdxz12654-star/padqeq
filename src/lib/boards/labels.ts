@@ -28,6 +28,14 @@ export const TERMS_LABEL: Record<CastingTerms, string> = {
 
 export const isBoard = (value: unknown): value is BoardKind => typeof value === "string" && (BOARDS as readonly string[]).includes(value);
 
+/** 지금 여는 게시판. 구인 · 섭외는 2026-10-20부터 쉰다 (이미 쓴 글은 운영진만 보고, DB · 기록은 그대로 둔다) */
+export const OPEN_BOARDS = BOARDS.filter((b): b is Exclude<BoardKind, "casting"> => b !== "casting");
+export type OpenBoard = (typeof OPEN_BOARDS)[number];
+export const isOpenBoard = (value: unknown): value is OpenBoard => typeof value === "string" && (OPEN_BOARDS as readonly string[]).includes(value);
+
+/** 글쓰기 화면 제목 */
+export const WRITE_TITLE: Record<OpenBoard, string> = { places: "촬영 장소 글쓰기", free: "자유 글쓰기", qna: "질문하기" };
+
 /** 첫 촬영 안전 가이드 (S-13 ⑨ · S-16 ⑤) */
 export const SAFETY_GUIDE = [
   "처음 만날 때는 사람이 많은 공개 장소에서 만나요.",

@@ -12,11 +12,14 @@ import { currentYearKst, MIN_YEAR } from "@/lib/year-chips";
 import { COMMENT_POLICIES, COMMENT_POLICY_LABEL, type CommentPolicy, VISIBILITIES, VISIBILITY_LABEL, type Visibility, toKstLocal } from "@/lib/posts/audience";
 import { VeilSelect } from "@/components/veil-select";
 import type { VeilReason } from "@/lib/posts/veil-reasons";
-import { updatePost } from "./actions";
+import { emptyConsent, PeopleAndConsent } from "@/app/upload/bundle-card";
+import { updatePeople, updatePost } from "./actions";
 
 type Initial = {
   postId: string;
   title: string;
+  /** 사진에 사람이 나와요 (켜져 있으면 동의 기록이 이미 있다) */
+  hasPeople: boolean;
   body: string;
   category: (typeof CATEGORIES)[number];
   shotYear: number;
@@ -50,6 +53,9 @@ export function EditForm({ initial, viewerHandle }: { initial: Initial; viewerHa
   const [commentPolicy, setCommentPolicy] = useState(initial.commentPolicy);
   const [showExif, setShowExif] = useState(initial.showExif);
   const [veil, setVeil] = useState(initial.veil);
+  const [hasPeople, setHasPeople] = useState(initial.hasPeople);
+  // 새로 적는 동의 기록 (지난 기록은 운영자만 볼 수 있어 비워 둔다)
+  const [consent, setConsent] = useState(emptyConsent);
   const [scheduledAt, setScheduledAt] = useState(toKstLocal(initial.scheduledAt));
   const [alts, setAlts] = useState<Record<string, string>>(() => Object.fromEntries(initial.photos.map((p) => [p.id, p.altText])));
   const [memos, setMemos] = useState<Record<string, string>>(() => Object.fromEntries(initial.photos.map((p) => [p.id, p.backMemo])));
@@ -76,7 +82,24 @@ export function EditForm({ initial, viewerHandle }: { initial: Initial; viewerHa
       onSubmit={(e) => {
         e.preventDefault();
         setError(null);
+        // 사람이 나와요를 새로 켜면 동의 기록이 필요하다. 이미 켜져 있으면 새로 적을 때만 더한다.
+        const wroteConsent = consent.subjectLabel.trim() !== "" || consent.consentedOn !== "";
+        if (hasPeople && (!initial.hasPeople || wroteConsent) && (!consent.subjectLabel.trim() || !consent.consentedOn)) {
+          setError("촬영 동의 기록(사진 속 인물 · 동의 받은 날)을 적어 주세요.");
+          return;
+        }
+        if (hasPeople && consent.hasMinor && !consent.guardianConsent) {
+          setError("미성년자가 있으면 보호자 동의가 필요해요.");
+          return;
+        }
         startTransition(async () => {
+          if (hasPeople !== initial.hasPeople || (hasPeople && wroteConsent)) {
+            const people = await updatePeople({ postId: initial.postId, hasPeople, consent: hasPeople && wroteConsent ? consent : null });
+            if (!people.ok) {
+              setError(people.error ?? "저장하지 못했어요.");
+              return;
+            }
+          }
           const result = await updatePost({
             postId: initial.postId,
             title,
@@ -185,6 +208,21 @@ export function EditForm({ initial, viewerHandle }: { initial: Initial; viewerHa
         </span>
         <CreditEditor value={credits} onChange={setCredits} disabled={pending} viewerHandle={viewerHandle} />
       </div>
+
+      <PeopleAndConsent
+        hasPeople={hasPeople}
+        consent={consent}
+        disabled={pending}
+        onChange={(patch) => {
+          if (patch.hasPeople !== undefined) setHasPeople(patch.hasPeople);
+          if (patch.consent) setConsent(patch.consent);
+        }}
+        note={
+          initial.hasPeople && (
+            <p className="text-xs text-quiet">이미 남긴 동의 기록이 있어요. 바뀐 내용이 있을 때만 새로 적어 주세요 (기록이 하나 더 남아요).</p>
+          )
+        }
+      />
 
       <fieldset className="grid gap-3 sm:grid-cols-3">
         <legend className="mb-1.5 text-sm">공개 설정</legend>

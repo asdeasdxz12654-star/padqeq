@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { BOARDS, BOARD_LABEL, type BoardKind, CASTING_KIND_LABEL, type CastingKind, type CastingTerms, SAFETY_GUIDE, TERMS_LABEL } from "@/lib/boards/labels";
+import { type BoardKind, CASTING_KIND_LABEL, type CastingKind, type CastingTerms, SAFETY_GUIDE, TERMS_LABEL } from "@/lib/boards/labels";
 import { REGIONS, type Region } from "@/lib/events/calendar";
 import { Constants } from "@/lib/supabase/database.types";
 import { saveBoardPost } from "../actions";
@@ -19,7 +19,8 @@ export type BoardDraft = {
 
 const input = "min-h-11 rounded-xl border border-line bg-bg px-3 text-base";
 
-export function BoardPostForm({ id, initial, castingAllowed }: { id: string | null; initial: BoardDraft; castingAllowed: boolean }) {
+/** 게시판 글 (게시판은 작성 목록에서 고르고 들어온다). 구인 · 섭외 칸은 예전 섭외 글을 고칠 때만 보인다. */
+export function BoardPostForm({ id, initial }: { id: string | null; initial: BoardDraft }) {
   const router = useRouter();
   const [draft, setDraft] = useState(initial);
   const [guideRead, setGuideRead] = useState(id !== null);
@@ -42,20 +43,6 @@ export function BoardPostForm({ id, initial, castingAllowed }: { id: string | nu
         });
       }}
     >
-      {id === null && (
-        <fieldset>
-          <legend className="mb-1.5 text-sm">게시판</legend>
-          <div className="flex flex-wrap gap-2">
-            {BOARDS.filter((b) => b !== "casting" || castingAllowed).map((b) => (
-              <label key={b} className="cursor-pointer rounded-full border border-line px-3 py-1.5 text-sm has-checked:border-text has-checked:bg-text has-checked:text-bg">
-                <input type="radio" name="board" checked={draft.board === b} onChange={() => set("board", b)} className="sr-only" />
-                {BOARD_LABEL[b].title}
-              </label>
-            ))}
-          </div>
-        </fieldset>
-      )}
-
       {casting && (
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="flex flex-col gap-1.5 text-sm">
@@ -83,17 +70,17 @@ export function BoardPostForm({ id, initial, castingAllowed }: { id: string | nu
         </div>
       )}
 
-      {(casting || draft.board === "places" || draft.board === "free" || draft.board === "qna") && (
+      {(casting || draft.board === "places") && (
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="flex flex-col gap-1.5 text-sm">
-            지역 {casting || draft.board === "places" ? "" : <span className="text-xs text-quiet">(선택)</span>}
+            지역
             <select
               value={draft.region ?? ""}
               onChange={(e) => set("region", (e.target.value || null) as Region | null)}
-              required={casting || draft.board === "places"}
+              required
               className={input}
             >
-              <option value="">{casting || draft.board === "places" ? "고르세요" : "없음"}</option>
+              <option value="">고르세요</option>
               {REGIONS.map((r) => (
                 <option key={r} value={r}>
                   {r}

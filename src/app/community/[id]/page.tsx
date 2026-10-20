@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 import { z } from "zod";
 import { Avatar } from "@/components/avatar";
+import { isStaffRole } from "@/lib/auth/roles";
 import { getViewer } from "@/lib/auth/viewer";
 import { BOARD_LABEL, CASTING_KIND_LABEL, TERMS_LABEL } from "@/lib/boards/labels";
 import { profileHref } from "@/lib/profiles/profile-href";
@@ -41,6 +42,8 @@ export default async function BoardPostPage({ params }: PageProps<"/community/[i
   const supabase = await createClient();
   const isCasting = post.board === "casting";
   const mine = viewer?.id === post.author_id;
+  // 구인 · 섭외는 쉰다 (2026-10-20): 예전 섭외 글은 쓴 사람 · 운영진만 본다
+  if (isCasting && !mine && !isStaffRole(viewer?.profile?.role)) notFound();
 
   const [{ data: replyRows }, switches, adult] = await Promise.all([
     isCasting
