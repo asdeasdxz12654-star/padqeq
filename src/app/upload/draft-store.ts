@@ -11,7 +11,7 @@ const DB = "haedam-upload";
 const STORE = "drafts";
 
 /** 저장하는 사진: 미리보기는 주소 대신 그림(Blob) 그대로 */
-export type SavedPhoto = Omit<Photo, "preview"> & { thumb: Blob | null };
+export type SavedPhoto = Omit<Photo, "preview" | "thumb"> & { thumb: Blob | null };
 
 export type UploadDraft = {
   savedAt: string;

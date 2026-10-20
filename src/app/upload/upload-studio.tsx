@@ -3,7 +3,7 @@
 import { useLeaveWarning } from "@/lib/ui/use-details-dismiss";
 import { loadAudienceDefaults } from "./audience-defaults";
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import Link from "next/link";
 import { ShareButton } from "@/components/share-button";
 import { groupByShootingTime, timeRange } from "@/lib/photos/grouping";
@@ -71,7 +71,6 @@ export function UploadStudio({
   // 이어서 올리기: 이 기기에 저장해 둔 지난번 내용 (계정마다 따로)
   const draftKey = `upload:${viewerHandle ?? "me"}`;
   const [resume, setResume] = useState<UploadDraft | null>(null);
-  const thumbs = useRef(new Map<string, Blob>());
   // 전체 진행 · 남은 시간 (사진을 고른 때부터)
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [now, setNow] = useState(0);
@@ -269,7 +268,7 @@ export function UploadStudio({
         },
       );
       // 게시 완료 화면에 쓸 대표 사진은 따로 남긴다 (변환본은 아래에서 놓는다)
-      const cover = list[0]?.preview ? await fetch(list[0].preview).then((r) => r.blob()).then((b) => URL.createObjectURL(b)).catch(() => undefined) : undefined;
+      const cover = list[0]?.thumb ? URL.createObjectURL(list[0].thumb) : undefined;
       update(bundle.id, { state: { kind: "published", postId, cover } });
       // 게시한 사진의 변환본은 더 들고 있을 필요가 없다
       release(bundle.photoIds, { published: true });
@@ -327,14 +326,10 @@ export function UploadStudio({
       const readyIds = new Set(readyPhotos.map((p) => p.id));
       const saved: SavedPhoto[] = [];
       for (const p of readyPhotos) {
-        if (!thumbs.current.has(p.id) && p.preview) {
-          const blob = await fetch(p.preview).then((r) => r.blob()).catch(() => null);
-          if (blob) thumbs.current.set(p.id, blob);
-        }
         // 미리보기 주소(blob:)는 다시 열면 쓸 수 없어 그림(thumb)으로 따로 저장한다
-        const { preview, ...rest } = p;
+        const { preview, thumb, ...rest } = p;
         void preview;
-        saved.push({ ...rest, thumb: thumbs.current.get(p.id) ?? null });
+        saved.push({ ...rest, thumb: thumb ?? null });
       }
       await saveDraft(draftKey, {
         savedAt: new Date().toISOString(),

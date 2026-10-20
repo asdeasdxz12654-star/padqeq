@@ -285,7 +285,7 @@ export async function PostDetail({ id }: { id: string }) {
                   <ShareButton path={`/p/${post.id}`} title={post.title} />
                 </>
               )}
-              {/* 작가에게는 가장 자주 쓰는 고치기를 ⋯ 밖에 (나머지 작가 도구는 ⋯ 안) */}
+              {/* 작가에게는 가장 자주 쓰는 수정을 ⋯ 밖에 (나머지 작가 도구는 ⋯ 안) */}
               {isAuthor && !post.trashed_at && (
                 <Link href={`/p/${post.id}/edit`} className="inline-flex min-h-10 items-center rounded-full border border-line px-4 text-sm font-semibold hover:border-quiet">
                   수정

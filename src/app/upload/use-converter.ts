@@ -45,6 +45,8 @@ export type Photo = {
   progress: number;
   error?: string;
   preview?: string;
+  /** 미리보기 그림 (이어서 올리기 · 게시 완료 화면에 쓴다, blob: 주소는 다시 읽을 수 없다) */
+  thumb?: Blob;
   /** files는 미리 올리고 나면 놓는다 (null) */
   result?: Result;
   /** 미리 올려 둔 업로드 자리 (대량 업로드) */
@@ -121,7 +123,7 @@ export function useConverter({ stage = false }: { stage?: boolean } = {}) {
         const result: Result = { width: m.width, height: m.height, seed: m.seed, phash: m.phash, color: m.color, bytes: m.files["4000"].size, files: m.files };
         const preview = URL.createObjectURL(m.files["400"]);
         urls.current.add(preview);
-        patch(m.id, { status: stage ? "uploading" : "ready", progress: stage ? 0 : 1, preview, result });
+        patch(m.id, { status: stage ? "uploading" : "ready", progress: stage ? 0 : 1, preview, thumb: m.files["400"], result });
         if (stage) void stageUpload(m.id, result);
         void findSimilarPhotos([m.phash]).then(([postId]) => {
           if (postId) patch(m.id, { similarPostId: postId });
@@ -251,14 +253,14 @@ export function useConverter({ stage = false }: { stage?: boolean } = {}) {
   }, []);
 
   /** 이어서 올리기: 준비가 끝난 사진(업로드 자리에 있음)을 저장해 둔 정보로 되살린다 */
-  const restore = useCallback((saved: { photo: Omit<Photo, "preview">; thumb: Blob | null }[]) => {
+  const restore = useCallback((saved: { photo: Omit<Photo, "preview" | "thumb">; thumb: Blob | null }[]) => {
     const back: Record<string, Photo> = {};
     for (const { photo, thumb } of saved) {
       if (photo.status !== "ready" || !photo.slotId) continue;
       const preview = thumb ? URL.createObjectURL(thumb) : undefined;
       if (preview) urls.current.add(preview);
       slots.current.set(photo.id, photo.slotId);
-      back[photo.id] = { ...photo, ...(preview && { preview }) };
+      back[photo.id] = { ...photo, ...(thumb && { thumb }), ...(preview && { preview }) };
     }
     setPhotos((all) => ({ ...all, ...back }));
     return Object.keys(back);
