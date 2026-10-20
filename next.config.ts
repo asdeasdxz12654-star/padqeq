@@ -7,11 +7,9 @@ const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+  // 창 분리: 카카오톡 공유는 해담이 연 창(sharer.kakao.com)에 내용을 보내야 하므로 '내가 연 창'만 예외로 둔다.
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
   { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
-  // 교차 출처 격리: RAW 현상(LibRaw 멀티스레드 WebAssembly)에 필요한 SharedArrayBuffer를 쓰기 위해.
-  // 해담은 외부 이미지 · iframe을 쓰지 않으므로 같은 출처 리소스만으로 동작한다.
-  { key: "Cross-Origin-Embedder-Policy", value: "require-corp" },
   {
     key: "Permissions-Policy",
     // 위치: 촬영 장소 지도의 '내 주변'만 쓴다. 우리 사이트에만 허용하고, 쓸 때마다 브라우저가 묻는다 (서버로 보내지 않음)
@@ -19,6 +17,13 @@ const securityHeaders = [
   },
   // 검색엔진은 허용하되 AI 학습·이미지 색인은 거부 (robots.ts와 함께)
   { key: "X-Robots-Tag", value: "noai, noimageai, noimageindex" },
+];
+
+// 교차 출처 격리는 올리기 화면에서만: RAW 현상(LibRaw 멀티스레드 WebAssembly)에 필요한 SharedArrayBuffer를 쓰기 위해.
+// 해담은 외부 이미지 · iframe을 쓰지 않으므로 같은 출처 리소스만으로 동작한다. (같은 키는 뒤의 것이 이긴다)
+const isolationHeaders = [
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+  { key: "Cross-Origin-Embedder-Policy", value: "require-corp" },
 ];
 
 const nextConfig: NextConfig = {
@@ -43,7 +48,10 @@ const nextConfig: NextConfig = {
     return [{ source: "/favicon.ico", destination: "/icon.svg", permanent: true }];
   },
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      { source: "/upload", headers: isolationHeaders },
+    ];
   },
 };
 

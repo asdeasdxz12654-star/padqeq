@@ -17,6 +17,7 @@ import { discardDraft } from "./actions";
 import { TagPicker } from "./tag-picker";
 import { CreditEditor, sameCredit, toCreditInput } from "./credit-editor";
 import { localDate, publishBundle } from "./publish-bundle";
+import { isMobileDevice } from "./raw-decoder";
 import { ACCEPT_INPUT, MAX_SESSION_PHOTOS, type Photo, useConverter } from "./use-converter";
 
 // 업로드 (A-02 대량 업로드 · S-08).
@@ -76,6 +77,19 @@ export function UploadStudio({
 
   // 변환 · 업로드 중에 창을 닫으면 작업이 끊긴다
   const busy = running || Object.values(photos).some((p) => p.status === "converting" || p.status === "uploading");
+  // 다른 화면에서 넘어오면 교차 출처 격리(RAW 고화질 현상)가 꺼져 있다. PC에서는 처음 한 번만 새로 불러 켠다.
+  useEffect(() => {
+    if (isMobileDevice()) return;
+    try {
+      if (globalThis.crossOriginIsolated) return sessionStorage.removeItem("upload-isolation-reload");
+      if (sessionStorage.getItem("upload-isolation-reload")) return;
+      sessionStorage.setItem("upload-isolation-reload", "1");
+    } catch {
+      return;
+    }
+    window.location.reload();
+  }, []);
+
   useEffect(() => {
     if (!busy) return;
     const warn = (e: BeforeUnloadEvent) => e.preventDefault();

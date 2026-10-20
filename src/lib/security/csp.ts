@@ -43,7 +43,8 @@ export function buildCsp({
     "media-src": ["'self'", "blob:"],
     "object-src": ["'none'"],
     "base-uri": ["'none'"],
-    "form-action": ["'self'"],
+    // 카카오톡 공유: SDK가 공유 창(sharer.kakao.com)으로 링크 정보를 보낸다 (form POST)
+    "form-action": ["'self'", "https://sharer.kakao.com"],
     "frame-ancestors": ["'none'"],
     "manifest-src": ["'self'"],
   };

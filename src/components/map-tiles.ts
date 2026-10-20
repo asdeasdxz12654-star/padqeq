@@ -5,7 +5,7 @@ export function addOsmTiles(L: typeof Leaflet, map: Leaflet.Map) {
   map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>');
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
-    // 이 사이트는 교차 출처 격리(COEP require-corp)라 지도 조각을 CORS로 받아야 한다 (OSM은 허용)
+    // 올리기 화면에서 넘어오면 교차 출처 격리(COEP require-corp)가 남아 있어 지도 조각을 CORS로 받는다 (OSM은 허용)
     crossOrigin: true,
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',
   }).addTo(map);
