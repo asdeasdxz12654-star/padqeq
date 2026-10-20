@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { editSchema } from "./edit-input";
-import { veilFor, veilInput } from "./veil";
+import { veilInput } from "./veil";
+import { veilFor } from "./veil-reasons";
 
 describe("가림 표시", () => {
   it("'바로 보기'를 켰으면 가리지 않는다", () => {

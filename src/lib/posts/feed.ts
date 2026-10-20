@@ -3,7 +3,7 @@ import { getViewer } from "@/lib/auth/viewer";
 import { photoSources, type PhotoSources } from "@/lib/photos/server";
 import { createClient } from "@/lib/supabase/server";
 import { type Category, escapeLike, rankPosts, type SearchQuery } from "./feed-params";
-import { type VeilReason, veilFor } from "./veil";
+import { type VeilReason, veilFor } from "./veil-reasons";
 
 /** 한 번에 불러오는 게시물 수 (더 보기 한 번) */
 export const FEED_LIMIT = 40;

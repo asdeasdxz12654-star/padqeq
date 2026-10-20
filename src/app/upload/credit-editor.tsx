@@ -27,7 +27,7 @@ export function toCreditInput(c: CreditDraft): CreditInput {
 const inputClass = "min-h-10 rounded-lg border border-line bg-surface px-3 text-sm outline-none focus:border-accent";
 
 /** 같은 역할 · 같은 사람(회원 핸들 또는 미가입 이름)인지 */
-export const sameCredit = (a: CreditDraft, b: CreditDraft) =>
+const sameCredit = (a: CreditDraft, b: CreditDraft) =>
   a.role === b.role &&
   (a.kind === "member" && b.kind === "member"
     ? a.handle === b.handle

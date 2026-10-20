@@ -4,7 +4,7 @@ import { CATEGORIES, MAX_PHOTOS_PER_POST } from "@/lib/photos/post-input";
 import { MAX_TAGS_PER_POST } from "@/lib/tags/tag-rules";
 import { currentYearKst, MIN_YEAR } from "@/lib/year-chips";
 import { COMMENT_POLICIES, VISIBILITIES, scheduleInput } from "./audience";
-import { VEIL_REASONS } from "./veil";
+import { VEIL_REASONS } from "./veil-reasons";
 
 // 게시물 편집 (S-07 ⑨). 사진 추가 · 사람 포함 여부는 여기서 바꾸지 않는다.
 //  · photoOrder: 남길 사진 id를 보여 줄 순서대로 (빠진 사진은 지운다, 1장 이상)

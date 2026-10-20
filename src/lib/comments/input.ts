@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { COMMENT_MAX } from "./limits";
 
-export { COMMENT_MAX, COMMENT_REPORT_REASONS } from "./limits";
+export { COMMENT_REPORT_REASONS } from "./limits";
 
 export const commentBody = z.string().trim().min(1, "댓글을 적어 주세요.").max(COMMENT_MAX, `${COMMENT_MAX}자까지 적을 수 있어요.`);
 

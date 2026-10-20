@@ -26,8 +26,6 @@ export const TERMS_LABEL: Record<CastingTerms, string> = {
   any: "조건 무관",
 };
 
-export const isBoard = (value: unknown): value is BoardKind => typeof value === "string" && (BOARDS as readonly string[]).includes(value);
-
 /** 지금 여는 게시판. 구인 · 섭외는 2026-10-20부터 쉰다 (이미 쓴 글은 운영진만 보고, DB · 기록은 그대로 둔다) */
 export const OPEN_BOARDS = BOARDS.filter((b): b is Exclude<BoardKind, "casting"> => b !== "casting");
 export type OpenBoard = (typeof OPEN_BOARDS)[number];
