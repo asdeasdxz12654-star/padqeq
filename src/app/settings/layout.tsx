@@ -1,17 +1,10 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { signOut } from "@/app/me/actions";
-import { withNext } from "@/lib/auth/next-path";
-import { getViewer } from "@/lib/auth/viewer";
 import { SettingsTabs } from "./settings-tabs";
 
 // S-14 설정: 탭마다 화면을 나눈다 (프로필 수정 · 계정 · 화면 · 보기 · 알림 · 공개 범위 · 메시지 · 내 데이터 · 탈퇴).
-// 고객센터 · 로그아웃 · 정책 링크는 모든 탭의 맨 아래에.
-export default async function SettingsLayout({ children }: LayoutProps<"/settings">) {
-  const viewer = await getViewer();
-  if (!viewer) redirect(withNext("/login", "/settings"));
-  if (!viewer.profile) redirect(withNext("/welcome", "/settings"));
-
+// 고객센터 · 로그아웃 · 정책 링크는 모든 탭의 맨 아래에. 로그인 확인은 탭 화면마다 (돌아올 주소를 그 탭으로)
+export default function SettingsLayout({ children }: LayoutProps<"/settings">) {
   return (
     <div className="mx-auto max-w-5xl px-4 pt-8 pb-16 md:grid md:grid-cols-[180px_minmax(0,1fr)] md:gap-10 md:px-6">
       <SettingsTabs />

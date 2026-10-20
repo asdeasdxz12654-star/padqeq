@@ -4,7 +4,7 @@ import { withNext } from "@/lib/auth/next-path";
 import { getViewer } from "@/lib/auth/viewer";
 import { createClient } from "@/lib/supabase/server";
 
-/** 설정 탭 공통: 로그인 확인 (레이아웃도 확인하지만 화면마다 다시) */
+/** 설정 탭 공통: 로그인 확인 (로그인 뒤 이 탭으로 돌아온다) */
 export async function settingsViewer(path: string) {
   const viewer = await getViewer();
   if (!viewer) redirect(withNext("/login", path));
