@@ -46,12 +46,10 @@ export async function completeSignup(formData: FormData): Promise<SignupErrors> 
     birth_date: birthDate,
     policy_version: POLICY_VERSION,
   });
+  // 구인 · 섭외를 빼면서 성인 확인 기록도 더는 남기지 않는다 (2026-10-20, 개인정보처리방침에서도 뺐다)
   if (error) {
     const mapped = signupErrorFromDb(error.message);
     if (mapped !== "profile_exists") return { [mapped.field]: mapped.message };
-  } else {
-    // 만 19세 이상이면 그 사실만 기록한다 (섭외 게시판용). 생년월일은 저장하지 않는다. 실패해도 가입은 끝났다.
-    await supabase.rpc("confirm_adult", { birth_date: birthDate });
   }
 
   // 상단 바 · 탭 등 모든 화면이 새 프로필로 다시 그려지게 (안 하면 브라우저에 남은 화면이 "가입 마무리"를 계속 보여 준다)
