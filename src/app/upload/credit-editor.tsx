@@ -8,10 +8,11 @@ import {
   type CreditRole,
   MAX_CREDITS_PER_POST,
 } from "@/lib/photos/credit-input";
+import { SOCIALS, SOCIAL_KINDS, type Social, socialFromUrl, socialUrl } from "@/lib/photos/social-id";
 import { type MemberOption, searchMembers } from "./tag-actions";
 import { TermTip } from "@/components/term-tip";
 
-// 크레딧 편집 (A-02 ⑤ · S-08). 회원은 @핸들로 골라 승인 요청, 미가입자는 이름 · 링크로 바로 표시.
+// 크레딧 편집 (A-02 ⑤ · S-08). 회원은 @핸들로 골라 승인 요청, 미가입자는 인스타그램 · X 아이디(또는 이름 · 링크)로 바로 표시.
 
 /** status: 이미 저장된 크레딧의 상태 (편집 화면) */
 export type CreditDraft = CreditInput & { key: string; displayName?: string; status?: "pending" | "approved" | "rejected" };
@@ -55,6 +56,8 @@ export function CreditEditor({
   const [found, setFound] = useState<{ query: string; members: MemberOption[] } | null>(null);
   const [label, setLabel] = useState("");
   const [url, setUrl] = useState("");
+  const [via, setVia] = useState<Social | "link">("instagram");
+  const [socialId, setSocialId] = useState("");
   const full = value.length >= MAX_CREDITS_PER_POST;
 
   useEffect(() => {
@@ -104,7 +107,7 @@ export function CreditEditor({
               ) : (
                 <span className="truncate">
                   {c.label}
-                  {c.url && <span className="ml-2 text-xs text-quiet">{c.url}</span>}
+                  {c.url && <span className="ml-2 text-xs text-quiet">{socialLabel(c.url) ?? c.url}</span>}
                   <span className="ml-2 text-xs text-quiet">미가입</span>
                 </span>
               )}
@@ -188,32 +191,108 @@ export function CreditEditor({
               )}
             </div>
           ) : (
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <input
-                value={label}
-                onChange={(e) => setLabel(e.target.value)}
-                maxLength={60}
-                placeholder="이름 (예: 달빛)"
-                className={`${inputClass} flex-1`}
-              />
-              <input
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                placeholder="링크 (선택, 예: instagram.com/…)"
-                className={`${inputClass} flex-1`}
-              />
-              <button
-                type="button"
-                disabled={!label.trim()}
-                onClick={() => add({ key: crypto.randomUUID(), kind: "external", role, label: label.trim(), url: url.trim() })}
-                className="rounded-lg border border-line px-3 py-2 text-sm disabled:opacity-40"
-              >
-                추가
-              </button>
-            </div>
+            <ExternalFields
+              via={via}
+              setVia={setVia}
+              socialId={socialId}
+              setSocialId={setSocialId}
+              label={label}
+              setLabel={setLabel}
+              url={url}
+              setUrl={setUrl}
+              onAdd={(credit) => {
+                add({ key: crypto.randomUUID(), kind: "external", role, ...credit });
+                setSocialId("");
+                setLabel("");
+                setUrl("");
+              }}
+            />
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+/** 크레딧 목록에서 주소 대신 '인스타 @아이디' */
+function socialLabel(url: string): string | null {
+  const s = socialFromUrl(url);
+  return s ? `${SOCIALS[s.kind].short} @${s.id}` : null;
+}
+
+/** 미가입: 인스타그램 · X 아이디만 적어도 되고(이름은 선택), 다른 곳은 이름 + 링크 */
+function ExternalFields({
+  via,
+  setVia,
+  socialId,
+  setSocialId,
+  label,
+  setLabel,
+  url,
+  setUrl,
+  onAdd,
+}: {
+  via: Social | "link";
+  setVia(v: Social | "link"): void;
+  socialId: string;
+  setSocialId(v: string): void;
+  label: string;
+  setLabel(v: string): void;
+  url: string;
+  setUrl(v: string): void;
+  onAdd(credit: { label: string; url: string }): void;
+}) {
+  const social = via === "link" ? null : via;
+  const idUrl = social ? socialUrl(social, socialId) : null;
+  const badId = social !== null && socialId.trim() !== "" && !idUrl;
+  const name = label.trim() || (idUrl ? `@${socialId.trim().replace(/^@/, "")}` : "");
+  const ready = social ? Boolean(idUrl) : Boolean(label.trim());
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <select value={via} onChange={(e) => setVia(e.target.value as Social | "link")} aria-label="어디 아이디인지" className={`${inputClass} sm:w-36`}>
+          {SOCIAL_KINDS.map((k) => (
+            <option key={k} value={k}>
+              {SOCIALS[k].label}
+            </option>
+          ))}
+          <option value="link">이름 · 링크</option>
+        </select>
+        {social ? (
+          <input
+            value={socialId}
+            onChange={(e) => setSocialId(e.target.value)}
+            maxLength={31}
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            placeholder="@아이디"
+            aria-label={`${SOCIALS[social].label} 아이디`}
+            aria-invalid={badId}
+            className={`${inputClass} flex-1`}
+          />
+        ) : (
+          <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="링크 (선택)" className={`${inputClass} flex-1`} />
+        )}
+      </div>
+      <div className="flex gap-2">
+        <input
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+          maxLength={60}
+          placeholder={social ? "이름 (선택, 비우면 @아이디)" : "이름 (예: 달빛)"}
+          className={`${inputClass} min-w-0 flex-1`}
+        />
+        <button
+          type="button"
+          disabled={!ready}
+          onClick={() => onAdd({ label: name, url: social ? (idUrl ?? "") : url.trim() })}
+          className="rounded-lg border border-line px-3 py-2 text-sm disabled:opacity-40"
+        >
+          추가
+        </button>
+      </div>
+      {badId && <p className="text-xs text-danger">아이디는 영문 · 숫자 · {social === "instagram" ? "마침표 · " : ""}밑줄만 쓸 수 있어요.</p>}
     </div>
   );
 }

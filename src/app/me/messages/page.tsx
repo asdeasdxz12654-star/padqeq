@@ -9,10 +9,10 @@ import { KST } from "@/lib/format/kst";
 
 export const metadata: Metadata = { title: "메시지", robots: { index: false } };
 
-// S-16 메시지 목록: 전체 · 섭외 · 메시지 요청
+// S-16 메시지 목록: 전체 · 메시지 요청 (섭외 탭은 구인 · 섭외를 빼면서 없앴다, 2026-10-20)
 
 const timeFormat = KST.monthDayTime;
-const TABS = { all: "전체", casting: "섭외", requests: "메시지 요청" } as const;
+const TABS = { all: "전체", requests: "메시지 요청" } as const;
 type Tab = keyof typeof TABS;
 
 export default async function MessagesPage({ searchParams }: PageProps<"/me/messages">) {
@@ -20,14 +20,14 @@ export default async function MessagesPage({ searchParams }: PageProps<"/me/mess
   if (!viewer) redirect(withNext("/login", "/me/messages"));
   if (!viewer.profile) redirect(withNext("/welcome", "/me/messages"));
   const params = await searchParams;
-  const tab: Tab = params.tab === "casting" || params.tab === "requests" ? params.tab : "all";
+  const tab: Tab = params.tab === "requests" ? params.tab : "all";
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("my_threads");
   if (error) throw error;
   const requests = data.filter((t) => t.my_status === "request");
   const threads =
-    tab === "requests" ? requests : data.filter((t) => t.my_status !== "request" && t.my_status !== "declined" && (tab === "all" || t.kind === "casting"));
+    tab === "requests" ? requests : data.filter((t) => t.my_status !== "request" && t.my_status !== "declined");
 
   return (
     <div className="mx-auto max-w-xl md:max-w-2xl px-4 pt-8 pb-16 md:px-6">
@@ -57,7 +57,7 @@ export default async function MessagesPage({ searchParams }: PageProps<"/me/mess
       )}
 
       {threads.length === 0 ? (
-        <EmptyState className="mt-4" text={tab === "requests" ? "받은 요청이 없어요." : "아직 대화가 없어요. 프로필의 '메시지'나 섭외 게시판 지원으로 시작해요."} />
+        <EmptyState className="mt-4" text={tab === "requests" ? "받은 요청이 없어요." : "아직 대화가 없어요. 회원 프로필의 '메시지'로 시작해요."} />
       ) : (
         <ul className="mt-4 flex flex-col divide-y divide-line">
           {threads.map((t) => (

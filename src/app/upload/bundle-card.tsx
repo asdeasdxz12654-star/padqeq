@@ -6,9 +6,9 @@ import Link from "next/link";
 import { useState } from "react";
 import { VeilSelect } from "@/components/veil-select";
 import type { VeilReason } from "@/lib/posts/veil-reasons";
-import { CATEGORIES, CATEGORY_LABEL, type ConsentInput } from "@/lib/photos/post-input";
+import { CATEGORIES, type ConsentInput } from "@/lib/photos/post-input";
 import { timeRange } from "@/lib/photos/grouping";
-import { autoTitle, peopleByDefault, veilOffered } from "@/lib/photos/write-defaults";
+import { autoTitle, veilOffered } from "@/lib/photos/write-defaults";
 import { MIN_YEAR } from "@/lib/year-chips";
 import type { Draft } from "./publish-bundle";
 import { localDate } from "./publish-bundle";
@@ -47,6 +47,7 @@ export type Bundle = {
   state: BundleState;
 };
 
+// 추억 사진이라 '미성년자가 있어요' 칸은 뺐다 (2026-10-20). DB 칸은 그대로 두고 늘 false로 보낸다.
 export const emptyConsent = (): ConsentInput => ({
   subjectLabel: "",
   consentedOn: "",
@@ -63,7 +64,6 @@ export function bundleProblem(bundle: Bundle, photos: Photo[]): string | null {
   if (bundle.hasPeople) {
     const c = bundle.consent;
     if (!c.subjectLabel.trim() || !c.consentedOn) return "동의 기록 칸을 채워 주세요";
-    if (c.hasMinor && !c.guardianConsent) return "미성년자가 있으면 보호자 동의가 필요해요";
   }
   return null;
 }
@@ -382,7 +382,7 @@ export function PeopleAndConsent({
               <span>
                 사진 속 인물 <span className="text-xs text-accent">필수</span>
               </span>
-              <input maxLength={60} placeholder="예: 코스어 @moon_cos" value={consent.subjectLabel} onChange={(e) => setConsent({ subjectLabel: e.target.value })} className={inputClass} />
+              <input maxLength={60} placeholder="예: 코스어 달빛 · 인스타 @moon_cos" value={consent.subjectLabel} onChange={(e) => setConsent({ subjectLabel: e.target.value })} className={inputClass} />
             </label>
             <label className="flex flex-col gap-1 text-sm">
               <span>
@@ -398,21 +398,6 @@ export function PeopleAndConsent({
             </label>
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-            <label className="flex min-h-10 items-center gap-2">
-              <input type="checkbox" checked={consent.hasMinor} onChange={(e) => setConsent({ hasMinor: e.target.checked })} className="size-5 accent-[var(--accent)]" />
-              미성년자가 있어요
-            </label>
-            {consent.hasMinor && (
-              <label className="flex min-h-10 items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={consent.guardianConsent}
-                  onChange={(e) => setConsent({ guardianConsent: e.target.checked })}
-                  className="size-5 accent-[var(--accent)]"
-                />
-                보호자 동의를 받았어요 (필수)
-              </label>
-            )}
             {!memoOpen && (
               <button type="button" onClick={() => setMemoOpen(true)} className="ml-auto min-h-10 text-sm font-semibold text-accent">
                 메모 더 적기
@@ -432,7 +417,7 @@ export function PeopleAndConsent({
   );
 }
 
-/** 고급 설정: 분류 · 공개 범위 · 댓글 · 촬영 정보 · 가림 표시 (코스프레 · 기타만) */
+/** 고급 설정: 공개 범위 · 댓글 · 촬영 정보 · 가림 표시 (코스프레 · 기타만). 분류는 글쓰기 목록에서 고르고 들어오므로 여기서 바꾸지 않는다 (2026-10-20) */
 function AdvancedFields({
   bundle,
   disabled,
@@ -440,7 +425,7 @@ function AdvancedFields({
 }: {
   bundle: Bundle;
   disabled: boolean;
-  onChange(patch: Partial<Pick<Bundle, "category" | "hasPeople" | "visibility" | "commentPolicy" | "showExif" | "veil">>): void;
+  onChange(patch: Partial<Pick<Bundle, "hasPeople" | "visibility" | "commentPolicy" | "showExif" | "veil">>): void;
 }) {
   const field = "min-h-11 w-full rounded-xl border border-line bg-bg px-3 text-base";
   // 지난번 값으로 기억 (가림은 글마다 다르므로 빼고)
@@ -452,7 +437,6 @@ function AdvancedFields({
   };
   const showVeil = veilOffered(bundle.category) || bundle.veil !== null;
   const summary = [
-    CATEGORY_LABEL[bundle.category],
     bundle.visibility === "private" ? "나만 보기" : `${VISIBILITY_LABEL[bundle.visibility].title} 공개`,
     COMMENT_SHORT[bundle.commentPolicy],
     bundle.showExif ? "촬영 정보 보임" : "촬영 정보 숨김",
@@ -469,23 +453,6 @@ function AdvancedFields({
       </summary>
       <fieldset className="mt-2 mb-2 flex flex-col gap-3" disabled={disabled}>
         <legend className="sr-only">고급 설정</legend>
-        <div className="flex flex-col gap-1.5 text-sm">
-          분류
-          <div className="flex flex-wrap gap-1.5">
-            {CATEGORIES.map((c) => (
-              <button
-                key={c}
-                type="button"
-                aria-pressed={bundle.category === c}
-                // 분류를 바꾸면 사람 여부도 그 분류의 기본으로 (동의 기록은 남겨 둔다)
-                onClick={() => change({ category: c, hasPeople: peopleByDefault(c) })}
-                className="min-h-9 rounded-full border border-line px-3 text-sm aria-pressed:border-text aria-pressed:bg-text aria-pressed:text-bg"
-              >
-                {CATEGORY_LABEL[c]}
-              </button>
-            ))}
-          </div>
-        </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="flex flex-col gap-1.5 text-sm">
             공개 범위

@@ -39,6 +39,7 @@ import { FollowButton } from "@/components/follow-button";
 import { MenuGroup, MoreMenu } from "./more-menu";
 import { type PhotoBack, PhotoFlip } from "./photo-flip";
 import { KST } from "@/lib/format/kst";
+import { SOCIALS, socialFromUrl } from "@/lib/photos/social-id";
 
 const dateFormat = KST.date;
 const dateTimeFormat = KST.monthDayTime;
@@ -365,6 +366,7 @@ export async function PostDetail({ id }: { id: string }) {
                       ) : c.external_url ? (
                         <a href={c.external_url} rel="nofollow noopener noreferrer ugc" target="_blank" className="underline underline-offset-2">
                           {c.external_label}
+                          {socialBadge(c.external_url, c.external_label)}
                         </a>
                       ) : (
                         <span>{c.external_label}</span>
@@ -407,4 +409,11 @@ export async function PostDetail({ id }: { id: string }) {
       )}
     </article>
   );
+}
+
+/** 미가입 크레딧이 인스타그램 · X 아이디면 이름 옆에 '인스타 @아이디' (이름이 곧 @아이디면 종류만) */
+function socialBadge(url: string, label: string | null) {
+  const s = socialFromUrl(url);
+  if (!s) return null;
+  return <span className="ml-1 text-xs text-quiet">{label === `@${s.id}` ? SOCIALS[s.kind].short : `${SOCIALS[s.kind].short} @${s.id}`}</span>;
 }

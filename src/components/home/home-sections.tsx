@@ -324,7 +324,7 @@ export function LatestSection({ items, member }: { items: FeedItem[]; member: bo
 export function CommunitySection({ posts }: { posts: { id: string; board: BoardKind; title: string; replies: number }[] }) {
   return (
     <section aria-labelledby="community-new">
-      <SectionHead id="community-new" title="커뮤니티 새 글" sub="구인 · 섭외 · 촬영 장소 · 질문" href="/community" linkLabel="커뮤니티" />
+      <SectionHead id="community-new" title="커뮤니티 새 글" sub="촬영 장소 · 자유 · 질문" href="/community" linkLabel="커뮤니티" />
       {posts.length === 0 ? (
         <p className="px-4 text-sm text-quiet md:px-6">
           아직 글이 없어요.{" "}

@@ -88,10 +88,6 @@ export function EditForm({ initial, viewerHandle }: { initial: Initial; viewerHa
           setError("촬영 동의 기록(사진 속 인물 · 동의 받은 날)을 적어 주세요.");
           return;
         }
-        if (hasPeople && consent.hasMinor && !consent.guardianConsent) {
-          setError("미성년자가 있으면 보호자 동의가 필요해요.");
-          return;
-        }
         startTransition(async () => {
           if (hasPeople !== initial.hasPeople || (hasPeople && wroteConsent)) {
             const people = await updatePeople({ postId: initial.postId, hasPeople, consent: hasPeople && wroteConsent ? consent : null });

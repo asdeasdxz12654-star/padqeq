@@ -27,7 +27,7 @@ export default async function NewMessagePage({ searchParams }: PageProps<"/me/me
       </Link>
       <h1 className="mt-4 text-xl font-bold">@{profile.handle}에게 메시지</h1>
       <p className="mt-2 text-sm leading-relaxed text-quiet">
-        상대가 나를 팔로우하지 않으면 &lsquo;메시지 요청&rsquo;으로 가요. 섭외 제안은 섭외 게시판에서 지원하면 문의서가 함께 붙어요.
+        상대가 나를 팔로우하지 않으면 &lsquo;메시지 요청&rsquo;으로 가요.
       </p>
       <div className="mt-6">
         <NewMessageForm recipient={profile.id} />

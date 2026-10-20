@@ -10,7 +10,7 @@ type Receive = "everyone" | "following" | "none";
 const OPTIONS: { value: Receive; label: string; help: string }[] = [
   { value: "everyone", label: "모두", help: "내가 팔로우하지 않는 사람의 메시지는 '메시지 요청'으로 와요." },
   { value: "following", label: "내가 팔로우한 사람만", help: "그 밖의 사람은 새 대화를 시작할 수 없어요." },
-  { value: "none", label: "받지 않음", help: "새 대화를 받지 않아요. 이미 있는 대화와 섭외 지원은 그대로예요." },
+  { value: "none", label: "받지 않음", help: "새 대화를 받지 않아요. 이미 있는 대화는 그대로예요." },
 ];
 
 export function MessageSettings({ receive, blocked }: { receive: Receive; blocked: { id: string; handle: string }[] }) {
