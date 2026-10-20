@@ -134,7 +134,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
               <h1 className="truncate text-xl font-bold">{profile.display_name}</h1>
               {isMe && (
                 <Link
-                  href="/settings#profile-heading"
+                  href="/settings"
                   className="inline-flex min-h-8 shrink-0 items-center rounded-full border border-line px-2.5 text-xs text-quiet hover:border-quiet hover:text-text"
                 >
                   프로필 수정

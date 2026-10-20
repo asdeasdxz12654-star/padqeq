@@ -38,7 +38,7 @@ export function LoginMethods({
     setError(null);
     startTransition(async () => {
       const redirectTo = new URL("/auth/callback", window.location.origin);
-      redirectTo.searchParams.set("next", "/settings");
+      redirectTo.searchParams.set("next", "/settings/account");
       redirectTo.searchParams.set("link", "1");
       const { error } = await createClient().auth.linkIdentity({
         provider: method,

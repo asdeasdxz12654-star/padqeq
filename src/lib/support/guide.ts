@@ -43,7 +43,7 @@ export const GUIDE: GuideItem[] = [
     id: "veiled",
     q: "흐리게 가려진 사진이 있어요.",
     a: "피 분장 · 공포 분장 · 벌레처럼 보기 불편할 수 있는 사진에는 가림 표시가 붙어요. 전체 이용가 사진이지만 눌러야 보이게 해 둔 거예요. 가리지 않고 바로 보고 싶으면 설정에서 바꿀 수 있어요.",
-    links: [{ href: "/settings", label: "설정에서 바꾸기" }],
+    links: [{ href: "/settings/display#viewing", label: "설정에서 바꾸기" }],
   },
   {
     id: "upload",

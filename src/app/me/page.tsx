@@ -123,7 +123,7 @@ export default async function MePage() {
         {account?.deletion_requested_at && (
           <p className="rounded-xl border border-danger-line bg-danger-soft px-4 py-3 text-sm text-danger">
             계정 삭제가 예약돼 있어요. 다른 사람에게는 내 프로필과 게시물이 보이지 않아요.{" "}
-            <Link href="/settings#delete-heading" className="font-semibold underline underline-offset-2">
+            <Link href="/settings/data#delete" className="font-semibold underline underline-offset-2">
               설정에서 취소
             </Link>
           </p>

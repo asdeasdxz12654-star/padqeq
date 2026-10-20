@@ -14,7 +14,7 @@ export async function setCreditAutoApprove(on: boolean): Promise<{ ok: true } | 
   const supabase = await createClient();
   const { error } = await supabase.from("profiles").update({ credit_auto_approve: on }).eq("id", viewer.id);
   if (error) return { ok: false, error: "저장하지 못했어요." };
-  revalidatePath("/settings");
+  revalidatePath("/settings", "layout");
   return { ok: true };
 }
 
@@ -49,6 +49,6 @@ export async function setMemoryAlerts(on: boolean): Promise<{ ok: true } | { ok:
   const supabase = await createClient();
   const { error } = await supabase.from("profiles").update({ memory_alerts: on === true }).eq("id", viewer.id);
   if (error) return { ok: false, error: "저장하지 못했어요." };
-  revalidatePath("/settings");
+  revalidatePath("/settings", "layout");
   return { ok: true };
 }

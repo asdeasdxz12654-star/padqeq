@@ -103,7 +103,7 @@ export async function setBlock(userId: string, block: boolean): Promise<Result> 
     : await m.supabase.from("blocks").delete().eq("blocker_id", m.viewer.id).eq("blocked_id", userId);
   if (error && error.code !== "23505") return { ok: false, error: "처리하지 못했어요." };
   revalidatePath("/me/messages");
-  revalidatePath("/settings");
+  revalidatePath("/settings", "layout");
   return { ok: true };
 }
 
@@ -119,6 +119,6 @@ export async function setMessageReceive(receive: "everyone" | "following" | "non
   let error = updated.error;
   if (!error && !updated.data?.length) ({ error } = await m.supabase.from("message_settings").insert({ user_id: m.viewer.id, receive }));
   if (error) return { ok: false, error: "저장하지 못했어요." };
-  revalidatePath("/settings");
+  revalidatePath("/settings", "layout");
   return { ok: true };
 }

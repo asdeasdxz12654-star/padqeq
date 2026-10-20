@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
   if (linking && (searchParams.has("error") || searchParams.has("error_code"))) {
     const code = searchParams.get("error_code") ?? "oauth";
-    return go(`/settings?link_error=${encodeURIComponent(code.replace(/[^a-z_]/g, "").slice(0, 40) || "oauth")}#account-heading`);
+    return go(`/settings/account?link_error=${encodeURIComponent(code.replace(/[^a-z_]/g, "").slice(0, 40) || "oauth")}`);
   }
   // 사용자가 카카오 · Google 동의 화면에서 취소한 경우 등
   if (searchParams.has("error")) return fail("oauth");
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (error) {
-      if (linking) return go(`/settings?link_error=${error.code === "identity_already_exists" ? "identity_already_exists" : "oauth"}#account-heading`);
+      if (linking) return go(`/settings/account?link_error=${error.code === "identity_already_exists" ? "identity_already_exists" : "oauth"}`);
       return fail(error.code === "flow_state_expired" ? "expired" : "oauth");
     }
   }
