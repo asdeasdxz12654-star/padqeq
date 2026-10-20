@@ -4,7 +4,7 @@ import { z } from "zod";
 // 최종 판단은 DB가 한다 (여기서는 빠른 안내용).
 
 /** 동의한 약관 · 개인정보처리방침 버전. 문서를 고치면 올린다. */
-export const POLICY_VERSION = "2026-10-20.1";
+export const POLICY_VERSION = "2026-10-20.2";
 
 export const MIN_AGE = 14;
 

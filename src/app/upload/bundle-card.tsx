@@ -9,6 +9,7 @@ import type { VeilReason } from "@/lib/posts/veil-reasons";
 import { CATEGORIES, type ConsentInput } from "@/lib/photos/post-input";
 import { timeRange } from "@/lib/photos/grouping";
 import { autoTitle, veilOffered } from "@/lib/photos/write-defaults";
+import { SOCIALS, SOCIAL_KINDS, type Social, socialUrl } from "@/lib/photos/social-id";
 import { MIN_YEAR } from "@/lib/year-chips";
 import type { Draft } from "./publish-bundle";
 import { localDate } from "./publish-bundle";
@@ -54,6 +55,8 @@ export const emptyConsent = (): ConsentInput => ({
   note: "",
   hasMinor: false,
   guardianConsent: false,
+  subjectVia: "instagram",
+  subjectId: "",
 });
 
 /** 게시할 수 없는 이유 (없으면 null) */
@@ -64,6 +67,7 @@ export function bundleProblem(bundle: Bundle, photos: Photo[]): string | null {
   if (bundle.hasPeople) {
     const c = bundle.consent;
     if (!c.subjectLabel.trim() || !c.consentedOn) return "동의 기록 칸을 채워 주세요";
+    if (c.subjectId?.trim() && !socialUrl(c.subjectVia ?? "instagram", c.subjectId)) return "인물 SNS 아이디를 확인해 주세요";
   }
   return null;
 }
@@ -343,6 +347,47 @@ export function BundleCard({
   );
 }
 
+/** 사진 속 인물의 인스타그램 · X 아이디 (선택, 크레딧의 미가입 아이디와 같은 모양). 저장은 주소로 한다 */
+function SubjectSocial({ consent, setConsent }: { consent: ConsentInput; setConsent(patch: Partial<ConsentInput>): void }) {
+  const via: Social = consent.subjectVia ?? "instagram";
+  const id = consent.subjectId ?? "";
+  const bad = id.trim() !== "" && !socialUrl(via, id);
+  return (
+    <div className="flex flex-col gap-1 text-sm">
+      <span id="subject-social-label">
+        인물 SNS <span className="text-xs text-quiet">선택 · 동의해 준 분의 계정</span>
+      </span>
+      <div className="flex gap-2">
+        <select
+          value={via}
+          onChange={(e) => setConsent({ subjectVia: e.target.value as Social })}
+          aria-label="어디 아이디인지"
+          className={`${inputClass} w-32 shrink-0`}
+        >
+          {SOCIAL_KINDS.map((k) => (
+            <option key={k} value={k}>
+              {SOCIALS[k].label}
+            </option>
+          ))}
+        </select>
+        <input
+          value={id}
+          onChange={(e) => setConsent({ subjectId: e.target.value })}
+          maxLength={31}
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          placeholder="@아이디"
+          aria-labelledby="subject-social-label"
+          aria-invalid={bad}
+          className={`${inputClass} min-w-0 flex-1`}
+        />
+      </div>
+      {bad && <p className="text-xs text-danger">아이디는 영문 · 숫자 · {via === "instagram" ? "마침표 · " : ""}밑줄만 쓸 수 있어요.</p>}
+    </div>
+  );
+}
+
 /** 사진에 사람이 나와요 · 촬영 동의 기록 (올리기 · 게시물 편집에서 함께 씀) */
 export function PeopleAndConsent({
   hasPeople,
@@ -382,7 +427,7 @@ export function PeopleAndConsent({
               <span>
                 사진 속 인물 <span className="text-xs text-accent">필수</span>
               </span>
-              <input maxLength={60} placeholder="예: 코스어 달빛 · 인스타 @moon_cos" value={consent.subjectLabel} onChange={(e) => setConsent({ subjectLabel: e.target.value })} className={inputClass} />
+              <input maxLength={60} placeholder="예: 코스어 달빛" value={consent.subjectLabel} onChange={(e) => setConsent({ subjectLabel: e.target.value })} className={inputClass} />
             </label>
             <label className="flex flex-col gap-1 text-sm">
               <span>
@@ -397,6 +442,7 @@ export function PeopleAndConsent({
               />
             </label>
           </div>
+          <SubjectSocial consent={consent} setConsent={setConsent} />
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
             {!memoOpen && (
               <button type="button" onClick={() => setMemoOpen(true)} className="ml-auto min-h-10 text-sm font-semibold text-accent">

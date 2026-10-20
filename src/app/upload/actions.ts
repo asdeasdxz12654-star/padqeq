@@ -201,6 +201,7 @@ export async function publishPost(
       consent_note: c.note,
       has_minor: c.hasMinor,
       guardian_consent: c.guardianConsent,
+      ...(c.subjectUrl && { subject_url: c.subjectUrl }),
     }),
   });
   // 동의 기록은 작성자 · 운영자만 남긴다 (RLS). 게시 규칙(DB 트리거)도 여기서 걸린다.

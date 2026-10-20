@@ -50,7 +50,7 @@ export default function PrivacyPage() {
           </tr>
           <tr>
             <td>촬영 동의 기록</td>
-            <td>사진에 나온 분의 표기 이름, 동의 날짜 · 방법 메모</td>
+            <td>사진에 나온 분의 표기 이름 · 인스타그램 또는 X 계정(선택), 동의 날짜 · 방법 메모</td>
             <td>초상권 보호 · 신고 대응 (운영자만 열람)</td>
           </tr>
           <tr>

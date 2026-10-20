@@ -5,6 +5,7 @@ import { currentYearKst, MIN_YEAR } from "@/lib/year-chips";
 import { creditSchema, MAX_CREDITS_PER_POST } from "./credit-input";
 import { isPanorama, VARIANTS, variantSize } from "./variants";
 import { CATEGORIES } from "./categories";
+import { socialUrl } from "./social-id";
 
 export { CATEGORIES, CATEGORY_LABEL } from "./categories";
 
@@ -84,9 +85,17 @@ export const consentSchema = z
     note: z.string().trim().max(500).default(""),
     hasMinor: z.boolean(),
     guardianConsent: z.boolean(),
+    // 사진 속 인물의 인스타그램 · X 아이디 (선택). 서버에서 주소(subjectUrl)로 바꿔 남긴다
+    subjectVia: z.enum(["instagram", "x"]).default("instagram"),
+    subjectId: z.string().trim().max(31).default(""),
   })
   .refine((c) => !c.hasMinor || c.guardianConsent, {
     error: "미성년자가 있으면 보호자 동의가 필요해요.",
     path: ["guardianConsent"],
+  })
+  .transform((c, ctx) => {
+    const subjectUrl = c.subjectId ? socialUrl(c.subjectVia, c.subjectId) : null;
+    if (c.subjectId && !subjectUrl) ctx.addIssue({ code: "custom", message: "인물의 SNS 아이디를 확인해 주세요.", path: ["subjectId"] });
+    return { ...c, subjectUrl };
   });
 export type ConsentInput = z.input<typeof consentSchema>;

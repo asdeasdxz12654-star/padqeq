@@ -34,6 +34,7 @@ export async function updatePeople(input: { postId: string; hasPeople: boolean; 
       note: c.note,
       has_minor: c.hasMinor,
       guardian_consent: c.guardianConsent,
+      subject_url: c.subjectUrl,
       created_by: viewer.id,
     });
     if (error) return { ok: false, error: "동의 기록을 남기지 못했어요." };

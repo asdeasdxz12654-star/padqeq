@@ -637,6 +637,7 @@ export type Database = {
           post_id: string | null
           source_post_id: string
           subject_label: string
+          subject_url: string | null
         }
         Insert: {
           consented_on: string
@@ -651,6 +652,7 @@ export type Database = {
           post_id?: string | null
           source_post_id?: string
           subject_label: string
+          subject_url?: string | null
         }
         Update: {
           consented_on?: string
@@ -665,6 +667,7 @@ export type Database = {
           post_id?: string | null
           source_post_id?: string
           subject_label?: string
+          subject_url?: string | null
         }
         Relationships: [
           {
@@ -2386,6 +2389,7 @@ export type Database = {
           guardian_consent?: boolean
           has_minor?: boolean
           subject_label?: string
+          subject_url?: string
           target: string
         }
         Returns: undefined

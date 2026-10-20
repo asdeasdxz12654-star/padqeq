@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { REASON_LABEL, type ReportReason } from "@/lib/moderation/reasons";
 import { photoSources } from "@/lib/photos/server";
+import { SOCIALS, socialFromUrl } from "@/lib/photos/social-id";
 import { profileHref } from "@/lib/profiles/profile-href";
 import { getViewer } from "@/lib/auth/viewer";
 import { createClient } from "@/lib/supabase/server";
@@ -58,12 +59,34 @@ export type AppealRow = {
 export const APPEAL_POST = `post:posts!appeals_post_id_fkey(id, title, status, held_at, held_reason, removed_at, has_people,
   author:profiles!posts_author_id_fkey(id, handle))`;
 
+/** 촬영 동의 기록 한 줄씩 (인물 SNS가 있으면 '인스타 @아이디' 링크) */
+function ConsentList({ records, minorLabel }: { records: { subject_label: string; consented_on: string; has_minor: boolean; subject_url: string | null }[]; minorLabel: string }) {
+  return records.map((c, i) => {
+    const social = socialFromUrl(c.subject_url);
+    return (
+      <span key={i}>
+        {i > 0 && ", "}
+        {c.subject_label} · {c.consented_on}
+        {c.has_minor && ` · ${minorLabel}`}
+        {c.subject_url && (
+          <>
+            {" · "}
+            <a href={c.subject_url} target="_blank" rel="noopener noreferrer nofollow" className="underline underline-offset-2">
+              {social ? `${SOCIALS[social.kind].short} @${social.id}` : c.subject_url}
+            </a>
+          </>
+        )}
+      </span>
+    );
+  });
+}
+
 export async function AppealDetail({ appeal, post, backHref = "/admin/reports?tab=appeals" }: { appeal: AppealRow; post: NonNullable<AppealRow["post"]>; backHref?: string }) {
   const supabase = await createClient();
   const [photos, reports, consents, evidence] = await Promise.all([
     supabase.from("photos").select("storage_key, width, height, position").eq("post_id", post.id).order("position").limit(1),
     supabase.from("reports").select("id, reason, detail, status, created_at").eq("post_id", post.id).order("created_at"),
-    supabase.from("consent_records").select("subject_label, consented_on, has_minor").eq("post_id", post.id),
+    supabase.from("consent_records").select("subject_label, consented_on, has_minor, subject_url").eq("post_id", post.id),
     supabase.from("appeal_evidence").select("id").eq("appeal_id", appeal.id).not("uploaded_at", "is", null).order("created_at"),
   ]);
   const photo = photos.data?.[0];
@@ -91,7 +114,7 @@ export async function AppealDetail({ appeal, post, backHref = "/admin/reports?ta
           <span className="text-quiet">
             촬영 동의 기록:{" "}
             {consents.data?.length
-              ? consents.data.map((c) => `${c.subject_label} · ${c.consented_on}${c.has_minor ? " · 미성년자" : ""}`).join(", ")
+              ? <ConsentList records={consents.data} minorLabel="미성년자" />
               : post.has_people
                 ? "없음"
                 : "해당 없음"}
@@ -145,7 +168,7 @@ export async function ReportDetail({ group, backHref }: { group: { post: NonNull
   const reporterIds = [...new Set(reports.flatMap((r) => (r.reporter ? [r.reporter.id] : [])))];
   const [photos, consents, reporterStats] = await Promise.all([
     supabase.from("photos").select("storage_key, width, height, position").eq("post_id", post.id).order("position"),
-    supabase.from("consent_records").select("subject_label, consented_on, has_minor, guardian_consent").eq("post_id", post.id),
+    supabase.from("consent_records").select("subject_label, consented_on, has_minor, guardian_consent, subject_url").eq("post_id", post.id),
     // 신고자 이력 (허위 신고 판단용)
     reporterIds.length ? supabase.rpc("admin_reporter_stats", { ids: reporterIds }) : Promise.resolve({ data: [] }),
   ]);
@@ -190,7 +213,7 @@ export async function ReportDetail({ group, backHref }: { group: { post: NonNull
                 ? "최고 관리자만 볼 수 있어요"
                 : "해당 없음 (사람 없는 사진)"
               : consents.data?.length
-              ? consents.data.map((c) => `${c.subject_label} · ${c.consented_on}${c.has_minor ? " · 미성년자(보호자 동의)" : ""}`).join(", ")
+              ? <ConsentList records={consents.data} minorLabel="미성년자(보호자 동의)" />
               : post.has_people
                 ? "없음"
                 : "해당 없음 (사람 없는 사진)"}
